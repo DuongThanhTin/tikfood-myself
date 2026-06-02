@@ -1,5 +1,6 @@
 import { slugify } from "../utils/slugify.js";
 import { prepareGitWorkspace } from "../tools/gitWorkspace.js";
+import { readRepoContext } from "../tools/repoContext.js";
 
 type FeatureRequest = {
   feature_id: string;
@@ -128,23 +129,30 @@ export async function runFeatureJob(body: unknown): Promise<RunnerFailureRespons
       featureId: request.feature_id
     });
 
-    // TODO: Implement repo context reading, OpenAI calls, guarded edits,
-    // verification, reviewer, commit, push, and success response.
+    const context = await readRepoContext(workspace.repoPath);
+
+    // TODO: Implement OpenAI calls, guarded edits, verification, reviewer,
+    // commit, push, and success response.
     return {
       success: false,
       feature_id: request.feature_id,
       repo: request.repo,
       stage: "model",
-      error: "Git workspace prepared, but OpenAI planning and code editing are not implemented yet.",
+      error: "Git workspace and repo context prepared, but OpenAI planning and code editing are not implemented yet.",
       logs: [
         `workspace=${workspace.workspaceRoot}`,
         `repo_path=${workspace.repoPath}`,
         `remote=${workspace.remoteUrl}`,
         `branch=${workspace.branch}`,
         `base_commit=${workspace.commitSha}`,
-        `status=${workspace.status || "clean"}`
+        `status=${workspace.status || "clean"}`,
+        `docs_read=${context.docsRead.join(",") || "none"}`,
+        `safe_files_read=${context.safeFilesRead.join(",") || "none"}`,
+        `missing_expected_files=${context.missingExpectedFiles.join(",") || "none"}`,
+        `skipped_sensitive_paths=${context.skippedSensitivePaths.join(",") || "none"}`,
+        `detected=${JSON.stringify(context.detected)}`
       ].join("\n"),
-      recommendation: "Implement repo context reading and model-driven edit planning next."
+      recommendation: "Implement model-driven edit planning with the collected repo context next."
     };
   } catch (error) {
     return {

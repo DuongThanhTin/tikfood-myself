@@ -10,11 +10,11 @@ Implemented now:
 - Basic required-field validation
 - MVP anti-goal detection
 - Git workspace preparation: clone, checkout base branch, create local `ai/*` branch, read status
+- Safe repo context reading for root docs/config and `docs/**`
 - Honest failure response at `stage: "model"` because model planning, edits, review, commit, and push are still TODO
 
 TODO:
 
-- Read repo context using `packages/prompts/repo-context-reader.md`.
 - Call OpenAI with `packages/prompts/coding-agent.md`.
 - Run allowlisted checks.
 - Inspect diffs and protected paths.

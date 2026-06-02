@@ -30,7 +30,7 @@ curl -X POST http://localhost:8080/jobs/feature \
   -d @examples/feature-requests/tikfood-realtime-map.json
 ```
 
-For a valid accessible repo, the MVP runner prepares a Git workspace, creates a local `ai/*` branch, then returns a failure response with `stage: "model"`. That is expected until context reading, OpenAI planning, guarded edits, review, commit, and push behavior are implemented.
+For a valid accessible repo, the MVP runner prepares a Git workspace, creates a local `ai/*` branch, reads safe repo context, then returns a failure response with `stage: "model"`. That is expected until OpenAI planning, guarded edits, review, commit, and push behavior are implemented.
 
 ## Run ai-code-runner Outside Docker
 
