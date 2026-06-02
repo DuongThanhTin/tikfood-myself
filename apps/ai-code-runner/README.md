@@ -9,12 +9,11 @@ Implemented now:
 - Basic JSON parsing
 - Basic required-field validation
 - MVP anti-goal detection
-- Honest skeleton failure response for unimplemented clone/model/edit/push behavior
+- Git workspace preparation: clone, checkout base branch, create local `ai/*` branch, read status
+- Honest failure response at `stage: "model"` because model planning, edits, review, commit, and push are still TODO
 
 TODO:
 
-- Clone target repositories into isolated workspaces.
-- Create `ai/{feature_id}-{slug}` branches.
 - Read repo context using `packages/prompts/repo-context-reader.md`.
 - Call OpenAI with `packages/prompts/coding-agent.md`.
 - Run allowlisted checks.

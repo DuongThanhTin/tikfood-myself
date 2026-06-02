@@ -30,7 +30,7 @@ curl -X POST http://localhost:8080/jobs/feature \
   -d @examples/feature-requests/tikfood-realtime-map.json
 ```
 
-The MVP skeleton should return a failure response with `stage: "skeleton"` unless the request is blocked earlier by validation or policy. That is expected until clone/model/edit/push behavior is implemented.
+For a valid accessible repo, the MVP runner prepares a Git workspace, creates a local `ai/*` branch, then returns a failure response with `stage: "model"`. That is expected until context reading, OpenAI planning, guarded edits, review, commit, and push behavior are implemented.
 
 ## Run ai-code-runner Outside Docker
 

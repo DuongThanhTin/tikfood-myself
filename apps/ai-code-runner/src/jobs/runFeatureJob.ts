@@ -1,4 +1,5 @@
 import { slugify } from "../utils/slugify.js";
+import { prepareGitWorkspace } from "../tools/gitWorkspace.js";
 
 type FeatureRequest = {
   feature_id: string;
@@ -119,15 +120,41 @@ export async function runFeatureJob(body: unknown): Promise<RunnerFailureRespons
     };
   }
 
-  // TODO: Implement clone, branch creation, repo context reading, OpenAI calls,
-  // allowlisted command execution, review, commit, push, and success response.
-  return {
-    success: false,
-    feature_id: request.feature_id,
-    repo: request.repo,
-    stage: "skeleton",
-    error: "ai-code-runner is an MVP skeleton. Automated implementation is not wired yet.",
-    logs: `planned_branch=${branch}`,
-    recommendation: "Implement the TODO runner stages before using this service to create PR branches."
-  };
+  try {
+    const workspace = await prepareGitWorkspace({
+      repo: request.repo,
+      baseBranch: request.base_branch,
+      branch,
+      featureId: request.feature_id
+    });
+
+    // TODO: Implement repo context reading, OpenAI calls, guarded edits,
+    // verification, reviewer, commit, push, and success response.
+    return {
+      success: false,
+      feature_id: request.feature_id,
+      repo: request.repo,
+      stage: "model",
+      error: "Git workspace prepared, but OpenAI planning and code editing are not implemented yet.",
+      logs: [
+        `workspace=${workspace.workspaceRoot}`,
+        `repo_path=${workspace.repoPath}`,
+        `remote=${workspace.remoteUrl}`,
+        `branch=${workspace.branch}`,
+        `base_commit=${workspace.commitSha}`,
+        `status=${workspace.status || "clean"}`
+      ].join("\n"),
+      recommendation: "Implement repo context reading and model-driven edit planning next."
+    };
+  } catch (error) {
+    return {
+      success: false,
+      feature_id: request.feature_id,
+      repo: request.repo,
+      stage: "git_workspace",
+      error: error instanceof Error ? error.message : "Failed to prepare Git workspace.",
+      logs: `planned_branch=${branch}`,
+      recommendation: "Check repository URL, GitHub authentication, base_branch, and runner workspace permissions."
+    };
+  }
 }
