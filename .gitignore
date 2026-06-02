@@ -7,11 +7,14 @@ node_modules/
 dist/
 build/
 coverage/
+.next/
 tmp/
 logs/
 *.log
+*.tsbuildinfo
 .DS_Store
 .vscode/
 .idea/
 runner_workspace/
 .ai-code-runner/
+.cache/

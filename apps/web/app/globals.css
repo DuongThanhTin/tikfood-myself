@@ -1,0 +1,156 @@
+:root {
+  color-scheme: light;
+  --ink: #17201b;
+  --muted: #66736b;
+  --line: #d9e2da;
+  --surface: #f8faf8;
+  --accent: #d7194f;
+  --accent-2: #0f8b6f;
+  --panel: #ffffff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  color: var(--ink);
+  background: var(--surface);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.shell {
+  width: min(1120px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 32px 0;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(320px, 1.1fr);
+  gap: 24px;
+  align-items: stretch;
+  min-height: 360px;
+}
+
+.eyebrow {
+  margin: 0 0 12px;
+  color: var(--accent-2);
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+h1 {
+  max-width: 560px;
+  margin: 0;
+  font-size: 48px;
+  line-height: 1.04;
+}
+
+.lede {
+  max-width: 560px;
+  color: var(--muted);
+  font-size: 18px;
+  line-height: 1.55;
+}
+
+.mapPanel {
+  position: relative;
+  min-height: 360px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background:
+    linear-gradient(90deg, rgba(23, 32, 27, 0.08) 1px, transparent 1px),
+    linear-gradient(rgba(23, 32, 27, 0.08) 1px, transparent 1px),
+    linear-gradient(135deg, #e9f3ee, #f8fbf6 55%, #eaf4f2);
+  background-size: 56px 56px, 56px 56px, 100% 100%;
+}
+
+.marker {
+  position: absolute;
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border: 3px solid #ffffff;
+  border-radius: 50%;
+  color: #ffffff;
+  background: var(--accent);
+  box-shadow: 0 12px 30px rgba(23, 32, 27, 0.22);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.venues {
+  margin-top: 28px;
+}
+
+.sectionTitle {
+  margin: 0 0 14px;
+  font-size: 22px;
+}
+
+.venueGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.venueCard {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  padding: 18px;
+}
+
+.venueHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.venueName {
+  margin: 0;
+  font-size: 20px;
+}
+
+.score {
+  flex: 0 0 auto;
+  color: var(--accent);
+  font-weight: 800;
+}
+
+.meta {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.dishList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.dish {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 6px 10px;
+  color: var(--ink);
+  background: #f4f8f5;
+  font-size: 13px;
+}
+
+@media (max-width: 800px) {
+  .hero,
+  .venueGrid {
+    grid-template-columns: 1fr;
+  }
+
+  h1 {
+    font-size: 36px;
+  }
+}

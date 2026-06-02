@@ -10,6 +10,8 @@ TikFood is not a delivery, ordering, checkout, payment, booking, reservation, ch
 
 ```text
 apps/
+  api/                  Go backend for TikFood discovery MVP
+  web/                  Next.js frontend for TikFood discovery MVP
   ai-code-runner/       MVP runner skeleton and service README
 packages/
   prompts/              Canonical runtime prompts used by the runner
@@ -36,6 +38,8 @@ docker compose up --build
 
 Local URLs:
 
+- web: `http://localhost:3000`
+- api: `http://localhost:18081`
 - n8n: `http://localhost:5678`
 - ai-code-runner: `http://localhost:8080`
 
@@ -46,6 +50,26 @@ http://ai-code-runner:8080/jobs/feature
 ```
 
 `AI_AGENT_URL` is optional for the MVP. The runner is expected to call OpenAI directly with `OPENAI_API_KEY` once the real implementation is added.
+
+## Run Monorepo Apps
+
+Backend:
+
+```bash
+npm run api:dev
+```
+
+Frontend:
+
+```bash
+npm run web:dev
+```
+
+Checks:
+
+```bash
+npm test
+```
 
 ## Test A Feature Request
 
@@ -70,17 +94,15 @@ Manual Trigger
 
 n8n should create PRs from runner output. It must not merge PRs.
 
-## Using This In A Real TikFood Repo
+## TikFood App Skeleton
 
-Copy `starters/tikfood/` into the real TikFood repository, then adapt:
+This repo now includes a real monorepo skeleton:
 
-- `.ai-agent.yaml`
-- `project-docs/VISION.md`
-- `project-docs/REQUIREMENTS.md`
-- `project-docs/ARCHITECTURE.md`
-- `project-docs/TASKBOARD.md`
+- `apps/api`: Go API with `GET /health` and `GET /api/v1/map/venues`
+- `apps/web`: Next.js App Router frontend for discovery
+- `apps/ai-code-runner`: automation runner
 
-The real TikFood app should keep backend code in Go and frontend code in Next.js TypeScript. This starter does not contain full app source code.
+The current product app is still MVP scaffold code. It is discovery-only and intentionally avoids delivery, ordering, checkout, payment, booking, reservation, chat, creator monetization, livestream, and social follow graph scope.
 
 ## Security Rules
 

@@ -31,7 +31,13 @@ Social ingestion
 -> Next.js frontend
 ```
 
-The real TikFood app should use Go for backend APIs and workers, PostgreSQL/PostGIS for MVP geo data, PostgreSQL full-text search for MVP search, and Next.js TypeScript for frontend UX.
+The monorepo now includes an MVP app skeleton:
+
+- `apps/api`: Go API for discovery endpoints.
+- `apps/web`: Next.js TypeScript frontend for discovery UX.
+- `apps/ai-code-runner`: automation runner.
+
+The future product architecture should add PostgreSQL/PostGIS for MVP geo data, PostgreSQL full-text search for MVP search, and worker processes for ingestion, trend scoring, and AI summaries.
 
 ## Product Guardrails
 

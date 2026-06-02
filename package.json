@@ -5,8 +5,16 @@
     "apps/*"
   ],
   "scripts": {
-    "build": "npm --workspace apps/ai-code-runner run build",
+    "api:dev": "cd apps/api && GOCACHE=$(pwd)/../../.cache/go-build go run ./cmd/server",
+    "api:test": "cd apps/api && GOCACHE=$(pwd)/../../.cache/go-build go test ./...",
+    "web:dev": "npm --workspace apps/web run dev",
+    "web:build": "npm --workspace apps/web run build",
+    "web:typecheck": "npm --workspace apps/web run typecheck",
+    "runner:build": "npm --workspace apps/ai-code-runner run build",
+    "runner:start": "npm --workspace apps/ai-code-runner start",
+    "runner:test": "npm --workspace apps/ai-code-runner test",
+    "build": "npm run runner:build && npm run web:build",
     "start": "npm --workspace apps/ai-code-runner start",
-    "test": "npm --workspace apps/ai-code-runner test"
+    "test": "npm run runner:test && npm run api:test && npm run web:typecheck"
   }
 }

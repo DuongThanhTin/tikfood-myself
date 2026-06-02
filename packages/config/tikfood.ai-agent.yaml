@@ -32,7 +32,7 @@ mvp_anti_goals:
 
 backend_stack:
   language: Go
-  frameworks: [Gin, chi]
+  frameworks: [net/http, Gin, chi]
   database: PostgreSQL + PostGIS
   search: PostgreSQL full-text search for MVP
   workers:
@@ -47,6 +47,9 @@ frontend_stack:
   ui: shadcn/ui
   map: MapLibre GL or Mapbox GL
   data_fetching: TanStack Query
+  current_paths:
+    api: apps/api
+    web: apps/web
 
 docs_required:
   before_coding:

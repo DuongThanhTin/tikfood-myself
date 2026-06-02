@@ -24,6 +24,8 @@ services:
         condition: service_healthy
       ai-code-runner:
         condition: service_started
+      api:
+        condition: service_started
     ports:
       - "5678:5678"
     environment:
@@ -41,6 +43,29 @@ services:
       AI_CODE_RUNNER_URL: http://ai-code-runner:8080/jobs/feature
     volumes:
       - n8n_data:/home/node/.n8n
+
+  api:
+    build:
+      context: ./apps/api
+    container_name: tikfood-api
+    restart: unless-stopped
+    ports:
+      - "18081:18081"
+    environment:
+      PORT: 18081
+
+  web:
+    build:
+      context: ./apps/web
+    container_name: tikfood-web
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_started
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://api:18081
 
   ai-code-runner:
     build:
