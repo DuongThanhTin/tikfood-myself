@@ -7,10 +7,17 @@
 - Runner skeleton
 - Manual Trigger
 - Test example request
+- TikFood monorepo skeleton with Go API and Next.js web
+- Git workspace preparation
+- Safe repo context reading
+- Keep OpenAI integration deferred to avoid API cost
 
 ## Phase 2
 
-- Real runner implementation
+- Optional OpenAI planning step
+- Optional OpenAI editing step
+- Guarded file edits
+- Verification commands
 - GitHub branch push
 - PR creation
 - Notifications

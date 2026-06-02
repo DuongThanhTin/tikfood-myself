@@ -5,9 +5,18 @@
 - Docker and Docker Compose
 - Node.js if you want to run `apps/ai-code-runner` outside Docker
 - A local `.env` created from `.env.example`
-- Least-privilege GitHub and OpenAI credentials for real runner work
+- Least-privilege GitHub credentials for push/PR automation later
+- OpenAI credentials only when you are ready to enable model planning/editing
 
 Do not commit `.env`.
+
+## OpenAI Usage Status
+
+OpenAI API usage is intentionally deferred for now to avoid API cost.
+
+Current runner behavior does not require `OPENAI_API_KEY`. It can validate feature requests, clone a repo, create a local `ai/*` branch, and read safe repo context. It stops at `stage: "model"` before any paid model call.
+
+When budget is available, follow `docs/openai-integration-plan.md` to enable planning and editing.
 
 ## Start The Stack
 
@@ -30,7 +39,7 @@ curl -X POST http://localhost:8080/jobs/feature \
   -d @examples/feature-requests/tikfood-realtime-map.json
 ```
 
-For a valid accessible repo, the MVP runner prepares a Git workspace, creates a local `ai/*` branch, reads safe repo context, then returns a failure response with `stage: "model"`. That is expected until OpenAI planning, guarded edits, review, commit, and push behavior are implemented.
+For a valid accessible repo, the MVP runner prepares a Git workspace, creates a local `ai/*` branch, reads safe repo context, then returns a failure response with `stage: "model"`. That is expected while OpenAI integration is deferred.
 
 ## Run ai-code-runner Outside Docker
 

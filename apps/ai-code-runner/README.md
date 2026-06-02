@@ -2,6 +2,8 @@
 
 This is an MVP skeleton for the TikFood AI automation runner. It is intentionally not production-ready.
 
+OpenAI API calls are intentionally deferred for now to avoid API cost. The current runner does not need `OPENAI_API_KEY` to validate requests, prepare Git workspaces, and read safe repo context.
+
 Implemented now:
 
 - `GET /health`
@@ -15,7 +17,7 @@ Implemented now:
 
 TODO:
 
-- Call OpenAI with `packages/prompts/coding-agent.md`.
+- Later, call OpenAI with `packages/prompts/coding-agent.md` when API budget is available.
 - Run allowlisted checks.
 - Inspect diffs and protected paths.
 - Run `packages/prompts/reviewer.md`.
