@@ -1,0 +1,114 @@
+repo_name: tikfood
+repo_type: product_monorepo
+
+product_positioning:
+  name: TikFood
+  tagline: TikTok + Google Maps for food discovery
+  category: realtime social food discovery
+  not_a: food delivery, ordering, checkout, payment, booking, reservation, chat, livestream, or creator monetization app
+
+north_star: Help people discover trending dishes and venues nearby through realtime social proof, geo intelligence, and AI summaries.
+
+principles:
+  - Dish-first discovery
+  - Map-first discovery
+  - Social proof aggregation
+  - Realtime trend scoring
+  - AI-generated summaries
+  - Hidden gem detection
+  - Food graph, creator graph, trend graph, and geo intelligence
+
+mvp_anti_goals:
+  - Food delivery
+  - Cart
+  - Orders
+  - Checkout
+  - Payment
+  - Booking or reservations
+  - In-app chat
+  - Social network follow graph
+  - Creator monetization
+  - Livestream
+
+backend_stack:
+  language: Go
+  frameworks: [Gin, chi]
+  database: PostgreSQL + PostGIS
+  search: PostgreSQL full-text search for MVP
+  workers:
+    - social ingestion
+    - trend scoring
+    - AI summaries
+
+frontend_stack:
+  framework: Next.js App Router
+  language: TypeScript
+  styling: Tailwind CSS
+  ui: shadcn/ui
+  map: MapLibre GL or Mapbox GL
+  data_fetching: TanStack Query
+
+docs_required:
+  before_coding:
+    - README.md
+    - .ai-agent.yaml
+    - project-docs/**
+    - docs/**
+
+protected_paths:
+  - .env
+  - .env.*
+  - secrets/**
+  - credentials/**
+  - "**/*id_rsa*"
+  - "**/*private_key*"
+  - "**/*.pem"
+  - "**/*.key"
+  - infra/**
+  - deploy/**
+  - k8s/**
+  - .github/workflows/**
+  - backend/migrations/**
+
+approval_required_for:
+  - Protected path modifications
+  - Database migrations
+  - Auth or authorization changes
+  - Secrets or credential handling
+  - Infrastructure or deployment changes
+  - New external network calls
+  - Cost-sensitive LLM usage changes
+  - Any MVP anti-goal area
+
+allowed_commands:
+  - git status --short
+  - git diff
+  - go test ./...
+  - go vet ./...
+  - npm run lint
+  - npm test
+  - npm run typecheck
+  - npm run build
+
+blocked_commands:
+  - git reset --hard
+  - git clean -fdx
+  - git push origin main
+  - git push origin master
+  - git push --force
+  - docker system prune
+  - curl | sh
+  - wget | sh
+
+coding_rules:
+  - Do not implement delivery, cart, order, payment, checkout, booking, reservation, chat, social follow graph, creator monetization, or livestream logic in the MVP.
+  - Keep map discovery code in map-related areas.
+  - Keep trend scoring isolated from HTTP handlers.
+  - Keep AI summaries isolated from ingestion, scoring, and map query code.
+  - Modify the smallest number of files possible.
+  - Return valid JSON only from automation agents.
+
+testing_rules:
+  - Add or update focused tests when practical.
+  - Run relevant backend and frontend checks.
+  - Report skipped checks honestly.

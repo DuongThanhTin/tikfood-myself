@@ -1,0 +1,16 @@
+{
+  "feature_id": "TIK-002",
+  "repo": "your-org/tikfood",
+  "base_branch": "main",
+  "title": "Add AI venue summary field",
+  "description": "Add an MVP venue summary that explains why a venue is trending based on available social proof and trend score data.",
+  "acceptance_criteria": [
+    "Backend response includes an ai_summary field for map venue results when summary data is available",
+    "Summary generation logic is isolated from ingestion, scoring, and HTTP handler code",
+    "Frontend displays the summary in the venue preview or detail surface",
+    "Empty summary values render gracefully",
+    "No delivery, cart, order, payment, or booking logic is added",
+    "Relevant tests are added or updated when possible"
+  ],
+  "mode": "feature"
+}

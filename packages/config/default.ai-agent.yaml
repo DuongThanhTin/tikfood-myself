@@ -1,0 +1,40 @@
+repo_type: generic_ai_target_repo
+
+docs_required:
+  before_coding:
+    - README.md
+    - .ai-agent.yaml
+    - docs/**
+
+protected_paths:
+  - .env
+  - .env.*
+  - secrets/**
+  - credentials/**
+  - "**/*id_rsa*"
+  - "**/*private_key*"
+  - "**/*.pem"
+  - "**/*.key"
+
+allowed_commands:
+  - git status --short
+  - git diff
+  - npm test
+  - npm run build
+  - go test ./...
+
+blocked_commands:
+  - git reset --hard
+  - git clean -fdx
+  - git push origin main
+  - git push origin master
+  - git push --force
+
+coding_rules:
+  - Read docs before coding.
+  - Modify the smallest number of files possible.
+  - Return valid JSON only from runtime agents.
+
+testing_rules:
+  - Run relevant checks.
+  - Report skipped checks honestly.

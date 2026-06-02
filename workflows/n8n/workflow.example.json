@@ -1,0 +1,62 @@
+{
+  "name": "TikFood AI Feature To PR MVP",
+  "nodes": [
+    {
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [0, 0],
+      "parameters": {}
+    },
+    {
+      "name": "Set Feature Request",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3,
+      "position": [240, 0],
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n  \"feature_id\": \"TIK-001\",\n  \"repo\": \"your-org/tikfood\",\n  \"base_branch\": \"main\",\n  \"title\": \"Create realtime trend map MVP\",\n  \"description\": \"Create the first MVP version of map-based discovery.\",\n  \"acceptance_criteria\": [\"No delivery, cart, order, payment, or booking logic is added\"],\n  \"mode\": \"feature\"\n}"
+      }
+    },
+    {
+      "name": "Run ai-code-runner",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [480, 0],
+      "parameters": {
+        "method": "POST",
+        "url": "http://ai-code-runner:8080/jobs/feature",
+        "sendBody": true,
+        "contentType": "json",
+        "jsonBody": "={{ $json }}"
+      }
+    },
+    {
+      "name": "Success?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [720, 0],
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.success }}",
+              "value2": true
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [[{ "node": "Set Feature Request", "type": "main", "index": 0 }]]
+    },
+    "Set Feature Request": {
+      "main": [[{ "node": "Run ai-code-runner", "type": "main", "index": 0 }]]
+    },
+    "Run ai-code-runner": {
+      "main": [[{ "node": "Success?", "type": "main", "index": 0 }]]
+    }
+  }
+}

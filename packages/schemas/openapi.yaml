@@ -1,0 +1,146 @@
+openapi: 3.1.0
+info:
+  title: TikFood AI Code Runner API
+  version: 0.1.0
+  description: Contract for the MVP ai-code-runner feature job endpoint.
+servers:
+  - url: http://localhost:8080
+    description: Local host URL
+  - url: http://ai-code-runner:8080
+    description: Docker network URL used by n8n
+paths:
+  /jobs/feature:
+    post:
+      summary: Run an AI feature implementation job
+      operationId: runFeatureJob
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FeatureRequest"
+      responses:
+        "200":
+          description: Feature job completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RunnerSuccessResponse"
+        "422":
+          description: Feature job failed or requires human review
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RunnerFailureResponse"
+components:
+  schemas:
+    FeatureRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - feature_id
+        - repo
+        - base_branch
+        - title
+        - description
+        - acceptance_criteria
+        - mode
+      properties:
+        feature_id:
+          type: string
+          minLength: 1
+        repo:
+          type: string
+          minLength: 1
+          description: GitHub repository in owner/name form.
+        base_branch:
+          type: string
+          minLength: 1
+        title:
+          type: string
+          minLength: 1
+        description:
+          type: string
+          minLength: 1
+        acceptance_criteria:
+          type: array
+          minItems: 1
+          items:
+            type: string
+        mode:
+          type: string
+          enum: [feature, review, dry_run]
+    RunnerSuccessResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - success
+        - feature_id
+        - repo
+        - branch
+        - commit_sha
+        - summary
+        - files_changed
+        - tests_run
+        - test_result
+        - risks
+        - pr_title
+        - pr_body
+      properties:
+        success:
+          const: true
+        feature_id:
+          type: string
+        repo:
+          type: string
+        branch:
+          type: string
+          pattern: "^ai/"
+        commit_sha:
+          type: string
+        summary:
+          type: string
+        files_changed:
+          type: array
+          items:
+            type: string
+        tests_run:
+          type: array
+          items:
+            type: string
+        test_result:
+          type: string
+          enum: [passed, failed, skipped]
+        risks:
+          type: array
+          items:
+            type: string
+        pr_title:
+          type: string
+        pr_body:
+          type: string
+    RunnerFailureResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - success
+        - feature_id
+        - stage
+        - error
+        - logs
+        - recommendation
+      properties:
+        success:
+          const: false
+        feature_id:
+          type: string
+        repo:
+          type: string
+        stage:
+          type: string
+        error:
+          type: string
+        logs:
+          type: string
+        recommendation:
+          type: string

@@ -1,0 +1,40 @@
+repo_name: tikfood
+repo_type: product_monorepo
+
+product_positioning: Realtime social food discovery, not food delivery.
+
+mvp_anti_goals:
+  - Food delivery
+  - Cart
+  - Orders
+  - Checkout
+  - Payment
+  - Booking or reservations
+  - In-app chat
+  - Social network follow graph
+  - Creator monetization
+  - Livestream
+
+docs_required:
+  before_coding:
+    - README.md
+    - .ai-agent.yaml
+    - project-docs/**
+
+protected_paths:
+  - .env
+  - .env.*
+  - secrets/**
+  - credentials/**
+  - infra/**
+  - deploy/**
+  - k8s/**
+  - .github/workflows/**
+
+approval_required_for:
+  - Protected path modifications
+  - Database migrations
+  - Auth or authorization changes
+  - Infrastructure changes
+  - New external network calls
+  - Any MVP anti-goal area

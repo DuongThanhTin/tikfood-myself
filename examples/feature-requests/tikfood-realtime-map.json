@@ -1,0 +1,19 @@
+{
+  "feature_id": "TIK-001",
+  "repo": "your-org/tikfood",
+  "base_branch": "main",
+  "title": "Create realtime trend map MVP",
+  "description": "Create the first MVP version of map-based discovery. Backend should expose venues with location and trend score. Frontend should display venues on a map with loading and error states.",
+  "acceptance_criteria": [
+    "Backend exposes GET /api/v1/map/venues",
+    "Endpoint returns venue id, name, address, latitude, longitude, district, categories, trend_score, and trending_dishes",
+    "Endpoint supports optional query parameters for district and dish",
+    "Response follows the existing TikFood API response format",
+    "Frontend has a map discovery page",
+    "Frontend displays venue markers using trend score",
+    "Frontend shows loading and error states",
+    "No delivery, cart, order, payment, or booking logic is added",
+    "Relevant tests are added or updated when possible"
+  ],
+  "mode": "feature"
+}

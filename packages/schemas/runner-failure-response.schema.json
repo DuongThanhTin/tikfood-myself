@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tikfood.local/schemas/runner-failure-response.schema.json",
+  "title": "RunnerFailureResponse",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "success",
+    "feature_id",
+    "stage",
+    "error",
+    "logs",
+    "recommendation"
+  ],
+  "properties": {
+    "success": { "const": false },
+    "feature_id": { "type": "string" },
+    "repo": { "type": "string" },
+    "stage": { "type": "string" },
+    "error": { "type": "string" },
+    "logs": { "type": "string" },
+    "recommendation": { "type": "string" }
+  }
+}

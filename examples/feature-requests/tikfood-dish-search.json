@@ -1,0 +1,16 @@
+{
+  "feature_id": "TIK-003",
+  "repo": "your-org/tikfood",
+  "base_branch": "main",
+  "title": "Add dish search for map discovery",
+  "description": "Add MVP dish search so users can filter map discovery results by dish name using existing PostgreSQL search capabilities.",
+  "acceptance_criteria": [
+    "Backend map venues endpoint accepts a dish query parameter",
+    "Dish filtering uses existing PostgreSQL-backed search patterns for MVP",
+    "Frontend map page includes a dish search input",
+    "Search state is reflected in map result loading and empty states",
+    "No delivery, cart, order, payment, or booking logic is added",
+    "Relevant tests are added or updated when possible"
+  ],
+  "mode": "feature"
+}

@@ -1,0 +1,12 @@
+{
+  "name": "tikfood-ai-automation-starter",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "build": "npm --workspace apps/ai-code-runner run build",
+    "start": "npm --workspace apps/ai-code-runner start",
+    "test": "npm --workspace apps/ai-code-runner test"
+  }
+}

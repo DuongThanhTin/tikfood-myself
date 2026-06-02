@@ -1,0 +1,17 @@
+.env
+.env.*
+
+node_modules/
+.env
+.env.*
+dist/
+build/
+coverage/
+tmp/
+logs/
+*.log
+.DS_Store
+.vscode/
+.idea/
+runner_workspace/
+.ai-code-runner/

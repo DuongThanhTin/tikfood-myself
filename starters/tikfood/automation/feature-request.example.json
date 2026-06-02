@@ -1,0 +1,13 @@
+{
+  "feature_id": "TIK-001",
+  "repo": "your-org/tikfood",
+  "base_branch": "main",
+  "title": "Create realtime trend map MVP",
+  "description": "Create map-first venue discovery with trend score markers.",
+  "acceptance_criteria": [
+    "Backend exposes a map venues endpoint",
+    "Frontend displays venues on a map",
+    "No delivery, cart, order, payment, or booking logic is added"
+  ],
+  "mode": "feature"
+}

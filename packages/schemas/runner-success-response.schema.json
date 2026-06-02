@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tikfood.local/schemas/runner-success-response.schema.json",
+  "title": "RunnerSuccessResponse",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "success",
+    "feature_id",
+    "repo",
+    "branch",
+    "commit_sha",
+    "summary",
+    "files_changed",
+    "tests_run",
+    "test_result",
+    "risks",
+    "pr_title",
+    "pr_body"
+  ],
+  "properties": {
+    "success": { "const": true },
+    "feature_id": { "type": "string" },
+    "repo": { "type": "string" },
+    "branch": { "type": "string", "pattern": "^ai/" },
+    "commit_sha": { "type": "string" },
+    "summary": { "type": "string" },
+    "files_changed": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "tests_run": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "test_result": {
+      "type": "string",
+      "enum": ["passed", "failed", "skipped"]
+    },
+    "risks": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "pr_title": { "type": "string" },
+    "pr_body": { "type": "string" }
+  }
+}
