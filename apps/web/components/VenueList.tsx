@@ -10,12 +10,14 @@ export function VenueList({ venues }: { venues: Venue[] }) {
             <div className="venueHeader">
               <div>
                 <h3 className="venueName">{venue.name}</h3>
+                <p className="meta">{venue.short_description}</p>
                 <p className="meta">
                   {venue.address} · {venue.district}
                 </p>
               </div>
               <span className="score">{venue.trend_score}</span>
             </div>
+            <p>{venue.about}</p>
             <p>{venue.ai_summary}</p>
             <div className="dishList">
               {venue.trending_dishes.map((dish) => (

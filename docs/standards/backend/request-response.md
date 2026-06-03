@@ -176,6 +176,9 @@ Response data item:
 {
   "id": "venue_001",
   "name": "Banh Mi Hem",
+  "slug": "banh-mi-hem-nguyen-trai-district-1",
+  "short_description": "Late-night banh mi spot trending on social video.",
+  "about": "A compact street-food venue known for grilled pork banh mi, quick service, and strong late-night local buzz.",
   "address": "12 Nguyen Trai",
   "district": "District 1",
   "latitude": 10.7712,

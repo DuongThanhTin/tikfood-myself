@@ -1,6 +1,9 @@
 export type Venue = {
   id: string;
   name: string;
+  slug: string;
+  short_description: string;
+  about: string;
   address: string;
   district: string;
   latitude: number;
@@ -20,6 +23,9 @@ const fallbackVenues: Venue[] = [
   {
     id: "venue_001",
     name: "Banh Mi Hem",
+    slug: "banh-mi-hem-nguyen-trai-district-1",
+    short_description: "Late-night banh mi spot trending on social video.",
+    about: "A compact street-food venue known for grilled pork banh mi, quick service, and strong late-night local buzz near Nguyen Trai.",
     address: "12 Nguyen Trai",
     district: "District 1",
     latitude: 10.7712,
@@ -32,6 +38,9 @@ const fallbackVenues: Venue[] = [
   {
     id: "venue_002",
     name: "Pho Bo Nguyen",
+    slug: "pho-bo-nguyen-le-van-sy-district-3",
+    short_description: "Breakfast pho shop with consistent creator mentions.",
+    about: "A neighborhood pho venue known for clear broth, beef toppings, and steady breakfast traffic from local regulars and food creators.",
     address: "88 Le Van Sy",
     district: "District 3",
     latitude: 10.7864,

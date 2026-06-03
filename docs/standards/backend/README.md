@@ -7,6 +7,8 @@ Any AI assistant or engineer changing `apps/api` must read these files before co
 - `docs/standards/backend/structure.md`
 - `docs/standards/backend/architecture.md`
 - `docs/standards/backend/dependencies.md`
+- `docs/standards/backend/database.md`
+- `docs/standards/backend/search-filtering.md`
 - `docs/standards/backend/request-response.md`
 - `docs/standards/backend/errors.md`
 - `docs/standards/backend/logging.md`
@@ -36,6 +38,7 @@ Current capabilities:
 - Log structured, non-sensitive context.
 - Add tests with each behavior change.
 - Design for PostgreSQL/PostGIS and workers later without adding premature infrastructure now.
+- Use `about` on venues and dishes for rich detail pages; use short descriptions for cards/list results.
 
 ## MVP Product Guardrails
 

@@ -8,6 +8,8 @@ Read these first for backend work:
 - `docs/standards/backend/structure.md`
 - `docs/standards/backend/architecture.md`
 - `docs/standards/backend/dependencies.md`
+- `docs/standards/backend/database.md`
+- `docs/standards/backend/search-filtering.md`
 - `docs/standards/backend/request-response.md`
 - `docs/standards/backend/errors.md`
 - `docs/standards/backend/logging.md`

@@ -37,4 +37,10 @@ func TestMapVenues(t *testing.T) {
 	if len(body.Data) != 1 {
 		t.Fatalf("expected one venue, got %d", len(body.Data))
 	}
+	if body.Data[0]["slug"] == "" {
+		t.Fatal("expected venue slug")
+	}
+	if body.Data[0]["about"] == "" {
+		t.Fatal("expected venue about")
+	}
 }
