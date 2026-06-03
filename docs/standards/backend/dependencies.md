@@ -1,17 +1,16 @@
 # Backend Dependency Standard
 
-Backend dependency policy is conservative by default.
+Backend dependency policy is explicit and conservative.
 
 ## Current Backend Dependencies
 
 The current backend uses:
 
 - Go standard library
-- `net/http`
-- `encoding/json`
-- `testing`
-
-There are no third-party Go dependencies yet.
+- Gin for HTTP routing and middleware
+- Go `log/slog` for structured logging
+- `pgx` for PostgreSQL access
+- Standard `testing` and `httptest`
 
 ## Dependency Decision Rules
 
@@ -30,10 +29,9 @@ If the answer is unclear, do not add the dependency.
 
 Routing:
 
-- Keep `net/http` for MVP.
-- Add `chi` only when middleware, route groups, or path params become painful.
-- Add `Gin` only if the project explicitly chooses a Gin convention.
-- Do not mix routers.
+- Use Gin.
+- Do not add Fiber, chi, echo, gorilla/mux, or another router beside Gin.
+- Continue testing handlers through `net/http/httptest`.
 
 Database:
 
@@ -44,8 +42,7 @@ Database:
 
 Logging:
 
-- Start with standard `log` or a small internal structured logger.
-- Add `slog` from standard library when structured logging is needed.
+- Use Go standard library `log/slog`.
 - Do not add heavy logging frameworks unless there is a clear operational reason.
 
 Validation:

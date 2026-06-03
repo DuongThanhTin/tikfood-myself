@@ -6,7 +6,8 @@ TikFood backend uses a layered architecture.
 
 ```text
 HTTP request
--> router
+-> Gin router
+-> middleware
 -> handler
 -> request validation
 -> domain service
@@ -28,8 +29,8 @@ apps/api/internal/http
 
 Responsibilities:
 
-- Route registration
-- Middleware
+- Gin route registration
+- Middleware composition
 - Request parsing
 - Query/path/body validation
 - Auth boundary when added
@@ -108,7 +109,7 @@ Allowed:
 ```text
 cmd/server -> internal/http -> internal/<domain> -> internal/storage
 cmd/server -> internal/config
-cmd/server -> internal/logging
+cmd/server -> log/slog
 ```
 
 Avoid:
@@ -167,21 +168,22 @@ Rules:
 
 ## Scalability Path
 
-MVP:
+Current:
 
 ```text
-net/http
-in-memory data
-single Go service
+Gin
+PostgreSQL/PostGIS when DATABASE_URL is set
+in-memory fallback
+single Go API service
 ```
 
 Next:
 
 ```text
-PostgreSQL/PostGIS
-explicit SQL repositories
-request logging middleware
-config package
+discovery search/filter endpoint
+auth boundary
+collection persistence
+CORS and timeout middleware
 ```
 
 Later:

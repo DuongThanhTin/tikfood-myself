@@ -1,48 +1,67 @@
 package http
 
 import (
-	"encoding/json"
+	"log/slog"
 	"net/http"
 
 	"github.com/DuongThanhTin/tikfood-myself/apps/api/internal/discovery"
+	"github.com/gin-gonic/gin"
 )
 
 type response struct {
-	Data  any    `json:"data"`
-	Error string `json:"error,omitempty"`
+	Data  any            `json:"data"`
+	Error *errorResponse `json:"error,omitempty"`
+}
+
+type errorResponse struct {
+	Code    string         `json:"code"`
+	Message string         `json:"message"`
+	Details map[string]any `json:"details,omitempty"`
 }
 
 func NewRouter(venueServices ...*discovery.VenueService) http.Handler {
-	mux := http.NewServeMux()
 	venues := discovery.NewVenueService()
-	if len(venueServices) > 0 && venueServices[0] != nil {
+	if len(venueServices) > 0 {
 		venues = venueServices[0]
 	}
-
-	mux.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {
-		writeJSON(w, http.StatusOK, response{Data: map[string]bool{"ok": true}})
-	})
-
-	mux.HandleFunc("GET /api/v1/map/venues", func(w http.ResponseWriter, r *http.Request) {
-		query := r.URL.Query()
-		result, err := venues.List(r.Context(), discovery.VenueSearch{
-			District: query.Get("district"),
-			Dish:     query.Get("dish"),
-		})
-		if err != nil {
-			writeJSON(w, http.StatusInternalServerError, response{Data: nil, Error: "Failed to load venues."})
-			return
-		}
-		writeJSON(w, http.StatusOK, response{Data: result})
-	})
-
-	return mux
+	return NewRouterWithLogger(venues, slog.Default())
 }
 
-func writeJSON(w http.ResponseWriter, status int, body response) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-	if err := json.NewEncoder(w).Encode(body); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+func NewRouterWithLogger(venues *discovery.VenueService, logger *slog.Logger) http.Handler {
+	if venues == nil {
+		venues = discovery.NewVenueService()
 	}
+	if logger == nil {
+		logger = slog.Default()
+	}
+
+	gin.SetMode(gin.ReleaseMode)
+	router := gin.New()
+	router.Use(recoveryMiddleware(logger), requestIDMiddleware(), requestLoggingMiddleware(logger))
+	_ = router.SetTrustedProxies(nil)
+
+	router.GET("/health", func(c *gin.Context) {
+		c.JSON(http.StatusOK, response{Data: map[string]bool{"ok": true}})
+	})
+
+	v1 := router.Group("/api/v1")
+	v1.GET("/map/venues", func(c *gin.Context) {
+		result, err := venues.List(c.Request.Context(), discovery.VenueSearch{
+			District: c.Query("district"),
+			Dish:     c.Query("dish"),
+		})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, response{
+				Data: nil,
+				Error: &errorResponse{
+					Code:    "internal_error",
+					Message: "Failed to load venues.",
+				},
+			})
+			return
+		}
+		c.JSON(http.StatusOK, response{Data: result})
+	})
+
+	return router
 }

@@ -4,8 +4,10 @@ This folder is the backend source of truth for TikFood.
 
 Any AI assistant or engineer changing `apps/api` must read these files before coding:
 
+- `docs/standards/backend/framework.md`
 - `docs/standards/backend/structure.md`
 - `docs/standards/backend/architecture.md`
+- `docs/standards/backend/patterns.md`
 - `docs/standards/backend/dependencies.md`
 - `docs/standards/backend/database.md`
 - `docs/standards/backend/search-filtering.md`
@@ -23,15 +25,18 @@ Current capabilities:
 
 - `GET /health`
 - `GET /api/v1/map/venues`
-- In-memory discovery data
-- No database yet
+- Gin HTTP routing
+- Structured request logging with Go `log/slog`
+- PostgreSQL/PostGIS discovery persistence when `DATABASE_URL` is set
+- In-memory discovery fallback when no database is configured
 - No auth yet
 - No background workers yet
 
 ## Backend Principles
 
 - Keep transport, domain, and storage separate.
-- Prefer Go standard library until complexity justifies dependencies.
+- Use Gin as the backend HTTP framework.
+- Use Go `log/slog` for structured logs.
 - Keep request validation at the HTTP boundary.
 - Keep business rules inside domain services.
 - Keep response contracts stable and typed.

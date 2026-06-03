@@ -2,8 +2,9 @@ package main
 
 import (
 	"database/sql"
-	"log"
+	"log/slog"
 	"net/http"
+	"os"
 
 	"github.com/DuongThanhTin/tikfood-myself/apps/api/internal/config"
 	"github.com/DuongThanhTin/tikfood-myself/apps/api/internal/discovery"
@@ -14,32 +15,38 @@ import (
 
 func main() {
 	cfg := config.Load()
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+		Level: slog.LevelInfo,
+	})).With("service", "api")
 	venueService := discovery.NewVenueService()
 
 	if cfg.DatabaseURL != "" {
 		db, err := sql.Open("pgx", cfg.DatabaseURL)
 		if err != nil {
-			log.Fatalf("open database: %v", err)
+			logger.Error("open database", "error", err)
+			os.Exit(1)
 		}
 		defer db.Close()
 
 		if err := db.Ping(); err != nil {
-			log.Fatalf("ping database: %v", err)
+			logger.Error("ping database", "error", err)
+			os.Exit(1)
 		}
 
 		venueService = discovery.NewVenueServiceWithRepository(postgres.NewDiscoveryRepository(db))
-		log.Printf("tikfood api using postgres discovery storage")
+		logger.Info("using postgres discovery storage")
 	} else {
-		log.Printf("tikfood api using in-memory discovery storage")
+		logger.Info("using in-memory discovery storage")
 	}
 
 	server := &http.Server{
 		Addr:    ":" + cfg.Port,
-		Handler: apihttp.NewRouter(venueService),
+		Handler: apihttp.NewRouterWithLogger(venueService, logger),
 	}
 
-	log.Printf("tikfood api listening on %s", server.Addr)
+	logger.Info("api listening", "addr", server.Addr)
 	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		log.Fatalf("api server stopped: %v", err)
+		logger.Error("api server stopped", "error", err)
+		os.Exit(1)
 	}
 }

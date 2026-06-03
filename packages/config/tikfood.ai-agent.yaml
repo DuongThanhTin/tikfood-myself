@@ -32,7 +32,7 @@ mvp_anti_goals:
 
 backend_stack:
   language: Go
-  frameworks: [net/http, Gin, chi]
+  framework: Gin
   database: PostgreSQL + PostGIS
   search: PostgreSQL full-text search for MVP
   workers:

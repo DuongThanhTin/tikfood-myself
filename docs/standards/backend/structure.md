@@ -32,8 +32,7 @@ apps/api/
 
   internal/
     config/                 Runtime config parsing
-    logging/                Logger setup and request logging helpers
-    http/                   Router, middleware, request parsing, response writing
+    http/                   Gin router, middleware, handlers, request parsing, response writing
     discovery/              Map/dish discovery domain
     trend/                  Trend scoring domain
     summary/                AI summary domain
@@ -62,6 +61,7 @@ apps/api/
 - Owns routing, request parsing, response envelopes, status codes.
 - May call domain services.
 - Must not contain scoring, storage, ingestion, or summary business logic.
+- Must use Gin as the only HTTP framework.
 
 `internal/<domain>`:
 

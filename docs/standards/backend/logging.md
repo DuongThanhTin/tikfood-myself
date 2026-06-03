@@ -1,12 +1,12 @@
 # Backend Logging Standard
 
-Backend logs should be structured, small, and safe.
+Backend logs must be structured, small, and safe.
 
 ## Current State
 
-Current API only logs process startup.
+Current API uses Go standard library `log/slog` with JSON output.
 
-When request logging is added, use Go standard library `log/slog` unless there is a strong reason to use another logger.
+Gin request logging is implemented as middleware in `internal/http`.
 
 ## Log Format
 
@@ -29,8 +29,6 @@ Example:
 
 ## Required Request Log Fields
 
-When middleware is added:
-
 - `service`
 - `request_id`
 - `method`
@@ -41,14 +39,12 @@ When middleware is added:
 
 ## Request ID
 
-Future behavior:
-
 - Accept `X-Request-ID` if provided and valid.
 - Generate a request id if missing.
 - Return `X-Request-ID` in response headers.
 - Include request id in logs.
 
-Do not add a request ID dependency. Use a small local generator or standard library where practical.
+Do not add a request ID dependency.
 
 ## Log Levels
 

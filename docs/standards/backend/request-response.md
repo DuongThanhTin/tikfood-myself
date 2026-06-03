@@ -58,7 +58,7 @@ Error:
 }
 ```
 
-The current MVP code still uses a string `error` field. Future backend changes should migrate to the object shape above when introducing the first real error response.
+The backend must use the object shape above for errors.
 
 ## Error Object
 
@@ -184,6 +184,11 @@ Response data item:
   "latitude": 10.7712,
   "longitude": 106.6899,
   "categories": ["street_food", "banh_mi"],
+  "price_level": 1,
+  "avg_price_min_vnd": 30000,
+  "avg_price_max_vnd": 80000,
+  "currency": "VND",
+  "social_video_count": 42,
   "trend_score": 92,
   "trending_dishes": ["banh mi thit nuong"],
   "ai_summary": "Trending for late-night banh mi clips."
