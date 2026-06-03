@@ -45,11 +45,21 @@ func NewRouterWithLogger(venues *discovery.VenueService, logger *slog.Logger) ht
 	})
 
 	v1 := router.Group("/api/v1")
-	v1.GET("/map/venues", func(c *gin.Context) {
-		result, err := venues.List(c.Request.Context(), discovery.VenueSearch{
-			District: c.Query("district"),
-			Dish:     c.Query("dish"),
-		})
+	v1.GET("/map/venues", venueSearchHandler(venues))
+	v1.GET("/discovery/venues", venueSearchHandler(venues))
+
+	return router
+}
+
+func venueSearchHandler(venues *discovery.VenueService) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		search, parseError := parseVenueSearch(c)
+		if parseError != nil {
+			c.JSON(http.StatusBadRequest, response{Data: nil, Error: parseError})
+			return
+		}
+
+		result, err := venues.List(c.Request.Context(), search)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, response{
 				Data: nil,
@@ -61,7 +71,5 @@ func NewRouterWithLogger(venues *discovery.VenueService, logger *slog.Logger) ht
 			return
 		}
 		c.JSON(http.StatusOK, response{Data: result})
-	})
-
-	return router
+	}
 }

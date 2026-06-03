@@ -16,12 +16,12 @@ date under 500k in District 1
 rooftop bar
 ```
 
-## Search API Direction
+## Search API
 
-Future endpoint:
+Current venue discovery endpoint:
 
 ```text
-GET /api/v1/discovery/search
+GET /api/v1/discovery/venues
 ```
 
 Query params:
@@ -30,34 +30,32 @@ Query params:
 q optional string
 lat optional float
 lng optional float
-radius_meters optional int
-city optional string
+radius_m optional int, max 50000
 district optional string
-area optional string
 open_now optional bool
-budget_min_vnd optional int
-budget_max_vnd optional int
-cuisine optional repeated string
-venue_type optional repeated string
-occasion optional repeated string
-amenity optional repeated string
-vibe optional repeated string
+max_price_vnd optional int
+tags optional comma-separated string
 dish optional string
 sort optional string
 limit optional int
-cursor optional string
 ```
 
 Allowed `sort` values:
 
 ```text
-relevance
+trending
+videos
 distance
-trend_score_desc
-video_count_desc
-price_asc
-newest
+price
 ```
+
+Compatibility endpoint:
+
+```text
+GET /api/v1/map/venues
+```
+
+This route uses the same filter handler for now. New clients should use `/api/v1/discovery/venues`.
 
 ## Query Interpretation
 
@@ -72,7 +70,7 @@ Normalized query:
 ```json
 {
   "occasion": ["date"],
-  "budget_max_vnd": 500000,
+  "max_price_vnd": 500000,
   "district": "District 1",
   "amenity": ["rooftop"],
   "venue_type": ["bar"]
@@ -93,7 +91,7 @@ Normalized query:
   "cuisine": ["italian"],
   "near_me": true,
   "open_now": true,
-  "sort": "video_count_desc"
+  "sort": "videos"
 }
 ```
 
@@ -152,14 +150,14 @@ amenity=parking
 Price:
 
 ```text
-budget_max_vnd=500000
+max_price_vnd=500000
 -> venues.avg_price_max_vnd <= 500000
 ```
 
 Dish-specific price:
 
 ```text
-dish=pizza&budget_max_vnd=300000
+dish=pizza&max_price_vnd=300000
 -> venue_dishes.price_max_vnd <= 300000
 ```
 
@@ -173,21 +171,21 @@ open_now=true
 Near me:
 
 ```text
-lat=10.77&lng=106.69&radius_meters=3000
+lat=10.77&lng=106.69&radius_m=3000
 -> PostGIS ST_DWithin
 ```
 
 Most videos:
 
 ```text
-sort=video_count_desc
+sort=videos
 -> venues.social_video_count desc
 ```
 
 Dish-specific video count:
 
 ```text
-dish=pizza&sort=video_count_desc
+dish=pizza&sort=videos
 -> venue_dishes.video_count desc
 ```
 
@@ -199,7 +197,7 @@ Geo filter:
 where ST_DWithin(
   venues.location,
   ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography,
-  :radius_meters
+  :radius_m
 )
 ```
 

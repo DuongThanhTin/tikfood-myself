@@ -98,7 +98,7 @@ Use:
 Use query params for simple filters:
 
 ```text
-GET /api/v1/map/venues?district=District%201&dish=pho
+GET /api/v1/discovery/venues?q=pho&district=District%201&tags=pho&max_price_vnd=120000
 ```
 
 Rules:
@@ -162,13 +162,30 @@ Do not add pagination until an endpoint can realistically return large data.
 ## Current Endpoint Contract
 
 ```text
-GET /api/v1/map/venues
+GET /api/v1/discovery/venues
 ```
 
 Query params:
 
+- `q`: optional text search across venue, dish, cuisine, and tags
 - `district`: optional string
 - `dish`: optional string
+- `tags`: optional comma-separated tag slugs
+- `lat`: optional float, requires `lng`
+- `lng`: optional float, requires `lat`
+- `radius_m`: optional int, max 50000
+- `max_price_vnd`: optional int
+- `open_now`: optional bool
+- `sort`: optional enum, one of `trending`, `videos`, `distance`, `price`
+- `limit`: optional int, 1-100
+
+Compatibility endpoint:
+
+```text
+GET /api/v1/map/venues
+```
+
+It currently uses the same handler as `/api/v1/discovery/venues`.
 
 Response data item:
 
@@ -191,7 +208,8 @@ Response data item:
   "social_video_count": 42,
   "trend_score": 92,
   "trending_dishes": ["banh mi thit nuong"],
-  "ai_summary": "Trending for late-night banh mi clips."
+  "ai_summary": "Trending for late-night banh mi clips.",
+  "distance_meters": 720.4
 }
 ```
 

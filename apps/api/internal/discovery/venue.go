@@ -25,12 +25,31 @@ type Venue struct {
 	TrendScore       int      `json:"trend_score"`
 	TrendingDishes   []string `json:"trending_dishes"`
 	AISummary        string   `json:"ai_summary"`
+	DistanceMeters   *float64 `json:"distance_meters,omitempty"`
 }
 
 type VenueSearch struct {
-	District string
-	Dish     string
+	Query       string
+	District    string
+	Dish        string
+	Tags        []string
+	Lat         *float64
+	Lng         *float64
+	RadiusM     int
+	MaxPriceVND int
+	OpenNow     bool
+	Sort        VenueSort
+	Limit       int
 }
+
+type VenueSort string
+
+const (
+	VenueSortTrending VenueSort = "trending"
+	VenueSortVideos   VenueSort = "videos"
+	VenueSortDistance VenueSort = "distance"
+	VenueSortPrice    VenueSort = "price"
+)
 
 type VenueRepository interface {
 	ListVenues(ctx context.Context, search VenueSearch) ([]Venue, error)
@@ -97,6 +116,8 @@ func NewVenueServiceWithRepository(repo VenueRepository) *VenueService {
 }
 
 func (service *VenueService) List(ctx context.Context, search VenueSearch) ([]Venue, error) {
+	search = normalizeSearch(search)
+
 	if service.repo != nil {
 		return service.repo.ListVenues(ctx, search)
 	}
@@ -104,22 +125,104 @@ func (service *VenueService) List(ctx context.Context, search VenueSearch) ([]Ve
 	results := make([]Venue, 0, len(service.venues))
 
 	for _, venue := range service.venues {
+		if search.Query != "" && !matchesQuery(venue, search.Query) {
+			continue
+		}
 		if search.District != "" && venue.District != search.District {
 			continue
 		}
 		if search.Dish != "" && !hasDish(venue.TrendingDishes, search.Dish) {
 			continue
 		}
+		if search.MaxPriceVND > 0 && venue.AvgPriceMaxVND > search.MaxPriceVND {
+			continue
+		}
+		if len(search.Tags) > 0 && !hasAnyTag(venue.Categories, search.Tags) {
+			continue
+		}
 		results = append(results, venue)
 	}
 
+	if search.Limit > 0 && len(results) > search.Limit {
+		results = results[:search.Limit]
+	}
+
 	return results, nil
+}
+
+func normalizeSearch(search VenueSearch) VenueSearch {
+	search.Query = strings.ToLower(strings.TrimSpace(search.Query))
+	search.District = strings.TrimSpace(search.District)
+	search.Dish = strings.ToLower(strings.TrimSpace(search.Dish))
+	search.Tags = normalizeTags(search.Tags)
+
+	if search.Sort == "" {
+		search.Sort = VenueSortTrending
+	}
+	if search.Limit <= 0 {
+		search.Limit = 50
+	}
+	if search.Limit > 100 {
+		search.Limit = 100
+	}
+
+	return search
+}
+
+func normalizeTags(tags []string) []string {
+	results := make([]string, 0, len(tags))
+	seen := map[string]bool{}
+	for _, tag := range tags {
+		normalized := strings.ToLower(strings.TrimSpace(tag))
+		normalized = strings.ReplaceAll(normalized, "_", "-")
+		if normalized == "" || seen[normalized] {
+			continue
+		}
+		seen[normalized] = true
+		results = append(results, normalized)
+	}
+	return results
 }
 
 func hasDish(dishes []string, target string) bool {
 	for _, dish := range dishes {
 		if strings.EqualFold(dish, target) {
 			return true
+		}
+	}
+	return false
+}
+
+func matchesQuery(venue Venue, query string) bool {
+	query = strings.ToLower(strings.TrimSpace(query))
+	if query == "" {
+		return true
+	}
+
+	fields := []string{
+		venue.Name,
+		venue.ShortDescription,
+		venue.About,
+		venue.Address,
+		venue.District,
+	}
+	fields = append(fields, venue.Categories...)
+	fields = append(fields, venue.TrendingDishes...)
+
+	for _, field := range fields {
+		if strings.Contains(strings.ToLower(field), query) {
+			return true
+		}
+	}
+	return false
+}
+
+func hasAnyTag(categories []string, tags []string) bool {
+	for _, category := range categories {
+		for _, tag := range tags {
+			if strings.EqualFold(category, tag) {
+				return true
+			}
 		}
 	}
 	return false

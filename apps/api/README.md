@@ -5,8 +5,9 @@ Go/Gin backend skeleton for TikFood discovery.
 Implemented:
 
 - `GET /health`
+- `GET /api/v1/discovery/venues`
 - `GET /api/v1/map/venues`
-- District and dish filters
+- Search, district, dish, tag, price, open-now, geo radius, and sort filters
 - Structured request logging with Go `log/slog`
 - PostgreSQL/PostGIS discovery persistence when `DATABASE_URL` is set
 - In-memory fallback for discovery testing when no database is configured

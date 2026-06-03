@@ -189,3 +189,29 @@ insert into ai_summaries (
   'seed',
   'seed-v1'
 );
+
+insert into venue_opening_hours (
+  venue_id,
+  day_of_week,
+  open_time,
+  close_time,
+  is_closed
+)
+select
+  venue_id,
+  day_of_week,
+  open_time,
+  close_time,
+  false
+from (
+  values
+    ('11111111-1111-1111-1111-111111111111'::uuid, time '08:00', time '23:30'),
+    ('22222222-2222-2222-2222-222222222222'::uuid, time '06:00', time '14:00')
+) as venue_hours(venue_id, open_time, close_time)
+cross join generate_series(0, 6) as days(day_of_week)
+where not exists (
+  select 1
+  from venue_opening_hours existing
+  where existing.venue_id = venue_hours.venue_id
+    and existing.day_of_week = days.day_of_week
+);
