@@ -1,5 +1,19 @@
 # Backend Architecture Standard
 
+Detailed backend standards live under `docs/standards/backend/`.
+
+Read these first for backend work:
+
+- `docs/standards/backend/README.md`
+- `docs/standards/backend/structure.md`
+- `docs/standards/backend/architecture.md`
+- `docs/standards/backend/dependencies.md`
+- `docs/standards/backend/request-response.md`
+- `docs/standards/backend/errors.md`
+- `docs/standards/backend/logging.md`
+- `docs/standards/backend/testing.md`
+- `docs/standards/backend/scaling.md`
+
 Backend code lives in `apps/api`.
 
 TikFood backend is a Go service for realtime social food discovery. It must stay focused on map discovery, dish discovery, trend scoring, social proof, AI summaries, hidden gems, and geo intelligence.

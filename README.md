@@ -113,12 +113,15 @@ Before changing backend, frontend, or automation code, read:
 - `docs/standards/project-structure.md`
 - `docs/standards/dependency-management.md`
 - `docs/standards/backend-architecture.md`
+- `docs/standards/backend/README.md`
 - `docs/standards/frontend-architecture.md`
 - `docs/standards/api-contracts.md`
 - `docs/standards/logging-observability.md`
 - `docs/standards/ai-implementation-rules.md`
 
 These files define dependency rules, logging rules, request/response contracts, architecture boundaries, app structure, and AI implementation behavior for Codex, Cursor, Claude, and future automation agents.
+
+Backend-specific rules are expanded under `docs/standards/backend/` and are mandatory before modifying `apps/api`.
 
 ## Security Rules
 

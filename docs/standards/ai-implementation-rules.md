@@ -14,6 +14,7 @@ Read these first:
 - `docs/standards/project-structure.md`
 - `docs/standards/dependency-management.md`
 - `docs/standards/backend-architecture.md`
+- `docs/standards/backend/README.md`
 - `docs/standards/frontend-architecture.md`
 - `docs/standards/api-contracts.md`
 - `docs/standards/logging-observability.md`
@@ -23,6 +24,12 @@ If the request touches automation, also read:
 - `docs/runner-contract.md`
 - `docs/openai-integration-plan.md`
 - `apps/ai-code-runner/README.md`
+
+If the request touches backend code in `apps/api`, also read all files under:
+
+```text
+docs/standards/backend/
+```
 
 ## Implementation Workflow
 
@@ -48,6 +55,7 @@ For every request, identify:
 
 ## Backend Change Rules
 
+- Read `docs/standards/backend/**`.
 - Keep handlers thin.
 - Put domain logic under `internal/<domain>`.
 - Keep response structs explicit.

@@ -7,6 +7,7 @@ Any AI coding assistant, including Codex, Cursor, Claude, or a future `ai-code-r
 - `docs/standards/project-structure.md`
 - `docs/standards/dependency-management.md`
 - `docs/standards/backend-architecture.md`
+- `docs/standards/backend/README.md`
 - `docs/standards/frontend-architecture.md`
 - `docs/standards/api-contracts.md`
 - `docs/standards/logging-observability.md`
@@ -29,6 +30,19 @@ apps/api             Go backend for TikFood discovery
 apps/web             Next.js frontend for TikFood discovery
 apps/ai-code-runner  AI automation runner
 ```
+
+## Backend-Specific Standards
+
+Backend work must also read:
+
+- `docs/standards/backend/structure.md`
+- `docs/standards/backend/architecture.md`
+- `docs/standards/backend/dependencies.md`
+- `docs/standards/backend/request-response.md`
+- `docs/standards/backend/errors.md`
+- `docs/standards/backend/logging.md`
+- `docs/standards/backend/testing.md`
+- `docs/standards/backend/scaling.md`
 
 ## Expected AI Workflow
 
