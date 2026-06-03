@@ -49,10 +49,34 @@ services:
       context: ./apps/api
     container_name: tikfood-api
     restart: unless-stopped
+    depends_on:
+      api-db:
+        condition: service_healthy
     ports:
       - "18081:18081"
     environment:
       PORT: 18081
+      DATABASE_URL: ${API_DATABASE_URL:-postgres://tikfood:tikfood@api-db:5432/tikfood?sslmode=disable}
+
+  api-db:
+    build:
+      context: .
+      dockerfile: ./apps/api/db/Dockerfile
+    container_name: tikfood-api-db
+    restart: unless-stopped
+    ports:
+      - "15432:5432"
+    environment:
+      POSTGRES_USER: ${API_POSTGRES_USER:-tikfood}
+      POSTGRES_PASSWORD: ${API_POSTGRES_PASSWORD:-tikfood}
+      POSTGRES_DB: ${API_POSTGRES_DB:-tikfood}
+    volumes:
+      - api_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${API_POSTGRES_USER:-tikfood} -d ${API_POSTGRES_DB:-tikfood}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   web:
     build:
@@ -86,5 +110,6 @@ services:
 
 volumes:
   postgres_data:
+  api_postgres_data:
   n8n_data:
   runner_workspace:

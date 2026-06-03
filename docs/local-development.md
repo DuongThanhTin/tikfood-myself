@@ -30,6 +30,14 @@ Services:
 - ai-code-runner host URL: `http://localhost:8080`
 - ai-code-runner Docker network URL: `http://ai-code-runner:8080`
 - postgres internal service: `postgres:5432`
+- TikFood API: `http://localhost:18081`
+- TikFood API PostGIS: `localhost:15432`
+
+Docker Compose wires the API container to `api-db:5432` by default. If you run `apps/api` directly on your host machine, use:
+
+```bash
+DATABASE_URL=postgres://tikfood:tikfood@localhost:15432/tikfood?sslmode=disable npm run api:dev
+```
 
 ## Test The Runner Skeleton
 
