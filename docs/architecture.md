@@ -39,6 +39,8 @@ The monorepo now includes an MVP app skeleton:
 
 The future product architecture should add PostgreSQL/PostGIS for MVP geo data, PostgreSQL full-text search for MVP search, and worker processes for ingestion, trend scoring, and AI summaries.
 
+Detailed implementation standards live in `docs/standards/` and must be treated as the source of truth for dependency, logging, project structure, backend architecture, frontend architecture, and API contract decisions.
+
 ## Product Guardrails
 
 TikFood is realtime social food discovery, not delivery. Automation must block or require human approval for delivery, cart, order, checkout, payment, booking, reservation, in-app chat, social follow graph, creator monetization, and livestream scope during the MVP.

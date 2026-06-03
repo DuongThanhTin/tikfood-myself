@@ -55,6 +55,7 @@ docs_required:
   before_coding:
     - README.md
     - .ai-agent.yaml
+    - docs/standards/**
     - project-docs/**
     - docs/**
 
@@ -105,6 +106,7 @@ blocked_commands:
 
 coding_rules:
   - Do not implement delivery, cart, order, payment, checkout, booking, reservation, chat, social follow graph, creator monetization, or livestream logic in the MVP.
+  - Follow docs/standards/** for dependency, logging, architecture, API contract, request/response, and structure decisions.
   - Keep map discovery code in map-related areas.
   - Keep trend scoring isolated from HTTP handlers.
   - Keep AI summaries isolated from ingestion, scoring, and map query code.

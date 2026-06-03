@@ -16,6 +16,7 @@ docs_required:
     - README.md
     - .ai-agent.yaml
     - docs/architecture.md
+    - docs/standards/**
     - docs/runner-contract.md
     - docs/security.md
   update_when_relevant:
@@ -60,6 +61,7 @@ blocked_commands:
 
 coding_rules:
   - Prefer existing local patterns.
+  - Read docs/standards/** before changing backend or frontend code.
   - Keep changes tightly scoped.
   - Do not create fake production claims.
   - Mark skeleton or incomplete behavior clearly as TODO.
