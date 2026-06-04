@@ -7,8 +7,9 @@ Implemented:
 - Discovery landing page
 - Interactive discovery filters
 - Collapsible left discovery panel
-- MapLibre restaurant map with clickable markers
-- Right-side venue detail panel
+- Dark glass discovery UI inspired by the homepage prompt
+- MapLibre restaurant map with clickable dark-mode markers
+- Right-side venue detail panel with hero media and trend/video sections
 - Venue cards with AI summaries and trending dishes
 - API integration with `GET /api/v1/discovery/venues`
 - Fallback data when the API is not running
