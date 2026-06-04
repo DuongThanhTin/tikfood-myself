@@ -8,6 +8,11 @@ type DiscoveryExperienceProps = {
   initialVenues: Venue[];
 };
 
+type UserLocation = {
+  lat: number;
+  lng: number;
+};
+
 type VenueMedia = {
   cuisine: string;
   rating: string;
@@ -31,11 +36,13 @@ type IconName =
   | "help"
   | "location"
   | "map"
+  | "moon"
   | "play"
   | "search"
   | "share"
   | "spark"
   | "star"
+  | "sun"
   | "target"
   | "tune";
 
@@ -49,11 +56,13 @@ const iconGlyphs: Record<IconName, string> = {
   help: "?",
   location: "⌖",
   map: "▦",
+  moon: "◐",
   play: "▶",
   search: "⌕",
   share: "↗",
   spark: "✦",
   star: "★",
+  sun: "☼",
   target: "◎",
   tune: "☰"
 };
@@ -108,13 +117,14 @@ export function DiscoveryExperience({ initialVenues }: DiscoveryExperienceProps)
   const [venues, setVenues] = useState(initialVenues);
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(initialVenues[0] ?? null);
   const [leftCollapsed, setLeftCollapsed] = useState(false);
+  const [theme, setTheme] = useState<"dark" | "light">("dark");
   const [query, setQuery] = useState("");
   const [district, setDistrict] = useState("");
   const [maxPrice, setMaxPrice] = useState("120000");
   const [activeTag, setActiveTag] = useState("");
   const [sort, setSort] = useState<VenueSearchParams["sort"]>("trending");
   const [openNow, setOpenNow] = useState(false);
-  const [nearUser, setNearUser] = useState<{ lat: number; lng: number } | null>(null);
+  const [nearUser, setNearUser] = useState<UserLocation | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -131,13 +141,15 @@ export function DiscoveryExperience({ initialVenues }: DiscoveryExperienceProps)
     limit: 20
   }), [activeTag, district, maxPrice, nearUser, openNow, query, sort]);
 
-  async function runSearch(nextParams = params) {
+  async function runSearch(nextParams = params, options: { selectFirst?: boolean } = {}) {
     setError("");
     setIsLoading(true);
     try {
       const nextVenues = await fetchDiscoveryVenues(nextParams);
       setVenues(nextVenues);
-      setSelectedVenue(nextVenues[0] ?? null);
+      if (options.selectFirst !== false) {
+        setSelectedVenue(nextVenues[0] ?? null);
+      }
     } catch (searchError) {
       setError(searchError instanceof Error ? searchError.message : "Failed to load venues.");
     } finally {
@@ -175,13 +187,14 @@ export function DiscoveryExperience({ initialVenues }: DiscoveryExperienceProps)
           lng: position.coords.longitude
         };
         setNearUser(nextLocation);
+        setSelectedVenue(null);
         void runSearch({
           ...params,
           lat: nextLocation.lat,
           lng: nextLocation.lng,
           radius_m: 3000,
           sort: "distance"
-        });
+        }, { selectFirst: false });
       },
       () => {
         setError("Location permission was not granted.");
@@ -209,6 +222,7 @@ export function DiscoveryExperience({ initialVenues }: DiscoveryExperienceProps)
 
   return (
     <main
+      data-theme={theme}
       className={[
         "appShell",
         leftCollapsed ? "leftCollapsed" : "",
@@ -402,6 +416,14 @@ export function DiscoveryExperience({ initialVenues }: DiscoveryExperienceProps)
             Bộ lọc
           </button>
           <div className="mapStats">
+            <button
+              className="glassButton themeToggle"
+              type="button"
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            >
+              <Icon name={theme === "dark" ? "sun" : "moon"} />
+              {theme === "dark" ? "Light" : "Dark"}
+            </button>
             <button className="glassButton solid" type="button" onClick={useCurrentLocation}>
               Gần tôi
             </button>
@@ -414,6 +436,7 @@ export function DiscoveryExperience({ initialVenues }: DiscoveryExperienceProps)
         <VenueMap
           venues={venues}
           selectedVenue={selectedVenue}
+          userLocation={nearUser}
           onSelectVenue={setSelectedVenue}
         />
 
@@ -479,15 +502,18 @@ function VenueRailCard({
 function VenueMap({
   venues,
   selectedVenue,
+  userLocation,
   onSelectVenue
 }: {
   venues: Venue[];
   selectedVenue: Venue | null;
+  userLocation: UserLocation | null;
   onSelectVenue: (venue: Venue) => void;
 }) {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
   const markersRef = useRef<Marker[]>([]);
+  const userMarkerRef = useRef<Marker | null>(null);
 
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) {
@@ -533,6 +559,8 @@ function VenueMap({
       cancelled = true;
       markersRef.current.forEach((marker) => marker.remove());
       markersRef.current = [];
+      userMarkerRef.current?.remove();
+      userMarkerRef.current = null;
       mapRef.current?.remove();
       mapRef.current = null;
     };
@@ -556,7 +584,7 @@ function VenueMap({
         element.setAttribute("aria-label", `Select ${venue.name}`);
         element.innerHTML = selectedVenue?.id === venue.id
           ? `<img alt="" src="${media.image}" /><span>${venue.name}</span>`
-          : `<strong>${venue.trend_score}</strong>`;
+          : `<strong>${getVenueClusterCount(venue, venues)}</strong>`;
         element.addEventListener("click", () => onSelectVenue(venue));
 
         const marker = new maplibregl.Marker({ element })
@@ -579,20 +607,63 @@ function VenueMap({
     });
   }, [selectedVenue]);
 
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) {
+      return;
+    }
+
+    userMarkerRef.current?.remove();
+    userMarkerRef.current = null;
+
+    if (!userLocation) {
+      return;
+    }
+
+    void import("maplibre-gl").then((maplibregl) => {
+      const element = document.createElement("div");
+      element.className = "userLocationMarker";
+      element.setAttribute("aria-label", "Vị trí của bạn");
+      element.innerHTML = "<span></span>";
+
+      userMarkerRef.current = new maplibregl.Marker({ element })
+        .setLngLat([userLocation.lng, userLocation.lat])
+        .addTo(map);
+
+      map.flyTo({
+        center: [userLocation.lng, userLocation.lat],
+        zoom: 15,
+        duration: 700
+      });
+    });
+  }, [userLocation]);
+
   return (
     <div className="mapCanvasWrap">
       <div className="mapFallbackGrid" aria-hidden="true" />
       <div ref={mapContainerRef} className="mapCanvas" />
       <div className="mapShade" aria-hidden="true" />
       <div className="fallbackMarkerLayer" aria-label="Restaurant markers">
+        {userLocation ? (
+          <div
+            className="fallbackUserLocation"
+            style={{
+              left: `${toMapX(userLocation.lng)}%`,
+              top: `${toMapY(userLocation.lat)}%`
+            }}
+            aria-label="Vị trí của bạn"
+          >
+            <span />
+          </div>
+        ) : null}
         {venues.map((venue) => (
           <button
             key={venue.id}
             className={selectedVenue?.id === venue.id ? "fallbackMarker selected" : "fallbackMarker"}
             type="button"
             style={{
-              left: `${Math.max(12, Math.min(88, (venue.longitude - 106.65) * 420))}%`,
-              top: `${Math.max(14, Math.min(82, 90 - (venue.latitude - 10.74) * 900))}%`
+              left: `${toMapX(venue.longitude)}%`,
+              top: `${toMapY(venue.latitude)}%`
             }}
             onClick={() => onSelectVenue(venue)}
             aria-label={`Select ${venue.name}`}
@@ -603,10 +674,14 @@ function VenueMap({
                 <span>{venue.name}</span>
               </>
             ) : (
-              <strong>{venue.trend_score}</strong>
+              <strong>{getVenueClusterCount(venue, venues)}</strong>
             )}
           </button>
         ))}
+        <div className="mapCountLegend">
+          <strong>{venues.length}</strong>
+          <span>cửa hàng trong khu vực hiện tại</span>
+        </div>
       </div>
     </div>
   );
@@ -711,6 +786,20 @@ function VideoCard({ image, views, label }: { image: string; views: string; labe
 
 function getVenueMedia(venue: Venue) {
   return mediaByVenue[venue.id] ?? defaultMedia;
+}
+
+function getVenueClusterCount(_venue: Venue, _venues: Venue[]) {
+  // Each marker currently represents one concrete venue. When clustering is added,
+  // this becomes the aggregated store count for that map cell.
+  return 1;
+}
+
+function toMapX(longitude: number) {
+  return Math.max(12, Math.min(88, (longitude - 106.65) * 420));
+}
+
+function toMapY(latitude: number) {
+  return Math.max(14, Math.min(82, 90 - (latitude - 10.74) * 900));
 }
 
 function Icon({ name, className = "" }: { name: IconName; className?: string }) {
