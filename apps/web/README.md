@@ -6,8 +6,10 @@ Implemented:
 
 - Discovery landing page
 - Interactive discovery filters
-- Map-style trend score preview
-- Venue list with AI summaries and trending dishes
+- Collapsible left discovery panel
+- MapLibre restaurant map with clickable markers
+- Right-side venue detail panel
+- Venue cards with AI summaries and trending dishes
 - API integration with `GET /api/v1/discovery/venues`
 - Fallback data when the API is not running
 
