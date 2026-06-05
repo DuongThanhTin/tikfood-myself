@@ -631,7 +631,10 @@ function VenueMap({
   const mapRef = useRef<MapLibreMap | null>(null);
   const markersRef = useRef<Marker[]>([]);
   const userMarkerRef = useRef<Marker | null>(null);
+  const initialThemeRef = useRef(theme);
+  const appliedMapThemeRef = useRef(theme);
   const [mapReady, setMapReady] = useState(false);
+  const [mapStyleTheme, setMapStyleTheme] = useState(theme);
 
   useEffect(() => {
     if (!mapContainerRef.current) {
@@ -650,13 +653,14 @@ function VenueMap({
         center: [106.683, 10.778],
         zoom: 12.8,
         attributionControl: false,
-        style: buildMapStyle(theme)
+        style: buildMapStyle(initialThemeRef.current)
       });
 
       map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), "bottom-right");
       map.on("load", () => {
         if (!cancelled) {
           setMapReady(true);
+          setMapStyleTheme(appliedMapThemeRef.current);
         }
       });
       mapRef.current = map;
@@ -673,7 +677,31 @@ function VenueMap({
       mapRef.current?.remove();
       mapRef.current = null;
     };
-  }, [theme]);
+  }, []);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapReady || appliedMapThemeRef.current === theme) {
+      return;
+    }
+
+    let cancelled = false;
+    const nextTheme = theme;
+    const handleStyleReady = () => {
+      if (!cancelled) {
+        setMapStyleTheme(nextTheme);
+      }
+    };
+
+    map.once("idle", handleStyleReady);
+    appliedMapThemeRef.current = nextTheme;
+    map.setStyle(buildMapStyle(nextTheme));
+
+    return () => {
+      cancelled = true;
+      map.off("idle", handleStyleReady);
+    };
+  }, [mapReady, theme]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -788,7 +816,7 @@ function VenueMap({
         "line-join": "round"
       },
       paint: {
-        "line-color": theme === "dark" ? "#050505" : "#ffffff",
+        "line-color": mapStyleTheme === "dark" ? "#050505" : "#ffffff",
         "line-opacity": 0.9,
         "line-width": 8
       }
@@ -822,7 +850,7 @@ function VenueMap({
     }
 
     return () => removeRouteLayers(map);
-  }, [activeRoute, mapReady, selectedVenue, theme]);
+  }, [activeRoute, mapReady, mapStyleTheme, selectedVenue]);
 
   return (
     <div className="mapCanvasWrap">
