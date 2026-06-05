@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { Map as MapLibreMap, Marker, StyleSpecification } from "maplibre-gl";
+import type { Map as MapLibreMap, Marker } from "maplibre-gl";
 import { fetchDiscoveryVenues, type Venue, type VenueSearchParams } from "../lib/api";
 
 type DiscoveryExperienceProps = {
@@ -133,44 +133,90 @@ const defaultMedia = mediaByVenue.venue_001;
 const routeSourceId = "active-route";
 const routeCasingLayerId = "active-route-casing";
 const routeLineLayerId = "active-route-line";
+const mapStyleUrls = {
+  dark: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
+  light: "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"
+} as const;
 
-function buildMapStyle(theme: "dark" | "light"): StyleSpecification {
-  const tileVariant = theme === "dark" ? "dark" : "voyager";
-  return {
-    version: 8,
-    sources: {
-      base: {
-        type: "raster",
-        tiles: [`https://basemaps.cartocdn.com/rastertiles/${tileVariant}_nolabels/{z}/{x}/{y}@2x.png`],
-        tileSize: 256,
-        attribution: "CARTO"
-      },
-      labels: {
-        type: "raster",
-        tiles: [`https://basemaps.cartocdn.com/rastertiles/${tileVariant}_only_labels/{z}/{x}/{y}@2x.png`],
-        tileSize: 256,
-        attribution: "CARTO"
-      }
-    },
-    layers: [
-      {
-        id: "base",
-        type: "raster",
-        source: "base",
-        paint: {
-          "raster-opacity": theme === "dark" ? 0.94 : 1
-        }
-      },
-      {
-        id: "labels",
-        type: "raster",
-        source: "labels",
-        paint: {
-          "raster-opacity": theme === "dark" ? 0.78 : 0.86
-        }
-      }
-    ]
+function buildMapStyle(theme: "dark" | "light") {
+  return mapStyleUrls[theme];
+}
+
+function applyMapLayerPreferences(map: MapLibreMap, theme: "dark" | "light") {
+  const hideLayer = (id: string) => {
+    if (map.getLayer(id)) {
+      map.setLayoutProperty(id, "visibility", "none");
+    }
   };
+  const setPaint = (id: string, property: string, value: unknown) => {
+    if (map.getLayer(id)) {
+      map.setPaintProperty(id, property, value);
+    }
+  };
+
+  ["place_hamlet", "place_suburbs", "place_villages", "place_town"].forEach(hideLayer);
+
+  if (theme === "dark") {
+    setPaint("water", "fill-color", "#12384a");
+    setPaint("water", "fill-opacity", 0.78);
+    setPaint("water_shadow", "fill-opacity", 0.2);
+    setPaint("waterway", "line-color", "#2d8db8");
+    setPaint("waterway", "line-opacity", 0.78);
+    setPaint("park_national_park", "fill-color", "#1e4b32");
+    setPaint("park_nature_reserve", "fill-color", "#255a3a");
+    setPaint("landuse", "fill-color", "#213c2d");
+    setPaint("poi_park", "text-color", "#85c68f");
+
+    setPaint("road_minor_fill", "line-color", "#3b4650");
+    setPaint("road_service_fill", "line-color", "#323b44");
+    setPaint("road_sec_fill_noramp", "line-color", "#b47a42");
+    setPaint("road_pri_fill_noramp", "line-color", "#e39a4b");
+    setPaint("road_trunk_fill_noramp", "line-color", "#ff7f5a");
+    setPaint("road_mot_fill_noramp", "line-color", "#ff6f4b");
+    setPaint("road_sec_case_noramp", "line-color", "#33261f");
+    setPaint("road_pri_case_noramp", "line-color", "#3f2b1f");
+    setPaint("road_trunk_case_noramp", "line-color", "#43251f");
+    setPaint("road_mot_case_noramp", "line-color", "#46231c");
+    setPaint("roadname_minor", "text-color", "#a7b0ba");
+    setPaint("roadname_sec", "text-color", "#e3c89f");
+    setPaint("roadname_pri", "text-color", "#f0d2a7");
+    setPaint("roadname_major", "text-color", "#f5d3a2");
+    ["roadname_minor", "roadname_sec", "roadname_pri", "roadname_major"].forEach((id) => {
+      setPaint(id, "text-halo-color", "#11161b");
+      setPaint(id, "text-halo-width", 1.4);
+    });
+    return;
+  }
+
+  setPaint("water", "fill-color", "#b8d9e5");
+  setPaint("water", "fill-opacity", 0.7);
+  setPaint("water_shadow", "fill-opacity", 0.08);
+  setPaint("waterway", "line-color", "#80b9cf");
+  setPaint("waterway", "line-opacity", 0.72);
+  setPaint("park_national_park", "fill-color", "#d8ead7");
+  setPaint("park_nature_reserve", "fill-color", "#cce4cf");
+  setPaint("landuse", "fill-color", "#e8f0e4");
+  setPaint("poi_park", "text-color", "#5c8d68");
+
+  setPaint("road_minor_fill", "line-color", "#ffffff");
+  setPaint("road_service_fill", "line-color", "#f7f5f0");
+  setPaint("road_sec_fill_noramp", "line-color", "#eac88e");
+  setPaint("road_pri_fill_noramp", "line-color", "#e8a658");
+  setPaint("road_trunk_fill_noramp", "line-color", "#dc7e52");
+  setPaint("road_mot_fill_noramp", "line-color", "#d86d4c");
+  setPaint("road_sec_case_noramp", "line-color", "#d7b67f");
+  setPaint("road_pri_case_noramp", "line-color", "#cf914d");
+  setPaint("road_trunk_case_noramp", "line-color", "#c9704b");
+  setPaint("road_mot_case_noramp", "line-color", "#c65f42");
+  ["roadname_minor", "roadname_sec", "roadname_pri", "roadname_major"].forEach((id) => {
+    setPaint(id, "text-color", "#5c6470");
+    setPaint(id, "text-halo-color", "#f7f2ea");
+    setPaint(id, "text-halo-width", 1.2);
+  });
+}
+
+function getMapMarkerMode(map: MapLibreMap) {
+  return map.getZoom() < 12.2 ? "cluster" : "venue";
 }
 
 export function DiscoveryExperience({ initialVenues }: DiscoveryExperienceProps) {
@@ -635,6 +681,7 @@ function VenueMap({
   const appliedMapThemeRef = useRef(theme);
   const [mapReady, setMapReady] = useState(false);
   const [mapStyleTheme, setMapStyleTheme] = useState(theme);
+  const [markerMode, setMarkerMode] = useState<"cluster" | "venue">("venue");
 
   useEffect(() => {
     if (!mapContainerRef.current) {
@@ -659,7 +706,9 @@ function VenueMap({
       map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), "bottom-right");
       map.on("load", () => {
         if (!cancelled) {
+          applyMapLayerPreferences(map, appliedMapThemeRef.current);
           setMapReady(true);
+          setMarkerMode(getMapMarkerMode(map));
           setMapStyleTheme(appliedMapThemeRef.current);
         }
       });
@@ -689,6 +738,7 @@ function VenueMap({
     const nextTheme = theme;
     const handleStyleReady = () => {
       if (!cancelled) {
+        applyMapLayerPreferences(map, nextTheme);
         setMapStyleTheme(nextTheme);
       }
     };
@@ -709,6 +759,23 @@ function VenueMap({
       return;
     }
 
+    const syncMarkerMode = () => {
+      setMarkerMode(getMapMarkerMode(map));
+    };
+
+    syncMarkerMode();
+    map.on("zoomend", syncMarkerMode);
+    return () => {
+      map.off("zoomend", syncMarkerMode);
+    };
+  }, [mapReady]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapReady) {
+      return;
+    }
+
     markersRef.current.forEach((marker) => marker.remove());
     markersRef.current = [];
 
@@ -719,13 +786,21 @@ function VenueMap({
       }
       venues.forEach((venue) => {
         const media = getVenueMedia(venue);
+        const isSelected = selectedVenue?.id === venue.id;
+        const isClusterMode = markerMode === "cluster";
         const element = document.createElement("button");
-        element.className = selectedVenue?.id === venue.id ? "mapMarker selected" : "mapMarker";
+        element.className = [
+          "mapMarker",
+          isSelected && !isClusterMode ? "selected" : "",
+          isClusterMode ? "cluster" : "named"
+        ].filter(Boolean).join(" ");
         element.type = "button";
         element.setAttribute("aria-label", `Select ${venue.name}`);
-        element.innerHTML = selectedVenue?.id === venue.id
+        element.innerHTML = isClusterMode
+          ? `<strong>${getVenueClusterCount(venue, venues)}</strong>`
+          : isSelected
           ? `<img alt="" src="${media.image}" /><span>${venue.name}</span>`
-          : `<strong>${getVenueClusterCount(venue, venues)}</strong>`;
+          : `<em>${getVenueMapIcon(venue)}</em><span>${venue.name}</span>`;
         element.addEventListener("click", () => onSelectVenue(venue));
 
         const marker = new maplibregl.Marker({ element })
@@ -738,7 +813,7 @@ function VenueMap({
     return () => {
       cancelled = true;
     };
-  }, [mapReady, onSelectVenue, selectedVenue, venues]);
+  }, [mapReady, markerMode, onSelectVenue, selectedVenue, venues]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -897,7 +972,7 @@ function VenueMap({
           <span>cửa hàng trong khu vực hiện tại</span>
         </div>
       </div> : null}
-      {mapReady ? (
+      {mapReady && markerMode === "cluster" ? (
         <div className="mapCountLegend mapCountLegendLive">
           <strong>{venues.length}</strong>
           <span>cửa hàng trong khu vực hiện tại</span>
@@ -1089,6 +1164,14 @@ function getVenueClusterCount(_venue: Venue, _venues: Venue[]) {
   // Each marker currently represents one concrete venue. When clustering is added,
   // this becomes the aggregated store count for that map cell.
   return 1;
+}
+
+function getVenueMapIcon(venue: Venue) {
+  const searchable = `${venue.name} ${venue.categories.join(" ")}`.toLowerCase();
+  if (searchable.includes("cafe") || searchable.includes("coffee")) {
+    return "☕";
+  }
+  return "🍽";
 }
 
 function removeRouteLayers(map: MapLibreMap | null) {

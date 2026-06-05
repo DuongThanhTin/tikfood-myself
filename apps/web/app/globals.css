@@ -71,17 +71,17 @@ img {
 
 .appShell[data-theme="light"] {
   color-scheme: light;
-  --background: #f6f1eb;
-  --surface: #fffaf3;
+  --background: #f2eee8;
+  --surface: #fff7ee;
   --surface-low: #f3eadf;
   --surface-mid: #efe4d7;
-  --surface-high: #ffffff;
+  --surface-high: #fff9f1;
   --surface-highest: #f8efe6;
   --on-surface: #221914;
   --on-muted: #7d6858;
   --outline: rgba(86, 67, 52, 0.18);
-  --glass: rgba(255, 255, 255, 0.72);
-  --glass-strong: rgba(255, 255, 255, 0.86);
+  --glass: rgba(255, 248, 238, 0.74);
+  --glass-strong: rgba(255, 248, 238, 0.88);
   --primary: #9c4f00;
   --primary-strong: #ff8a00;
   --secondary: #b97800;
@@ -800,11 +800,11 @@ h3 {
 }
 
 .mapCanvas .maplibregl-canvas {
-  filter: saturate(1.12) contrast(1.06) brightness(0.92);
+  filter: saturate(1.04) contrast(1.02) brightness(0.96);
 }
 
 .appShell[data-theme="light"] .mapCanvas .maplibregl-canvas {
-  filter: saturate(1.08) contrast(1.03) brightness(1.04);
+  filter: saturate(0.86) contrast(0.95) brightness(0.9);
 }
 
 .mapCanvas .maplibregl-ctrl-bottom-left,
@@ -827,8 +827,8 @@ h3 {
 
 .appShell[data-theme="light"] .mapShade {
   background:
-    radial-gradient(circle at center, rgba(255, 255, 255, 0) 0%, rgba(246, 241, 235, 0.12) 98%),
-    linear-gradient(90deg, rgba(246, 241, 235, 0.16), transparent 18%, transparent 84%, rgba(246, 241, 235, 0.14));
+    radial-gradient(circle at center, rgba(246, 241, 235, 0.03) 0%, rgba(218, 207, 192, 0.24) 98%),
+    linear-gradient(90deg, rgba(218, 207, 192, 0.3), transparent 18%, transparent 84%, rgba(218, 207, 192, 0.24));
 }
 
 .fallbackMarkerLayer {
@@ -852,6 +852,51 @@ h3 {
   min-height: 34px;
   place-items: center;
   border-radius: 999px;
+}
+
+.mapMarker.cluster {
+  width: 34px;
+  height: 34px;
+}
+
+.mapMarker.named {
+  display: inline-flex;
+  max-width: 168px;
+  min-height: 34px;
+  align-items: center;
+  gap: 7px;
+  border-color: rgba(255, 183, 127, 0.42);
+  padding: 5px 10px 5px 6px;
+  color: #ffffff;
+  background: rgba(20, 20, 20, 0.74);
+  backdrop-filter: blur(16px);
+}
+
+.appShell[data-theme="light"] .mapMarker.named {
+  color: #2f271f;
+  background: rgba(255, 250, 243, 0.9);
+  box-shadow: 0 12px 24px rgba(81, 57, 35, 0.14);
+}
+
+.mapMarker.named em {
+  display: grid;
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(255, 183, 127, 0.18);
+  font-size: 13px;
+  font-style: normal;
+}
+
+.mapMarker.named span {
+  overflow: hidden;
+  max-width: 116px;
+  font-size: 11px;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .fallbackMarker {
