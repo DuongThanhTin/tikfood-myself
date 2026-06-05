@@ -134,6 +134,45 @@ const routeSourceId = "active-route";
 const routeCasingLayerId = "active-route-casing";
 const routeLineLayerId = "active-route-line";
 
+function buildMapStyle(theme: "dark" | "light"): StyleSpecification {
+  const variant = theme === "dark" ? "dark" : "light";
+  return {
+    version: 8,
+    sources: {
+      base: {
+        type: "raster",
+        tiles: [`https://basemaps.cartocdn.com/${variant}_nolabels/{z}/{x}/{y}.png`],
+        tileSize: 256,
+        attribution: "CARTO"
+      },
+      labels: {
+        type: "raster",
+        tiles: [`https://basemaps.cartocdn.com/${variant}_only_labels/{z}/{x}/{y}.png`],
+        tileSize: 256,
+        attribution: "CARTO"
+      }
+    },
+    layers: [
+      {
+        id: "base",
+        type: "raster",
+        source: "base",
+        paint: {
+          "raster-opacity": theme === "dark" ? 0.76 : 0.92
+        }
+      },
+      {
+        id: "labels",
+        type: "raster",
+        source: "labels",
+        paint: {
+          "raster-opacity": theme === "dark" ? 0.38 : 0.48
+        }
+      }
+    ]
+  };
+}
+
 export function DiscoveryExperience({ initialVenues }: DiscoveryExperienceProps) {
   const [venues, setVenues] = useState(initialVenues);
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(initialVenues[0] ?? null);
@@ -611,7 +650,7 @@ function VenueMap({
         center: [106.683, 10.778],
         zoom: 12.8,
         attributionControl: false,
-        style: getMapStyle(theme)
+        style: buildMapStyle(theme)
       });
 
       map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), "bottom-right");
@@ -1013,45 +1052,6 @@ async function fetchRoute(origin: UserLocation, venue: Venue): Promise<ActiveRou
       geometry: route.geometry,
       properties: {}
     }
-  };
-}
-
-function getMapStyle(theme: "dark" | "light"): StyleSpecification {
-  const variant = theme === "dark" ? "dark" : "light";
-  return {
-    version: 8,
-    sources: {
-      base: {
-        type: "raster",
-        tiles: [`https://basemaps.cartocdn.com/${variant}_nolabels/{z}/{x}/{y}.png`],
-        tileSize: 256,
-        attribution: "CARTO"
-      },
-      labels: {
-        type: "raster",
-        tiles: [`https://basemaps.cartocdn.com/${variant}_only_labels/{z}/{x}/{y}.png`],
-        tileSize: 256,
-        attribution: "CARTO"
-      }
-    },
-    layers: [
-      {
-        id: "base",
-        type: "raster",
-        source: "base",
-        paint: {
-          "raster-opacity": theme === "dark" ? 0.76 : 0.92
-        }
-      },
-      {
-        id: "labels",
-        type: "raster",
-        source: "labels",
-        paint: {
-          "raster-opacity": theme === "dark" ? 0.38 : 0.48
-        }
-      }
-    ]
   };
 }
 
