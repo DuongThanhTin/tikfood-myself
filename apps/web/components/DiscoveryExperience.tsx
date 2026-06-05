@@ -157,15 +157,15 @@ function applyMapLayerPreferences(map: MapLibreMap, theme: "dark" | "light") {
   ["place_hamlet", "place_suburbs", "place_villages", "place_town"].forEach(hideLayer);
 
   if (theme === "dark") {
-    setPaint("water", "fill-color", "#12384a");
-    setPaint("water", "fill-opacity", 0.78);
-    setPaint("water_shadow", "fill-opacity", 0.2);
-    setPaint("waterway", "line-color", "#2d8db8");
-    setPaint("waterway", "line-opacity", 0.78);
-    setPaint("park_national_park", "fill-color", "#1e4b32");
-    setPaint("park_nature_reserve", "fill-color", "#255a3a");
-    setPaint("landuse", "fill-color", "#213c2d");
-    setPaint("poi_park", "text-color", "#85c68f");
+    setPaint("water", "fill-color", "#0b4963");
+    setPaint("water", "fill-opacity", 0.9);
+    setPaint("water_shadow", "fill-opacity", 0.34);
+    setPaint("waterway", "line-color", "#37a6d1");
+    setPaint("waterway", "line-opacity", 0.92);
+    setPaint("park_national_park", "fill-color", "#236139");
+    setPaint("park_nature_reserve", "fill-color", "#2c7544");
+    setPaint("landuse", "fill-color", "#284d34");
+    setPaint("poi_park", "text-color", "#9ce0a4");
 
     setPaint("road_minor_fill", "line-color", "#3b4650");
     setPaint("road_service_fill", "line-color", "#323b44");
@@ -188,15 +188,15 @@ function applyMapLayerPreferences(map: MapLibreMap, theme: "dark" | "light") {
     return;
   }
 
-  setPaint("water", "fill-color", "#b8d9e5");
-  setPaint("water", "fill-opacity", 0.7);
-  setPaint("water_shadow", "fill-opacity", 0.08);
-  setPaint("waterway", "line-color", "#80b9cf");
-  setPaint("waterway", "line-opacity", 0.72);
-  setPaint("park_national_park", "fill-color", "#d8ead7");
-  setPaint("park_nature_reserve", "fill-color", "#cce4cf");
-  setPaint("landuse", "fill-color", "#e8f0e4");
-  setPaint("poi_park", "text-color", "#5c8d68");
+  setPaint("water", "fill-color", "#8fc5d4");
+  setPaint("water", "fill-opacity", 0.86);
+  setPaint("water_shadow", "fill-opacity", 0.16);
+  setPaint("waterway", "line-color", "#4f9fb8");
+  setPaint("waterway", "line-opacity", 0.88);
+  setPaint("park_national_park", "fill-color", "#b8dcb7");
+  setPaint("park_nature_reserve", "fill-color", "#a8d2ae");
+  setPaint("landuse", "fill-color", "#cfe4ca");
+  setPaint("poi_park", "text-color", "#3f7e4f");
 
   setPaint("road_minor_fill", "line-color", "#ffffff");
   setPaint("road_service_fill", "line-color", "#f7f5f0");
@@ -799,11 +799,14 @@ function VenueMap({
         element.innerHTML = isClusterMode
           ? `<strong>${getVenueClusterCount(venue, venues)}</strong>`
           : isSelected
-          ? `<img alt="" src="${media.image}" /><span>${venue.name}</span>`
-          : `<em>${getVenueMapIcon(venue)}</em><span>${venue.name}</span>`;
+          ? `<span class="markerBubble"><img alt="" src="${media.image}" /><span>${venue.name}</span></span><span class="markerPin" aria-hidden="true"></span>`
+          : `<span class="markerBubble"><em>${getVenueMapIcon(venue)}</em><span>${venue.name}</span></span><span class="markerPin" aria-hidden="true"></span>`;
         element.addEventListener("click", () => onSelectVenue(venue));
 
-        const marker = new maplibregl.Marker({ element })
+        const marker = new maplibregl.Marker({
+          anchor: isClusterMode ? "center" : "bottom",
+          element
+        })
           .setLngLat([venue.longitude, venue.latitude])
           .addTo(map);
         markersRef.current.push(marker);

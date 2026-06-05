@@ -71,23 +71,23 @@ img {
 
 .appShell[data-theme="light"] {
   color-scheme: light;
-  --background: #f2eee8;
-  --surface: #fff7ee;
-  --surface-low: #f3eadf;
-  --surface-mid: #efe4d7;
-  --surface-high: #fff9f1;
-  --surface-highest: #f8efe6;
-  --on-surface: #221914;
-  --on-muted: #7d6858;
-  --outline: rgba(86, 67, 52, 0.18);
-  --glass: rgba(255, 248, 238, 0.74);
-  --glass-strong: rgba(255, 248, 238, 0.88);
-  --primary: #9c4f00;
-  --primary-strong: #ff8a00;
-  --secondary: #b97800;
-  --trend-fire: #e35300;
-  --danger: #a42d26;
-  --shadow: 0 24px 70px rgba(68, 47, 28, 0.18);
+  --background: #eee7dc;
+  --surface: #fbf3e8;
+  --surface-low: #eadfce;
+  --surface-mid: #e2d4c1;
+  --surface-high: #fff7ea;
+  --surface-highest: #eadac6;
+  --on-surface: #251b14;
+  --on-muted: #6b5746;
+  --outline: rgba(74, 55, 40, 0.22);
+  --glass: rgba(250, 239, 224, 0.78);
+  --glass-strong: rgba(248, 233, 214, 0.92);
+  --primary: #8f4700;
+  --primary-strong: #d06b00;
+  --secondary: #a26300;
+  --trend-fire: #d94f00;
+  --danger: #922922;
+  --shadow: 0 24px 70px rgba(74, 52, 32, 0.2);
 }
 
 .appShell.leftCollapsed {
@@ -137,6 +137,10 @@ img {
 .rightPanel {
   border-left: 1px solid var(--outline);
   box-shadow: -24px 0 80px rgba(0, 0, 0, 0.44);
+}
+
+.appShell[data-theme="light"] .rightPanel {
+  box-shadow: -24px 0 70px rgba(74, 52, 32, 0.14);
 }
 
 .sidebarToggle {
@@ -356,6 +360,24 @@ h3 {
 
 .heroSearch input::placeholder {
   color: rgba(221, 193, 174, 0.62);
+}
+
+.appShell[data-theme="light"] .heroSearch::before {
+  opacity: 0.18;
+}
+
+.appShell[data-theme="light"] .heroSearch:focus-within::before {
+  opacity: 0.34;
+}
+
+.appShell[data-theme="light"] .heroSearch input {
+  border-color: rgba(143, 71, 0, 0.16);
+  background: #f4e7d7;
+  box-shadow: 0 18px 44px rgba(89, 61, 37, 0.16);
+}
+
+.appShell[data-theme="light"] .heroSearch input::placeholder {
+  color: rgba(83, 61, 46, 0.42);
 }
 
 .heroSearch > .uiIcon {
@@ -764,6 +786,19 @@ h3 {
   background: var(--glass-strong);
 }
 
+.appShell[data-theme="light"] .glassButton,
+.appShell[data-theme="light"] .iconGlassButton,
+.appShell[data-theme="light"] .glassAction {
+  color: var(--on-surface);
+  background: rgba(255, 247, 234, 0.82);
+  box-shadow: 0 12px 28px rgba(74, 52, 32, 0.12);
+}
+
+.appShell[data-theme="light"] .glassButton.solid,
+.appShell[data-theme="light"] .themeToggle {
+  background: rgba(255, 247, 234, 0.94);
+}
+
 .iconGlassButton {
   width: 42px;
   height: 42px;
@@ -804,7 +839,7 @@ h3 {
 }
 
 .appShell[data-theme="light"] .mapCanvas .maplibregl-canvas {
-  filter: saturate(0.86) contrast(0.95) brightness(0.9);
+  filter: saturate(0.88) contrast(0.98) brightness(0.88);
 }
 
 .mapCanvas .maplibregl-ctrl-bottom-left,
@@ -827,8 +862,8 @@ h3 {
 
 .appShell[data-theme="light"] .mapShade {
   background:
-    radial-gradient(circle at center, rgba(246, 241, 235, 0.03) 0%, rgba(218, 207, 192, 0.24) 98%),
-    linear-gradient(90deg, rgba(218, 207, 192, 0.3), transparent 18%, transparent 84%, rgba(218, 207, 192, 0.24));
+    radial-gradient(circle at center, rgba(242, 232, 218, 0.02) 0%, rgba(188, 170, 146, 0.24) 98%),
+    linear-gradient(90deg, rgba(188, 170, 146, 0.28), transparent 18%, transparent 84%, rgba(188, 170, 146, 0.22));
 }
 
 .fallbackMarkerLayer {
@@ -860,25 +895,38 @@ h3 {
 }
 
 .mapMarker.named {
-  display: inline-flex;
+  display: grid;
   max-width: 168px;
+  justify-items: center;
+  gap: 4px;
+  border: 0;
+  color: #ffffff;
+  background: transparent;
+  box-shadow: none;
+}
+
+.markerBubble {
+  display: inline-flex;
   min-height: 34px;
   align-items: center;
   gap: 7px;
-  border-color: rgba(255, 183, 127, 0.42);
+  border: 1px solid rgba(255, 183, 127, 0.42);
+  border-radius: 999px;
   padding: 5px 10px 5px 6px;
-  color: #ffffff;
-  background: rgba(20, 20, 20, 0.74);
+  background: rgba(20, 20, 20, 0.78);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.24);
   backdrop-filter: blur(16px);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
 }
 
-.appShell[data-theme="light"] .mapMarker.named {
+.appShell[data-theme="light"] .markerBubble {
   color: #2f271f;
-  background: rgba(255, 250, 243, 0.9);
+  border-color: rgba(143, 71, 0, 0.32);
+  background: rgba(255, 247, 234, 0.94);
   box-shadow: 0 12px 24px rgba(81, 57, 35, 0.14);
 }
 
-.mapMarker.named em {
+.markerBubble em {
   display: grid;
   width: 22px;
   height: 22px;
@@ -890,13 +938,38 @@ h3 {
   font-style: normal;
 }
 
-.mapMarker.named span {
+.markerBubble > span {
   overflow: hidden;
   max-width: 116px;
   font-size: 11px;
   font-weight: 900;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.markerPin {
+  display: grid;
+  width: 17px;
+  height: 17px;
+  place-items: center;
+  border: 3px solid #ffffff;
+  border-radius: 999px;
+  background: var(--trend-fire);
+  box-shadow: 0 0 0 6px rgba(255, 77, 0, 0.18), 0 10px 22px rgba(0, 0, 0, 0.24);
+}
+
+.markerPin::after {
+  width: 5px;
+  height: 5px;
+  border-radius: inherit;
+  background: #ffffff;
+  content: "";
+}
+
+.appShell[data-theme="light"] .markerPin {
+  border-color: #fff7ea;
+  background: #bd4c00;
+  box-shadow: 0 0 0 6px rgba(189, 76, 0, 0.16), 0 10px 22px rgba(81, 57, 35, 0.2);
 }
 
 .fallbackMarker {
@@ -911,9 +984,12 @@ h3 {
   transition: transform 0.18s ease, width 0.18s ease, height 0.18s ease;
 }
 
-.mapMarker:hover,
 .fallbackMarker:hover {
   transform: translate(-50%, -50%) scale(1.08);
+}
+
+.mapMarker:hover .markerBubble {
+  transform: translateY(-1px);
 }
 
 .userLocationMarker,
@@ -945,19 +1021,23 @@ h3 {
 
 .mapMarker.selected,
 .fallbackMarker.selected {
-  display: flex;
   width: auto;
   min-width: 138px;
   height: auto;
-  min-height: 52px;
-  align-items: center;
-  gap: 8px;
-  border: 1px solid rgba(255, 183, 127, 0.36);
+}
+
+.mapMarker.selected .markerBubble,
+.fallbackMarker.selected {
+  border: 1px solid rgba(255, 183, 127, 0.42);
   border-radius: 14px;
   padding: 6px 10px 6px 6px;
   color: #ffffff;
-  background: rgba(19, 19, 19, 0.74);
-  backdrop-filter: blur(18px);
+  background: rgba(19, 19, 19, 0.78);
+}
+
+.appShell[data-theme="light"] .mapMarker.selected .markerBubble {
+  color: #2f271f;
+  background: rgba(255, 247, 234, 0.96);
 }
 
 .mapCountLegend {
@@ -1034,10 +1114,6 @@ h3 {
   font-weight: 900;
 }
 
-.mapMarker.selected {
-  transform: translate(-50%, -50%);
-}
-
 .mapMarker.selected img,
 .fallbackMarker.selected img {
   width: 36px;
@@ -1048,7 +1124,7 @@ h3 {
   object-fit: cover;
 }
 
-.mapMarker.selected span,
+.mapMarker.selected .markerBubble > span,
 .fallbackMarker.selected span {
   max-width: 82px;
   overflow: hidden;
