@@ -13,6 +13,22 @@ type UserLocation = {
   lng: number;
 };
 
+type RouteFeature = {
+  type: "Feature";
+  geometry: {
+    type: "LineString";
+    coordinates: [number, number][];
+  };
+  properties: Record<string, never>;
+};
+
+type ActiveRoute = {
+  venueId: string;
+  geometry: RouteFeature;
+  distanceMeters: number;
+  durationSeconds: number;
+};
+
 type VenueMedia = {
   cuisine: string;
   rating: string;
@@ -114,10 +130,14 @@ const mediaByVenue: Record<string, VenueMedia> = {
 };
 
 const defaultMedia = mediaByVenue.venue_001;
+const routeSourceId = "active-route";
+const routeCasingLayerId = "active-route-casing";
+const routeLineLayerId = "active-route-line";
 
 export function DiscoveryExperience({ initialVenues }: DiscoveryExperienceProps) {
   const [venues, setVenues] = useState(initialVenues);
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(initialVenues[0] ?? null);
+  const [activeRoute, setActiveRoute] = useState<ActiveRoute | null>(null);
   const [leftCollapsed, setLeftCollapsed] = useState(false);
   const [theme, setTheme] = useState<"dark" | "light">("dark");
   const [query, setQuery] = useState("");
@@ -128,7 +148,9 @@ export function DiscoveryExperience({ initialVenues }: DiscoveryExperienceProps)
   const [openNow, setOpenNow] = useState(false);
   const [nearUser, setNearUser] = useState<UserLocation | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isRouting, setIsRouting] = useState(false);
   const [error, setError] = useState("");
+  const [routeError, setRouteError] = useState("");
 
   const params = useMemo<VenueSearchParams>(() => ({
     q: query,
@@ -171,6 +193,8 @@ export function DiscoveryExperience({ initialVenues }: DiscoveryExperienceProps)
     setSort("trending");
     setOpenNow(false);
     setNearUser(null);
+    setActiveRoute(null);
+    setRouteError("");
     void runSearch(nextParams);
   }
 
@@ -190,6 +214,8 @@ export function DiscoveryExperience({ initialVenues }: DiscoveryExperienceProps)
         };
         setNearUser(nextLocation);
         setSelectedVenue(null);
+        setActiveRoute(null);
+        setRouteError("");
         void runSearch({
           ...params,
           lat: nextLocation.lat,
@@ -220,6 +246,33 @@ export function DiscoveryExperience({ initialVenues }: DiscoveryExperienceProps)
 
   function toggleLeftPanel() {
     setLeftCollapsed((value) => !value);
+  }
+
+  function selectVenue(venue: Venue) {
+    setSelectedVenue(venue);
+    setActiveRoute(null);
+    setRouteError("");
+  }
+
+  async function requestRouteToVenue(venue: Venue) {
+    setSelectedVenue(venue);
+    setRouteError("");
+
+    if (!nearUser) {
+      setRouteError("Bạn cần chia sẻ vị trí hiện tại trước khi chỉ đường.");
+      return;
+    }
+
+    setIsRouting(true);
+    try {
+      const route = await fetchRoute(nearUser, venue);
+      setActiveRoute(route);
+    } catch (routeFetchError) {
+      setRouteError(routeFetchError instanceof Error ? routeFetchError.message : "Không thể tải chỉ đường.");
+      setActiveRoute(null);
+    } finally {
+      setIsRouting(false);
+    }
   }
 
   return (
@@ -385,7 +438,7 @@ export function DiscoveryExperience({ initialVenues }: DiscoveryExperienceProps)
                     key={venue.id}
                     venue={venue}
                     selected={selectedVenue?.id === venue.id}
-                    onSelect={() => setSelectedVenue(venue)}
+                    onSelect={() => selectVenue(venue)}
                   />
                 ))}
               </div>
@@ -439,8 +492,13 @@ export function DiscoveryExperience({ initialVenues }: DiscoveryExperienceProps)
           venues={venues}
           selectedVenue={selectedVenue}
           userLocation={nearUser}
+          activeRoute={activeRoute}
           theme={theme}
-          onSelectVenue={setSelectedVenue}
+          onSelectVenue={selectVenue}
+          onClearRoute={() => {
+            setActiveRoute(null);
+            setRouteError("");
+          }}
         />
 
         <div className="mapBottomAction">
@@ -461,7 +519,18 @@ export function DiscoveryExperience({ initialVenues }: DiscoveryExperienceProps)
           >
             <Icon name="close" />
           </button>
-          <VenueDetail venue={selectedVenue} userLocation={nearUser} />
+          <VenueDetail
+            venue={selectedVenue}
+            activeRoute={activeRoute}
+            isRouting={isRouting}
+            routeError={routeError}
+            userLocation={nearUser}
+            onClearRoute={() => {
+              setActiveRoute(null);
+              setRouteError("");
+            }}
+            onRequestRoute={() => void requestRouteToVenue(selectedVenue)}
+          />
         </aside>
       ) : null}
     </main>
@@ -506,14 +575,18 @@ function VenueMap({
   venues,
   selectedVenue,
   userLocation,
+  activeRoute,
   theme,
-  onSelectVenue
+  onSelectVenue,
+  onClearRoute
 }: {
   venues: Venue[];
   selectedVenue: Venue | null;
   userLocation: UserLocation | null;
+  activeRoute: ActiveRoute | null;
   theme: "dark" | "light";
   onSelectVenue: (venue: Venue) => void;
+  onClearRoute: () => void;
 }) {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
@@ -557,6 +630,7 @@ function VenueMap({
       markersRef.current = [];
       userMarkerRef.current?.remove();
       userMarkerRef.current = null;
+      removeRouteLayers(mapRef.current);
       mapRef.current?.remove();
       mapRef.current = null;
     };
@@ -650,6 +724,67 @@ function VenueMap({
     };
   }, [mapReady, userLocation]);
 
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapReady) {
+      return;
+    }
+
+    removeRouteLayers(map);
+
+    if (!activeRoute) {
+      return;
+    }
+
+    map.addSource(routeSourceId, {
+      type: "geojson",
+      data: activeRoute.geometry
+    });
+    map.addLayer({
+      id: routeCasingLayerId,
+      type: "line",
+      source: routeSourceId,
+      layout: {
+        "line-cap": "round",
+        "line-join": "round"
+      },
+      paint: {
+        "line-color": theme === "dark" ? "#050505" : "#ffffff",
+        "line-opacity": 0.9,
+        "line-width": 8
+      }
+    });
+    map.addLayer({
+      id: routeLineLayerId,
+      type: "line",
+      source: routeSourceId,
+      layout: {
+        "line-cap": "round",
+        "line-join": "round"
+      },
+      paint: {
+        "line-color": "#2f80ff",
+        "line-opacity": 0.98,
+        "line-width": 5
+      }
+    });
+
+    const bounds = getRouteBounds(activeRoute.geometry.geometry.coordinates);
+    if (bounds) {
+      map.fitBounds(bounds, {
+        duration: 700,
+        padding: {
+          top: 96,
+          right: selectedVenue ? 360 : 88,
+          bottom: 132,
+          left: 88
+        }
+      });
+    }
+
+    return () => removeRouteLayers(map);
+  }, [activeRoute, mapReady, selectedVenue, theme]);
+
   return (
     <div className="mapCanvasWrap">
       <div className="mapFallbackGrid" aria-hidden="true" />
@@ -701,14 +836,37 @@ function VenueMap({
           <span>cửa hàng trong khu vực hiện tại</span>
         </div>
       ) : null}
+      {activeRoute ? (
+        <div className="routeSummary">
+          <strong>{formatDistance(activeRoute.distanceMeters)}</strong>
+          <span>{formatDuration(activeRoute.durationSeconds)} tới {selectedVenue?.name ?? "địa điểm"}</span>
+          <button type="button" onClick={onClearRoute}>Xóa chỉ đường</button>
+        </div>
+      ) : null}
     </div>
   );
 }
 
-function VenueDetail({ venue, userLocation }: { venue: Venue; userLocation: UserLocation | null }) {
+function VenueDetail({
+  venue,
+  activeRoute,
+  isRouting,
+  routeError,
+  userLocation,
+  onClearRoute,
+  onRequestRoute
+}: {
+  venue: Venue;
+  activeRoute: ActiveRoute | null;
+  isRouting: boolean;
+  routeError: string;
+  userLocation: UserLocation | null;
+  onClearRoute: () => void;
+  onRequestRoute: () => void;
+}) {
   const media = getVenueMedia(venue);
   const trendPercent = Math.min(99, Math.max(1, venue.trend_score));
-  const directionsUrl = getDirectionsUrl(venue, userLocation);
+  const isActiveRoute = activeRoute?.venueId === venue.id;
 
   return (
     <article className="detailContent">
@@ -777,10 +935,10 @@ function VenueDetail({ venue, userLocation }: { venue: Venue; userLocation: User
 
         <div className="detailActions">
           <button className="primaryButton large" type="button">Xem chi tiết & Menu</button>
-          <a className="glassAction" href={directionsUrl} target="_blank" rel="noreferrer">
+          <button className="glassAction" type="button" onClick={isActiveRoute ? onClearRoute : onRequestRoute} disabled={isRouting}>
             <Icon name="route" />
-            Chỉ đường
-          </a>
+            {isRouting ? "Đang tải" : isActiveRoute ? "Xóa route" : "Chỉ đường"}
+          </button>
           <button className="glassAction" type="button">
             <Icon name="share" />
             Chia sẻ
@@ -790,6 +948,13 @@ function VenueDetail({ venue, userLocation }: { venue: Venue; userLocation: User
             Lưu
           </button>
         </div>
+        {isActiveRoute ? (
+          <p className="routeHint">
+            {formatDistance(activeRoute.distanceMeters)} · {formatDuration(activeRoute.durationSeconds)} từ vị trí của bạn.
+          </p>
+        ) : null}
+        {!userLocation ? <p className="routeHint">Chia sẻ vị trí hiện tại để vẽ chỉ đường trực tiếp trên bản đồ.</p> : null}
+        {routeError ? <p className="routeHint error">{routeError}</p> : null}
       </div>
     </article>
   );
@@ -809,6 +974,46 @@ function VideoCard({ image, views, label }: { image: string; views: string; labe
 
 function getVenueMedia(venue: Venue) {
   return mediaByVenue[venue.id] ?? defaultMedia;
+}
+
+async function fetchRoute(origin: UserLocation, venue: Venue): Promise<ActiveRoute> {
+  const from = `${origin.lng},${origin.lat}`;
+  const to = `${venue.longitude},${venue.latitude}`;
+  const response = await fetch(
+    `https://router.project-osrm.org/route/v1/driving/${from};${to}?overview=full&geometries=geojson&steps=false`
+  );
+
+  if (!response.ok) {
+    throw new Error("Không thể tải chỉ đường từ routing service.");
+  }
+
+  const body = (await response.json()) as {
+    code?: string;
+    routes?: Array<{
+      distance: number;
+      duration: number;
+      geometry: {
+        type: "LineString";
+        coordinates: [number, number][];
+      };
+    }>;
+  };
+  const route = body.routes?.[0];
+
+  if (body.code !== "Ok" || !route) {
+    throw new Error("Không tìm thấy tuyến đường phù hợp.");
+  }
+
+  return {
+    venueId: venue.id,
+    distanceMeters: route.distance,
+    durationSeconds: route.duration,
+    geometry: {
+      type: "Feature",
+      geometry: route.geometry,
+      properties: {}
+    }
+  };
 }
 
 function getMapStyle(theme: "dark" | "light"): StyleSpecification {
@@ -856,18 +1061,49 @@ function getVenueClusterCount(_venue: Venue, _venues: Venue[]) {
   return 1;
 }
 
-function getDirectionsUrl(venue: Venue, userLocation: UserLocation | null) {
-  const params = new URLSearchParams({
-    api: "1",
-    destination: `${venue.latitude},${venue.longitude}`,
-    travelmode: "driving"
-  });
+function removeRouteLayers(map: MapLibreMap | null) {
+  if (!map) {
+    return;
+  }
+  if (map.getLayer(routeLineLayerId)) {
+    map.removeLayer(routeLineLayerId);
+  }
+  if (map.getLayer(routeCasingLayerId)) {
+    map.removeLayer(routeCasingLayerId);
+  }
+  if (map.getSource(routeSourceId)) {
+    map.removeSource(routeSourceId);
+  }
+}
 
-  if (userLocation) {
-    params.set("origin", `${userLocation.lat},${userLocation.lng}`);
+function getRouteBounds(coordinates: [number, number][]) {
+  if (coordinates.length === 0) {
+    return null;
   }
 
-  return `https://www.google.com/maps/dir/?${params.toString()}`;
+  const lngs = coordinates.map(([lng]) => lng);
+  const lats = coordinates.map(([, lat]) => lat);
+  return [
+    [Math.min(...lngs), Math.min(...lats)],
+    [Math.max(...lngs), Math.max(...lats)]
+  ] as [[number, number], [number, number]];
+}
+
+function formatDistance(value: number) {
+  if (value >= 1000) {
+    return `${(value / 1000).toFixed(value >= 10000 ? 0 : 1)} km`;
+  }
+  return `${Math.round(value)} m`;
+}
+
+function formatDuration(value: number) {
+  const minutes = Math.max(1, Math.round(value / 60));
+  if (minutes >= 60) {
+    const hours = Math.floor(minutes / 60);
+    const remainder = minutes % 60;
+    return remainder ? `${hours} giờ ${remainder} phút` : `${hours} giờ`;
+  }
+  return `${minutes} phút`;
 }
 
 function toMapX(longitude: number) {

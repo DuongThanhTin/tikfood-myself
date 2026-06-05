@@ -947,6 +947,48 @@ h3 {
   line-height: 1.35;
 }
 
+.routeSummary {
+  position: absolute;
+  z-index: 6;
+  right: 24px;
+  bottom: 176px;
+  display: grid;
+  min-width: 210px;
+  max-width: 280px;
+  gap: 5px;
+  border: 1px solid rgba(47, 128, 255, 0.35);
+  border-radius: 18px;
+  padding: 14px 16px;
+  color: var(--on-surface);
+  background: var(--glass-strong);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(18px);
+}
+
+.routeSummary strong {
+  color: #2f80ff;
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.routeSummary span {
+  color: var(--on-muted);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+.routeSummary button {
+  justify-self: start;
+  border: 0;
+  padding: 0;
+  color: #2f80ff;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 900;
+}
+
 .mapMarker.selected {
   transform: translate(-50%, -50%);
 }
@@ -1237,6 +1279,22 @@ h3 {
   min-height: 48px;
   color: var(--on-surface);
   text-decoration: none;
+}
+
+.glassAction:disabled {
+  cursor: wait;
+  opacity: 0.58;
+}
+
+.routeHint {
+  color: var(--on-muted);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.routeHint.error {
+  color: var(--danger);
 }
 
 @media (max-width: 1180px) {

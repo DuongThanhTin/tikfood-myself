@@ -11,7 +11,8 @@ Implemented:
 - Dark glass discovery UI inspired by the homepage prompt
 - MapLibre restaurant map with simplified basemap labels and clickable store-count markers
 - User location marker and map fly-to behavior after location sharing
-- Right-side venue detail panel with hero media, trend/video sections, and directions action
+- Right-side venue detail panel with hero media, trend/video sections, and in-app route drawing
+- Prototype routing through the public OSRM demo API
 - Venue cards with AI summaries and trending dishes
 - API integration with `GET /api/v1/discovery/venues`
 - Fallback data when the API is not running
