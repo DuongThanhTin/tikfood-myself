@@ -922,6 +922,27 @@ function VenueDetail({
           <div>
             <h2>{venue.name}</h2>
             <p className="detailMeta">{venue.address}, {venue.district}</p>
+            <div className="compactDetailActions">
+              <button className="glassAction" type="button" onClick={isActiveRoute ? onClearRoute : onRequestRoute} disabled={isRouting}>
+                <Icon name="route" />
+                {isRouting ? "Đang tải" : isActiveRoute ? "Xóa route" : "Chỉ đường"}
+              </button>
+              <button className="glassAction" type="button">
+                <Icon name="share" />
+                Chia sẻ
+              </button>
+              <button className="glassAction" type="button">
+                <Icon name="bookmark" />
+                Lưu
+              </button>
+            </div>
+            {isActiveRoute ? (
+              <p className="routeHint">
+                {formatDistance(activeRoute.distanceMeters)} · {formatDuration(activeRoute.durationSeconds)} từ vị trí của bạn.
+              </p>
+            ) : null}
+            {!userLocation ? <p className="routeHint">Chia sẻ vị trí hiện tại để vẽ chỉ đường trực tiếp trên bản đồ.</p> : null}
+            {routeError ? <p className="routeHint error">{routeError}</p> : null}
           </div>
           <div className="ratingBlock">
             <span>
@@ -972,28 +993,9 @@ function VenueDetail({
           </div>
         </section>
 
-        <div className="detailActions">
+        <div className="detailActions detailMenuAction">
           <button className="primaryButton large" type="button">Xem chi tiết & Menu</button>
-          <button className="glassAction" type="button" onClick={isActiveRoute ? onClearRoute : onRequestRoute} disabled={isRouting}>
-            <Icon name="route" />
-            {isRouting ? "Đang tải" : isActiveRoute ? "Xóa route" : "Chỉ đường"}
-          </button>
-          <button className="glassAction" type="button">
-            <Icon name="share" />
-            Chia sẻ
-          </button>
-          <button className="glassAction" type="button">
-            <Icon name="bookmark" />
-            Lưu
-          </button>
         </div>
-        {isActiveRoute ? (
-          <p className="routeHint">
-            {formatDistance(activeRoute.distanceMeters)} · {formatDuration(activeRoute.durationSeconds)} từ vị trí của bạn.
-          </p>
-        ) : null}
-        {!userLocation ? <p className="routeHint">Chia sẻ vị trí hiện tại để vẽ chỉ đường trực tiếp trên bản đồ.</p> : null}
-        {routeError ? <p className="routeHint error">{routeError}</p> : null}
       </div>
     </article>
   );
