@@ -135,19 +135,19 @@ const routeCasingLayerId = "active-route-casing";
 const routeLineLayerId = "active-route-line";
 
 function buildMapStyle(theme: "dark" | "light"): StyleSpecification {
-  const variant = theme === "dark" ? "dark" : "light";
+  const tileVariant = theme === "dark" ? "dark" : "voyager";
   return {
     version: 8,
     sources: {
       base: {
         type: "raster",
-        tiles: [`https://basemaps.cartocdn.com/${variant}_nolabels/{z}/{x}/{y}.png`],
+        tiles: [`https://basemaps.cartocdn.com/rastertiles/${tileVariant}_nolabels/{z}/{x}/{y}@2x.png`],
         tileSize: 256,
         attribution: "CARTO"
       },
       labels: {
         type: "raster",
-        tiles: [`https://basemaps.cartocdn.com/${variant}_only_labels/{z}/{x}/{y}.png`],
+        tiles: [`https://basemaps.cartocdn.com/rastertiles/${tileVariant}_only_labels/{z}/{x}/{y}@2x.png`],
         tileSize: 256,
         attribution: "CARTO"
       }
@@ -158,7 +158,7 @@ function buildMapStyle(theme: "dark" | "light"): StyleSpecification {
         type: "raster",
         source: "base",
         paint: {
-          "raster-opacity": theme === "dark" ? 0.76 : 0.92
+          "raster-opacity": theme === "dark" ? 0.94 : 1
         }
       },
       {
@@ -166,7 +166,7 @@ function buildMapStyle(theme: "dark" | "light"): StyleSpecification {
         type: "raster",
         source: "labels",
         paint: {
-          "raster-opacity": theme === "dark" ? 0.38 : 0.48
+          "raster-opacity": theme === "dark" ? 0.78 : 0.86
         }
       }
     ]

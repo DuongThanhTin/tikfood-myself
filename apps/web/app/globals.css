@@ -800,11 +800,11 @@ h3 {
 }
 
 .mapCanvas .maplibregl-canvas {
-  filter: saturate(0.72) contrast(0.86) brightness(0.7);
+  filter: saturate(1.12) contrast(1.06) brightness(0.92);
 }
 
 .appShell[data-theme="light"] .mapCanvas .maplibregl-canvas {
-  filter: saturate(0.62) contrast(0.92) brightness(1.04);
+  filter: saturate(1.08) contrast(1.03) brightness(1.04);
 }
 
 .mapCanvas .maplibregl-ctrl-bottom-left,
@@ -820,15 +820,15 @@ h3 {
 .mapShade {
   z-index: 2;
   background:
-    radial-gradient(circle at center, rgba(5, 5, 5, 0.1) 0%, rgba(5, 5, 5, 0.84) 100%),
-    linear-gradient(90deg, rgba(5, 5, 5, 0.82), transparent 24%, transparent 78%, rgba(5, 5, 5, 0.72));
+    radial-gradient(circle at center, rgba(5, 5, 5, 0.02) 0%, rgba(5, 5, 5, 0.34) 100%),
+    linear-gradient(90deg, rgba(5, 5, 5, 0.48), transparent 22%, transparent 80%, rgba(5, 5, 5, 0.38));
   pointer-events: none;
 }
 
 .appShell[data-theme="light"] .mapShade {
   background:
-    radial-gradient(circle at center, rgba(255, 255, 255, 0.02) 0%, rgba(246, 241, 235, 0.44) 98%),
-    linear-gradient(90deg, rgba(246, 241, 235, 0.3), transparent 20%, transparent 80%, rgba(246, 241, 235, 0.36));
+    radial-gradient(circle at center, rgba(255, 255, 255, 0) 0%, rgba(246, 241, 235, 0.12) 98%),
+    linear-gradient(90deg, rgba(246, 241, 235, 0.16), transparent 18%, transparent 84%, rgba(246, 241, 235, 0.14));
 }
 
 .fallbackMarkerLayer {
