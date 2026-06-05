@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { Map as MapLibreMap, Marker } from "maplibre-gl";
+import type { Map as MapLibreMap, Marker, StyleSpecification } from "maplibre-gl";
 import { fetchDiscoveryVenues, type Venue, type VenueSearchParams } from "../lib/api";
 
 type DiscoveryExperienceProps = {
@@ -38,6 +38,7 @@ type IconName =
   | "map"
   | "moon"
   | "play"
+  | "route"
   | "search"
   | "share"
   | "spark"
@@ -58,6 +59,7 @@ const iconGlyphs: Record<IconName, string> = {
   map: "▦",
   moon: "◐",
   play: "▶",
+  route: "↱",
   search: "⌕",
   share: "↗",
   spark: "✦",
@@ -437,6 +439,7 @@ export function DiscoveryExperience({ initialVenues }: DiscoveryExperienceProps)
           venues={venues}
           selectedVenue={selectedVenue}
           userLocation={nearUser}
+          theme={theme}
           onSelectVenue={setSelectedVenue}
         />
 
@@ -458,7 +461,7 @@ export function DiscoveryExperience({ initialVenues }: DiscoveryExperienceProps)
           >
             <Icon name="close" />
           </button>
-          <VenueDetail venue={selectedVenue} />
+          <VenueDetail venue={selectedVenue} userLocation={nearUser} />
         </aside>
       ) : null}
     </main>
@@ -503,23 +506,27 @@ function VenueMap({
   venues,
   selectedVenue,
   userLocation,
+  theme,
   onSelectVenue
 }: {
   venues: Venue[];
   selectedVenue: Venue | null;
   userLocation: UserLocation | null;
+  theme: "dark" | "light";
   onSelectVenue: (venue: Venue) => void;
 }) {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
   const markersRef = useRef<Marker[]>([]);
   const userMarkerRef = useRef<Marker | null>(null);
+  const [mapReady, setMapReady] = useState(false);
 
   useEffect(() => {
-    if (!mapContainerRef.current || mapRef.current) {
+    if (!mapContainerRef.current) {
       return;
     }
 
+    setMapReady(false);
     let cancelled = false;
     void import("maplibre-gl").then((maplibregl) => {
       if (cancelled || !mapContainerRef.current) {
@@ -529,34 +536,23 @@ function VenueMap({
       const map = new maplibregl.Map({
         container: mapContainerRef.current,
         center: [106.683, 10.778],
-        zoom: 13,
+        zoom: 12.8,
         attributionControl: false,
-        style: {
-          version: 8,
-          sources: {
-            osm: {
-              type: "raster",
-              tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
-              tileSize: 256,
-              attribution: "OpenStreetMap"
-            }
-          },
-          layers: [
-            {
-              id: "osm",
-              type: "raster",
-              source: "osm"
-            }
-          ]
-        }
+        style: getMapStyle(theme)
       });
 
       map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), "bottom-right");
+      map.on("load", () => {
+        if (!cancelled) {
+          setMapReady(true);
+        }
+      });
       mapRef.current = map;
     });
 
     return () => {
       cancelled = true;
+      setMapReady(false);
       markersRef.current.forEach((marker) => marker.remove());
       markersRef.current = [];
       userMarkerRef.current?.remove();
@@ -564,18 +560,22 @@ function VenueMap({
       mapRef.current?.remove();
       mapRef.current = null;
     };
-  }, []);
+  }, [theme]);
 
   useEffect(() => {
     const map = mapRef.current;
-    if (!map) {
+    if (!map || !mapReady) {
       return;
     }
 
     markersRef.current.forEach((marker) => marker.remove());
     markersRef.current = [];
 
+    let cancelled = false;
     void import("maplibre-gl").then((maplibregl) => {
+      if (cancelled) {
+        return;
+      }
       venues.forEach((venue) => {
         const media = getVenueMedia(venue);
         const element = document.createElement("button");
@@ -593,11 +593,15 @@ function VenueMap({
         markersRef.current.push(marker);
       });
     });
-  }, [onSelectVenue, selectedVenue, venues]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [mapReady, onSelectVenue, selectedVenue, venues]);
 
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !selectedVenue) {
+    if (!map || !mapReady || !selectedVenue) {
       return;
     }
     map.flyTo({
@@ -605,11 +609,11 @@ function VenueMap({
       zoom: 14.5,
       duration: 500
     });
-  }, [selectedVenue]);
+  }, [mapReady, selectedVenue]);
 
   useEffect(() => {
     const map = mapRef.current;
-    if (!map) {
+    if (!map || !mapReady) {
       return;
     }
 
@@ -620,7 +624,11 @@ function VenueMap({
       return;
     }
 
+    let cancelled = false;
     void import("maplibre-gl").then((maplibregl) => {
+      if (cancelled) {
+        return;
+      }
       const element = document.createElement("div");
       element.className = "userLocationMarker";
       element.setAttribute("aria-label", "Vị trí của bạn");
@@ -636,14 +644,18 @@ function VenueMap({
         duration: 700
       });
     });
-  }, [userLocation]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [mapReady, userLocation]);
 
   return (
     <div className="mapCanvasWrap">
       <div className="mapFallbackGrid" aria-hidden="true" />
       <div ref={mapContainerRef} className="mapCanvas" />
       <div className="mapShade" aria-hidden="true" />
-      <div className="fallbackMarkerLayer" aria-label="Restaurant markers">
+      {!mapReady ? <div className="fallbackMarkerLayer" aria-label="Restaurant markers">
         {userLocation ? (
           <div
             className="fallbackUserLocation"
@@ -682,14 +694,21 @@ function VenueMap({
           <strong>{venues.length}</strong>
           <span>cửa hàng trong khu vực hiện tại</span>
         </div>
-      </div>
+      </div> : null}
+      {mapReady ? (
+        <div className="mapCountLegend mapCountLegendLive">
+          <strong>{venues.length}</strong>
+          <span>cửa hàng trong khu vực hiện tại</span>
+        </div>
+      ) : null}
     </div>
   );
 }
 
-function VenueDetail({ venue }: { venue: Venue }) {
+function VenueDetail({ venue, userLocation }: { venue: Venue; userLocation: UserLocation | null }) {
   const media = getVenueMedia(venue);
   const trendPercent = Math.min(99, Math.max(1, venue.trend_score));
+  const directionsUrl = getDirectionsUrl(venue, userLocation);
 
   return (
     <article className="detailContent">
@@ -758,6 +777,10 @@ function VenueDetail({ venue }: { venue: Venue }) {
 
         <div className="detailActions">
           <button className="primaryButton large" type="button">Xem chi tiết & Menu</button>
+          <a className="glassAction" href={directionsUrl} target="_blank" rel="noreferrer">
+            <Icon name="route" />
+            Chỉ đường
+          </a>
           <button className="glassAction" type="button">
             <Icon name="share" />
             Chia sẻ
@@ -788,10 +811,63 @@ function getVenueMedia(venue: Venue) {
   return mediaByVenue[venue.id] ?? defaultMedia;
 }
 
+function getMapStyle(theme: "dark" | "light"): StyleSpecification {
+  const variant = theme === "dark" ? "dark" : "light";
+  return {
+    version: 8,
+    sources: {
+      base: {
+        type: "raster",
+        tiles: [`https://basemaps.cartocdn.com/${variant}_nolabels/{z}/{x}/{y}.png`],
+        tileSize: 256,
+        attribution: "CARTO"
+      },
+      labels: {
+        type: "raster",
+        tiles: [`https://basemaps.cartocdn.com/${variant}_only_labels/{z}/{x}/{y}.png`],
+        tileSize: 256,
+        attribution: "CARTO"
+      }
+    },
+    layers: [
+      {
+        id: "base",
+        type: "raster",
+        source: "base",
+        paint: {
+          "raster-opacity": theme === "dark" ? 0.76 : 0.92
+        }
+      },
+      {
+        id: "labels",
+        type: "raster",
+        source: "labels",
+        paint: {
+          "raster-opacity": theme === "dark" ? 0.38 : 0.48
+        }
+      }
+    ]
+  };
+}
+
 function getVenueClusterCount(_venue: Venue, _venues: Venue[]) {
   // Each marker currently represents one concrete venue. When clustering is added,
   // this becomes the aggregated store count for that map cell.
   return 1;
+}
+
+function getDirectionsUrl(venue: Venue, userLocation: UserLocation | null) {
+  const params = new URLSearchParams({
+    api: "1",
+    destination: `${venue.latitude},${venue.longitude}`,
+    travelmode: "driving"
+  });
+
+  if (userLocation) {
+    params.set("origin", `${userLocation.lat},${userLocation.lng}`);
+  }
+
+  return `https://www.google.com/maps/dir/?${params.toString()}`;
 }
 
 function toMapX(longitude: number) {
