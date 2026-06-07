@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Map as MapLibreMap, Marker } from "maplibre-gl";
-import { fetchDiscoveryVenues, type Venue, type VenueSearchParams } from "../lib/api";
+import { fetchDiscoveryVenues, fetchVenueDetail, type SocialVideo, type Venue, type VenueSearchParams } from "../lib/api";
 
 type DiscoveryExperienceProps = {
   initialVenues: Venue[];
@@ -233,8 +233,10 @@ export function DiscoveryExperience({ initialVenues }: DiscoveryExperienceProps)
   const [openNow, setOpenNow] = useState(false);
   const [nearUser, setNearUser] = useState<UserLocation | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isDetailLoading, setIsDetailLoading] = useState(false);
   const [isRouting, setIsRouting] = useState(false);
   const [error, setError] = useState("");
+  const [detailError, setDetailError] = useState("");
   const [routeError, setRouteError] = useState("");
 
   const params = useMemo<VenueSearchParams>(() => ({
@@ -249,6 +251,38 @@ export function DiscoveryExperience({ initialVenues }: DiscoveryExperienceProps)
     sort: nearUser ? "distance" : sort,
     limit: 20
   }), [activeTag, district, maxPrice, nearUser, openNow, query, sort]);
+
+  useEffect(() => {
+    if (!selectedVenue || selectedVenue.dishes || selectedVenue.opening_hours) {
+      return;
+    }
+
+    let isCurrent = true;
+    setDetailError("");
+    setIsDetailLoading(true);
+    void fetchVenueDetail(selectedVenue.slug)
+      .then((detail) => {
+        if (!isCurrent) {
+          return;
+        }
+        setSelectedVenue((current) => (current?.slug === detail.slug ? detail : current));
+      })
+      .catch((detailLoadError) => {
+        if (!isCurrent) {
+          return;
+        }
+        setDetailError(detailLoadError instanceof Error ? detailLoadError.message : "Failed to load venue detail.");
+      })
+      .finally(() => {
+        if (isCurrent) {
+          setIsDetailLoading(false);
+        }
+      });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [selectedVenue?.slug]);
 
   async function runSearch(nextParams = params, options: { selectFirst?: boolean } = {}) {
     setError("");
@@ -337,6 +371,7 @@ export function DiscoveryExperience({ initialVenues }: DiscoveryExperienceProps)
     setSelectedVenue(venue);
     setActiveRoute(null);
     setRouteError("");
+    setDetailError("");
   }
 
   async function requestRouteToVenue(venue: Venue) {
@@ -607,7 +642,9 @@ export function DiscoveryExperience({ initialVenues }: DiscoveryExperienceProps)
           <VenueDetail
             venue={selectedVenue}
             activeRoute={activeRoute}
+            isDetailLoading={isDetailLoading}
             isRouting={isRouting}
+            detailError={detailError}
             routeError={routeError}
             userLocation={nearUser}
             onClearRoute={() => {
@@ -995,7 +1032,9 @@ function VenueMap({
 function VenueDetail({
   venue,
   activeRoute,
+  isDetailLoading,
   isRouting,
+  detailError,
   routeError,
   userLocation,
   onClearRoute,
@@ -1003,7 +1042,9 @@ function VenueDetail({
 }: {
   venue: Venue;
   activeRoute: ActiveRoute | null;
+  isDetailLoading: boolean;
   isRouting: boolean;
+  detailError: string;
   routeError: string;
   userLocation: UserLocation | null;
   onClearRoute: () => void;
@@ -1049,6 +1090,7 @@ function VenueDetail({
             ) : null}
             {!userLocation ? <p className="routeHint">Chia sẻ vị trí hiện tại để vẽ chỉ đường trực tiếp trên bản đồ.</p> : null}
             {routeError ? <p className="routeHint error">{routeError}</p> : null}
+            {detailError ? <p className="routeHint error">{detailError}</p> : null}
           </div>
           <div className="ratingBlock">
             <span>
@@ -1070,6 +1112,8 @@ function VenueDetail({
           <p>{venue.ai_summary}</p>
         </section>
 
+        {isDetailLoading ? <p className="detailStatus">Đang tải chi tiết quán...</p> : null}
+
         <p className="aboutText">{venue.about}</p>
 
         <div className="categoryList">
@@ -1081,23 +1125,49 @@ function VenueDetail({
         </div>
 
         <section>
-          <h3>Thịnh hành trên TikTok</h3>
+          <h3>Video social nổi bật</h3>
           <div className="videoGrid">
-            <VideoCard image={media.videoA} views={media.viewsA} label={`${venue.name} video`} />
-            <VideoCard image={media.videoB} views={media.viewsB} label={`${venue.name} creator video`} />
+            {getDisplayVideos(venue, media).map((video) => (
+              <VideoCard key={video.id} image={video.image} views={video.views} label={video.label} platform={video.platform} />
+            ))}
           </div>
         </section>
 
         <section>
           <h3>Món đang được nhắc tới</h3>
-          <div className="dishList">
-            {venue.trending_dishes.map((dish) => (
-              <span className="dish" key={dish}>
-                {dish}
-              </span>
-            ))}
-          </div>
+          {venue.dishes && venue.dishes.length > 0 ? (
+            <div className="dishDetailList">
+              {venue.dishes.map((dish) => (
+                <div className="dishDetailItem" key={dish.id}>
+                  <strong>{dish.name}</strong>
+                  <span>{formatPrice(dish.price_min_vnd)} - {formatPrice(dish.price_max_vnd)}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="dishList">
+              {venue.trending_dishes.map((dish) => (
+                <span className="dish" key={dish}>
+                  {dish}
+                </span>
+              ))}
+            </div>
+          )}
         </section>
+
+        {venue.opening_hours && venue.opening_hours.length > 0 ? (
+          <section>
+            <h3>Giờ mở cửa</h3>
+            <div className="openingGrid">
+              {venue.opening_hours.map((hour) => (
+                <div className="openingRow" key={hour.day_of_week}>
+                  <span>{formatDay(hour.day_of_week)}</span>
+                  <strong>{hour.is_closed ? "Đóng cửa" : `${hour.open_time} - ${hour.close_time}`}</strong>
+                </div>
+              ))}
+            </div>
+          </section>
+        ) : null}
 
         <div className="detailActions detailMenuAction">
           <button className="primaryButton large" type="button">Xem chi tiết & Menu</button>
@@ -1107,16 +1177,33 @@ function VenueDetail({
   );
 }
 
-function VideoCard({ image, views, label }: { image: string; views: string; label: string }) {
+function VideoCard({ image, views, label, platform }: { image: string; views: string; label: string; platform?: string }) {
   return (
     <div className="videoCard">
       <img alt={label} src={image} />
       <span>
         <Icon name="play" />
-        {views}
+        {platform ? `${platform} · ` : ""}{views}
       </span>
     </div>
   );
+}
+
+function getDisplayVideos(venue: Venue, media: VenueMedia) {
+  if (venue.social_videos.length === 0) {
+    return [
+      { id: `${venue.id}-video-a`, image: media.videoA, views: media.viewsA, label: `${venue.name} video`, platform: "" },
+      { id: `${venue.id}-video-b`, image: media.videoB, views: media.viewsB, label: `${venue.name} creator video`, platform: "" }
+    ];
+  }
+
+  return venue.social_videos.slice(0, 2).map((video: SocialVideo, index: number) => ({
+    id: video.id,
+    image: video.thumbnail_url || (index === 0 ? media.videoA : media.videoB),
+    views: formatCompactNumber(video.view_count),
+    label: video.caption || `${venue.name} social video`,
+    platform: video.platform
+  }));
 }
 
 function getVenueMedia(venue: Venue) {
@@ -1220,6 +1307,30 @@ function formatDuration(value: number) {
     return remainder ? `${hours} giờ ${remainder} phút` : `${hours} giờ`;
   }
   return `${minutes} phút`;
+}
+
+function formatPrice(value: number) {
+  if (!value) {
+    return "Đang cập nhật";
+  }
+  if (value >= 1000000) {
+    return `${(value / 1000000).toFixed(value % 1000000 === 0 ? 0 : 1)}tr`;
+  }
+  return `${Math.round(value / 1000)}k`;
+}
+
+function formatCompactNumber(value: number) {
+  if (value >= 1000000) {
+    return `${(value / 1000000).toFixed(value >= 10000000 ? 0 : 1)}M`;
+  }
+  if (value >= 1000) {
+    return `${Math.round(value / 1000)}K`;
+  }
+  return String(value);
+}
+
+function formatDay(dayOfWeek: number) {
+  return ["CN", "T2", "T3", "T4", "T5", "T6", "T7"][dayOfWeek] ?? `T${dayOfWeek}`;
 }
 
 function toMapX(longitude: number) {

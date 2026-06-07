@@ -6,8 +6,10 @@ Implemented:
 
 - `GET /health`
 - `GET /api/v1/discovery/venues`
+- `GET /api/v1/discovery/venues/:slug`
 - `GET /api/v1/map/venues`
-- Search, district, dish, tag, price, open-now, geo radius, and sort filters
+- Search, district, dish, tag, price, open-now, geo radius, social platform, and sort filters
+- Venue detail response with dishes, opening hours, and social videos
 - Structured request logging with Go `log/slog`
 - PostgreSQL/PostGIS discovery persistence when `DATABASE_URL` is set
 - In-memory fallback for discovery testing when no database is configured
