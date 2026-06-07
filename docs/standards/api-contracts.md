@@ -64,6 +64,8 @@ Current API code uses this envelope shape. Keep it consistent.
 
 ```text
 GET /api/v1/map/venues
+GET /api/v1/discovery/venues
+GET /api/v1/discovery/venues/:slug
 ```
 
 Query params:
@@ -114,6 +116,8 @@ Response:
 ```
 
 `id` is an internal database-generated UUID. Do not use manually configured IDs as primary identifiers in API examples or implementation code.
+
+Use `/api/v1/discovery/venues` for map/list search and `/api/v1/discovery/venues/:slug` for the right panel/detail screen. Detail responses may include richer fields such as `dishes` and `opening_hours`; list responses should stay light enough for map rendering.
 
 ## Versioning
 

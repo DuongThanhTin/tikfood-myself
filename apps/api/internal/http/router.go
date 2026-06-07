@@ -1,8 +1,10 @@
 package http
 
 import (
+	"errors"
 	"log/slog"
 	"net/http"
+	"strings"
 
 	"github.com/DuongThanhTin/tikfood-myself/apps/api/internal/discovery"
 	"github.com/gin-gonic/gin"
@@ -47,6 +49,7 @@ func NewRouterWithLogger(venues *discovery.VenueService, logger *slog.Logger) ht
 	v1 := router.Group("/api/v1")
 	v1.GET("/map/venues", venueSearchHandler(venues))
 	v1.GET("/discovery/venues", venueSearchHandler(venues))
+	v1.GET("/discovery/venues/:slug", venueDetailHandler(venues))
 
 	return router
 }
@@ -70,6 +73,49 @@ func venueSearchHandler(venues *discovery.VenueService) gin.HandlerFunc {
 			})
 			return
 		}
+		c.JSON(http.StatusOK, response{Data: result})
+	}
+}
+
+func venueDetailHandler(venues *discovery.VenueService) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		slug := strings.TrimSpace(c.Param("slug"))
+		if slug == "" || len(slug) > 160 {
+			c.JSON(http.StatusBadRequest, response{
+				Data: nil,
+				Error: &errorResponse{
+					Code:    "invalid_request",
+					Message: "Venue slug is required and must be 160 characters or fewer.",
+					Details: map[string]any{
+						"field": "slug",
+					},
+				},
+			})
+			return
+		}
+
+		result, err := venues.GetBySlug(c.Request.Context(), slug)
+		if errors.Is(err, discovery.ErrVenueNotFound) {
+			c.JSON(http.StatusNotFound, response{
+				Data: nil,
+				Error: &errorResponse{
+					Code:    "not_found",
+					Message: "Venue was not found.",
+				},
+			})
+			return
+		}
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, response{
+				Data: nil,
+				Error: &errorResponse{
+					Code:    "internal_error",
+					Message: "Failed to load venue.",
+				},
+			})
+			return
+		}
+
 		c.JSON(http.StatusOK, response{Data: result})
 	}
 }

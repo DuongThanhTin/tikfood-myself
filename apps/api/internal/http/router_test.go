@@ -114,6 +114,57 @@ func TestDiscoveryVenuesMinPrice(t *testing.T) {
 	}
 }
 
+func TestDiscoveryVenueDetail(t *testing.T) {
+	request := httptest.NewRequest(http.MethodGet, "/api/v1/discovery/venues/banh-mi-hem-nguyen-trai-district-1", nil)
+	response := httptest.NewRecorder()
+
+	NewRouter().ServeHTTP(response, request)
+
+	if response.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", response.Code)
+	}
+
+	var body struct {
+		Data map[string]any `json:"data"`
+	}
+	if err := json.Unmarshal(response.Body.Bytes(), &body); err != nil {
+		t.Fatalf("invalid json response: %v", err)
+	}
+	if body.Data["slug"] != "banh-mi-hem-nguyen-trai-district-1" {
+		t.Fatalf("expected banh mi venue, got %q", body.Data["slug"])
+	}
+	if dishes, ok := body.Data["dishes"].([]any); !ok || len(dishes) == 0 {
+		t.Fatal("expected venue dishes")
+	}
+	if hours, ok := body.Data["opening_hours"].([]any); !ok || len(hours) != 7 {
+		t.Fatal("expected seven opening hour rows")
+	}
+}
+
+func TestDiscoveryVenueDetailNotFound(t *testing.T) {
+	request := httptest.NewRequest(http.MethodGet, "/api/v1/discovery/venues/not-a-real-venue", nil)
+	response := httptest.NewRecorder()
+
+	NewRouter().ServeHTTP(response, request)
+
+	if response.Code != http.StatusNotFound {
+		t.Fatalf("expected 404, got %d", response.Code)
+	}
+
+	var body struct {
+		Data  any `json:"data"`
+		Error struct {
+			Code string `json:"code"`
+		} `json:"error"`
+	}
+	if err := json.Unmarshal(response.Body.Bytes(), &body); err != nil {
+		t.Fatalf("invalid json response: %v", err)
+	}
+	if body.Error.Code != "not_found" {
+		t.Fatalf("expected not_found, got %q", body.Error.Code)
+	}
+}
+
 func TestDiscoveryVenuesInvalidSort(t *testing.T) {
 	request := httptest.NewRequest(http.MethodGet, "/api/v1/discovery/venues?sort=random", nil)
 	response := httptest.NewRecorder()
@@ -180,6 +231,10 @@ type failingVenueRepository struct{}
 
 func (failingVenueRepository) ListVenues(context.Context, discovery.VenueSearch) ([]discovery.Venue, error) {
 	return nil, errors.New("storage failed")
+}
+
+func (failingVenueRepository) GetVenueBySlug(context.Context, string) (discovery.Venue, error) {
+	return discovery.Venue{}, errors.New("storage failed")
 }
 
 func assertInvalidRequest(t *testing.T, response *httptest.ResponseRecorder, field string) {

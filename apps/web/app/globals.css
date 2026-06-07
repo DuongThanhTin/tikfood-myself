@@ -1353,6 +1353,13 @@ h3 {
   font-style: normal;
 }
 
+.detailStatus {
+  margin: -8px 0;
+  color: var(--on-muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
 .category,
 .dish {
   border: 1px solid var(--outline);
@@ -1367,6 +1374,44 @@ h3 {
 .dish {
   color: var(--on-surface);
   background: var(--glass);
+}
+
+.dishDetailList,
+.openingGrid {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.dishDetailItem,
+.openingRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  border: 1px solid var(--outline);
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: var(--glass);
+}
+
+.dishDetailItem strong,
+.openingRow strong {
+  min-width: 0;
+  color: var(--on-surface);
+  font-size: 13px;
+}
+
+.dishDetailItem span,
+.openingRow span {
+  color: var(--on-muted);
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.openingRow strong {
+  color: var(--primary);
 }
 
 .videoGrid {

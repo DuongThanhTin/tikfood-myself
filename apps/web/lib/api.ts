@@ -18,6 +18,8 @@ export type Venue = {
   social_videos: SocialVideo[];
   trend_score: number;
   trending_dishes: string[];
+  dishes?: VenueDish[];
+  opening_hours?: OpeningHour[];
   ai_summary: string;
   distance_meters?: number;
 };
@@ -32,6 +34,30 @@ export type SocialVideo = {
   view_count: number;
   like_count: number;
   published_at?: string;
+};
+
+export type VenueDish = {
+  id: string;
+  name: string;
+  slug: string;
+  short_description: string;
+  about: string;
+  category: string;
+  cuisine: string;
+  price_min_vnd: number;
+  price_max_vnd: number;
+  currency: string;
+  mention_count: number;
+  video_count: number;
+  view_count: number;
+  trend_score: number;
+};
+
+export type OpeningHour = {
+  day_of_week: number;
+  open_time: string;
+  close_time: string;
+  is_closed: boolean;
 };
 
 type ApiResponse<T> = {
@@ -184,6 +210,22 @@ export async function fetchDiscoveryVenues(params: VenueSearchParams): Promise<V
   return body.data;
 }
 
+export async function fetchVenueDetail(slug: string): Promise<Venue> {
+  const baseUrl = getClientApiBaseUrl();
+  if (!baseUrl) {
+    return getFallbackVenueDetail(slug);
+  }
+
+  const response = await fetch(`${baseUrl}/api/v1/discovery/venues/${encodeURIComponent(slug)}`);
+  if (!response.ok) {
+    const body = (await response.json().catch(() => null)) as ApiResponse<null> | null;
+    throw new Error(body?.error?.message ?? "Failed to load venue.");
+  }
+
+  const body = (await response.json()) as ApiResponse<Venue>;
+  return body.data;
+}
+
 function toSearchParams(params: VenueSearchParams) {
   const query = new URLSearchParams();
 
@@ -237,6 +279,39 @@ function filterFallbackVenues(params: VenueSearchParams) {
     }
     return true;
   });
+}
+
+function getFallbackVenueDetail(slug: string) {
+  const venue = fallbackVenues.find((item) => item.slug === slug);
+  if (!venue) {
+    throw new Error("Venue was not found.");
+  }
+
+  return {
+    ...venue,
+    dishes: venue.trending_dishes.map((dish, index) => ({
+      id: `${venue.id}-dish-${index + 1}`,
+      name: dish,
+      slug: dish.toLowerCase().replace(/\s+/g, "-"),
+      short_description: "Popular dish mentioned in social videos.",
+      about: "A venue-specific dish signal used by TikFood discovery.",
+      category: venue.categories[0] ?? "",
+      cuisine: "vietnamese",
+      price_min_vnd: venue.avg_price_min_vnd,
+      price_max_vnd: venue.avg_price_max_vnd,
+      currency: venue.currency,
+      mention_count: 1,
+      video_count: 1,
+      view_count: 0,
+      trend_score: venue.trend_score
+    })),
+    opening_hours: Array.from({ length: 7 }, (_, day) => ({
+      day_of_week: day,
+      open_time: venue.slug.includes("pho") ? "06:00" : "08:00",
+      close_time: venue.slug.includes("pho") ? "14:00" : "23:30",
+      is_closed: false
+    }))
+  };
 }
 
 function matchesLocationAlias(value: string, target: string) {

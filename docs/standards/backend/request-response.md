@@ -190,7 +190,7 @@ GET /api/v1/map/venues
 
 It currently uses the same handler as `/api/v1/discovery/venues`.
 
-Response data item:
+List response data item:
 
 ```json
 {
@@ -226,6 +226,59 @@ Response data item:
   "trending_dishes": ["banh mi thit nuong"],
   "ai_summary": "Trending for late-night banh mi clips.",
   "distance_meters": 720.4
+}
+```
+
+Detail endpoint:
+
+```text
+GET /api/v1/discovery/venues/:slug
+```
+
+Use this endpoint when a user opens the right panel/detail view. The list endpoint can remain lighter for map performance, while detail includes richer venue data.
+
+Detail response data item adds:
+
+```json
+{
+  "dishes": [
+    {
+      "id": "f57581ad-4144-4f85-a995-78f729d35e6b",
+      "name": "Banh mi thit nuong",
+      "slug": "banh-mi-thit-nuong",
+      "short_description": "Vietnamese grilled pork banh mi.",
+      "about": "A crispy baguette filled with grilled pork, pickles, herbs, pate, and sauces.",
+      "category": "sandwich",
+      "cuisine": "vietnamese",
+      "price_min_vnd": 35000,
+      "price_max_vnd": 60000,
+      "currency": "VND",
+      "mention_count": 24,
+      "video_count": 18,
+      "view_count": 120000,
+      "trend_score": 92
+    }
+  ],
+  "opening_hours": [
+    {
+      "day_of_week": 0,
+      "open_time": "08:00",
+      "close_time": "23:30",
+      "is_closed": false
+    }
+  ]
+}
+```
+
+If the slug does not exist, return:
+
+```json
+{
+  "data": null,
+  "error": {
+    "code": "not_found",
+    "message": "Venue was not found."
+  }
 }
 ```
 

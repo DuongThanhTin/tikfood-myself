@@ -2,8 +2,11 @@ package discovery
 
 import (
 	"context"
+	"errors"
 	"strings"
 )
+
+var ErrVenueNotFound = errors.New("venue not found")
 
 type Venue struct {
 	ID               string        `json:"id"`
@@ -25,6 +28,8 @@ type Venue struct {
 	SocialVideos     []SocialVideo `json:"social_videos"`
 	TrendScore       int           `json:"trend_score"`
 	TrendingDishes   []string      `json:"trending_dishes"`
+	Dishes           []VenueDish   `json:"dishes,omitempty"`
+	OpeningHours     []OpeningHour `json:"opening_hours,omitempty"`
 	AISummary        string        `json:"ai_summary"`
 	DistanceMeters   *float64      `json:"distance_meters,omitempty"`
 }
@@ -39,6 +44,30 @@ type SocialVideo struct {
 	ViewCount     int64  `json:"view_count"`
 	LikeCount     int64  `json:"like_count"`
 	PublishedAt   string `json:"published_at,omitempty"`
+}
+
+type VenueDish struct {
+	ID               string  `json:"id"`
+	Name             string  `json:"name"`
+	Slug             string  `json:"slug"`
+	ShortDescription string  `json:"short_description"`
+	About            string  `json:"about"`
+	Category         string  `json:"category"`
+	Cuisine          string  `json:"cuisine"`
+	PriceMinVND      int     `json:"price_min_vnd"`
+	PriceMaxVND      int     `json:"price_max_vnd"`
+	Currency         string  `json:"currency"`
+	MentionCount     int     `json:"mention_count"`
+	VideoCount       int     `json:"video_count"`
+	ViewCount        int64   `json:"view_count"`
+	TrendScore       float64 `json:"trend_score"`
+}
+
+type OpeningHour struct {
+	DayOfWeek int    `json:"day_of_week"`
+	OpenTime  string `json:"open_time"`
+	CloseTime string `json:"close_time"`
+	IsClosed  bool   `json:"is_closed"`
 }
 
 type VenueSearch struct {
@@ -69,6 +98,7 @@ const (
 
 type VenueRepository interface {
 	ListVenues(ctx context.Context, search VenueSearch) ([]Venue, error)
+	GetVenueBySlug(ctx context.Context, slug string) (Venue, error)
 }
 
 type VenueService struct {
@@ -210,6 +240,73 @@ func (service *VenueService) List(ctx context.Context, search VenueSearch) ([]Ve
 	}
 
 	return results, nil
+}
+
+func (service *VenueService) GetBySlug(ctx context.Context, slug string) (Venue, error) {
+	slug = strings.TrimSpace(slug)
+	if service.repo != nil {
+		return service.repo.GetVenueBySlug(ctx, slug)
+	}
+
+	for _, venue := range service.venues {
+		if venue.Slug == slug {
+			venue.Dishes = fallbackVenueDishes(venue)
+			venue.OpeningHours = fallbackOpeningHours(venue)
+			return venue, nil
+		}
+	}
+
+	return Venue{}, ErrVenueNotFound
+}
+
+func fallbackVenueDishes(venue Venue) []VenueDish {
+	dishes := make([]VenueDish, 0, len(venue.TrendingDishes))
+	for index, dish := range venue.TrendingDishes {
+		dishes = append(dishes, VenueDish{
+			ID:               venue.ID + "-dish-" + string(rune('1'+index)),
+			Name:             dish,
+			Slug:             strings.ReplaceAll(strings.ToLower(dish), " ", "-"),
+			ShortDescription: "Popular dish mentioned in social videos.",
+			About:            "A venue-specific dish signal used by TikFood discovery.",
+			Category:         firstCategory(venue.Categories),
+			Cuisine:          "vietnamese",
+			PriceMinVND:      venue.AvgPriceMinVND,
+			PriceMaxVND:      venue.AvgPriceMaxVND,
+			Currency:         venue.Currency,
+			MentionCount:     1,
+			VideoCount:       1,
+			ViewCount:        0,
+			TrendScore:       float64(venue.TrendScore),
+		})
+	}
+	return dishes
+}
+
+func fallbackOpeningHours(venue Venue) []OpeningHour {
+	openTime := "08:00"
+	closeTime := "23:30"
+	if strings.Contains(strings.ToLower(venue.Name), "pho") {
+		openTime = "06:00"
+		closeTime = "14:00"
+	}
+
+	hours := make([]OpeningHour, 0, 7)
+	for day := 0; day <= 6; day++ {
+		hours = append(hours, OpeningHour{
+			DayOfWeek: day,
+			OpenTime:  openTime,
+			CloseTime: closeTime,
+			IsClosed:  false,
+		})
+	}
+	return hours
+}
+
+func firstCategory(categories []string) string {
+	if len(categories) == 0 {
+		return ""
+	}
+	return categories[0]
 }
 
 func normalizeSearch(search VenueSearch) VenueSearch {
