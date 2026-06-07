@@ -168,7 +168,7 @@ GET /api/v1/discovery/venues
 Query params:
 
 - `q`: optional text search across venue, dish, cuisine, and tags
-- `district`: optional string
+- `district`: optional string, MVP compatibility alias such as `District 1`, `Quận 1`, `Q1`
 - `dish`: optional string
 - `tags`: optional comma-separated tag slugs
 - `lat`: optional float, requires `lng`
@@ -191,13 +191,13 @@ Response data item:
 
 ```json
 {
-  "id": "venue_001",
+  "id": "7b7e7ab7-c7b5-4ef8-8cb9-6330b9d2cf55",
   "name": "Banh Mi Hem",
   "slug": "banh-mi-hem-nguyen-trai-district-1",
   "short_description": "Late-night banh mi spot trending on social video.",
   "about": "A compact street-food venue known for grilled pork banh mi, quick service, and strong late-night local buzz.",
   "address": "12 Nguyen Trai",
-  "district": "District 1",
+  "district": "Quận 1",
   "latitude": 10.7712,
   "longitude": 106.6899,
   "categories": ["street_food", "banh_mi"],
@@ -211,6 +211,15 @@ Response data item:
   "ai_summary": "Trending for late-night banh mi clips.",
   "distance_meters": 720.4
 }
+```
+
+`id` is a database-generated UUID. Do not expose manually configured identifiers as the primary ID. If the product needs a stable non-UUID public identifier, add `public_id`.
+
+Current MVP clients may send raw `district` text. Backend repositories must normalize that value through `location_aliases` before filtering. Future clients should prefer location slugs or IDs:
+
+```text
+district_slug=quan-1
+city_slug=ho-chi-minh
 ```
 
 ## Contract Change Rules

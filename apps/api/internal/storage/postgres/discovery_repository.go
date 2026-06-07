@@ -26,9 +26,9 @@ select
   v.slug,
   coalesce(v.short_description, ''),
   coalesce(v.about, ''),
-  coalesce(v.address, ''),
-  coalesce(v.city, ''),
-  coalesce(v.district, ''),
+  coalesce(v.address_display, v.address, ''),
+  coalesce((select city.official_name from locations city where city.id = v.city_location_id), v.city, ''),
+  coalesce((select district.official_name from locations district where district.id = v.district_location_id), v.district, ''),
   coalesce(v.latitude, 0),
   coalesce(v.longitude, 0),
   coalesce((
@@ -103,7 +103,16 @@ where ($1 = '' or (
         and (lower(t_query.slug) like '%' || lower($1) || '%' or lower(t_query.label) like '%' || lower($1) || '%')
     )
   ))
-  and ($2 = '' or v.district = $2)
+  and ($2 = '' or (
+    v.district = $2
+    or lower(unaccent(coalesce(v.district, ''))) = lower(unaccent($2))
+    or exists (
+      select 1
+      from location_aliases district_alias
+      where district_alias.location_id = v.district_location_id
+        and district_alias.normalized_alias = lower(unaccent($2))
+    )
+  ))
   and ($3 = '' or exists (
     select 1
     from venue_dishes vd_filter
