@@ -69,8 +69,12 @@ GET /api/v1/map/venues
 Query params:
 
 ```text
+city optional string
 district optional string
 dish optional string
+platform optional comma-separated string
+min_price_vnd optional int
+max_price_vnd optional int
 ```
 
 `district` may be a compatibility alias such as `District 1`, `Quận 1`, `Q1`, or `Q. 1`. Backend repositories must normalize it through `location_aliases`.
@@ -88,6 +92,19 @@ Response:
       "latitude": 10.7712,
       "longitude": 106.6899,
       "categories": ["street_food", "banh_mi"],
+      "social_videos": [
+        {
+          "id": "0ec82711-4541-4680-866f-4462ce4e7d38",
+          "platform": "tiktok",
+          "url": "https://www.tiktok.com/@tikfood/video/banh-mi-hem-1",
+          "creator_handle": "@tikfood",
+          "caption": "Late-night banh mi with grilled pork near Nguyen Trai.",
+          "thumbnail_url": "",
+          "view_count": 120000,
+          "like_count": 8200,
+          "published_at": "2026-05-20T10:00:00Z"
+        }
+      ],
       "trend_score": 92,
       "trending_dishes": ["banh mi thit nuong"],
       "ai_summary": "Trending for late-night banh mi clips."

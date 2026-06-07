@@ -11,16 +11,31 @@ import (
 
 func parseVenueSearch(c *gin.Context) (discovery.VenueSearch, *errorResponse) {
 	search := discovery.VenueSearch{
-		Query:    strings.TrimSpace(c.Query("q")),
-		District: strings.TrimSpace(c.Query("district")),
-		Dish:     strings.TrimSpace(c.Query("dish")),
-		Tags:     splitCSV(c.Query("tags")),
-		Sort:     discovery.VenueSort(strings.TrimSpace(c.DefaultQuery("sort", string(discovery.VenueSortTrending)))),
-		Limit:    50,
+		Query:     strings.TrimSpace(c.Query("q")),
+		City:      strings.TrimSpace(c.Query("city")),
+		District:  strings.TrimSpace(c.Query("district")),
+		Dish:      strings.TrimSpace(c.Query("dish")),
+		Tags:      splitCSV(c.Query("tags")),
+		Platforms: splitCSV(c.Query("platform")),
+		Sort:      discovery.VenueSort(strings.TrimSpace(c.DefaultQuery("sort", string(discovery.VenueSortTrending)))),
+		Limit:     50,
 	}
 
 	if search.Query != "" && len(search.Query) > 120 {
 		return search, invalidQuery("q", "Query must be 120 characters or fewer.")
+	}
+	if search.City != "" && len(search.City) > 80 {
+		return search, invalidQuery("city", "City must be 80 characters or fewer.")
+	}
+	if search.District != "" && len(search.District) > 80 {
+		return search, invalidQuery("district", "District must be 80 characters or fewer.")
+	}
+	for _, platform := range search.Platforms {
+		switch strings.ToLower(platform) {
+		case "tiktok", "instagram", "youtube", "facebook", "other":
+		default:
+			return search, invalidQuery("platform", "Platform must be one of tiktok, instagram, youtube, facebook, or other.")
+		}
 	}
 
 	if c.Query("lat") != "" || c.Query("lng") != "" {
@@ -62,6 +77,19 @@ func parseVenueSearch(c *gin.Context) (discovery.VenueSearch, *errorResponse) {
 			return search, invalidQuery("max_price_vnd", "Max price must be greater than or equal to 0.")
 		}
 		search.MaxPriceVND = maxPrice
+	}
+	if c.Query("min_price_vnd") != "" {
+		minPrice, err := parseIntParam(c, "min_price_vnd")
+		if err != nil {
+			return search, invalidQuery("min_price_vnd", err.Error())
+		}
+		if minPrice < 0 {
+			return search, invalidQuery("min_price_vnd", "Min price must be greater than or equal to 0.")
+		}
+		search.MinPriceVND = minPrice
+	}
+	if search.MinPriceVND > 0 && search.MaxPriceVND > 0 && search.MinPriceVND > search.MaxPriceVND {
+		return search, invalidQuery("min_price_vnd", "Min price must be less than or equal to max price.")
 	}
 
 	if c.Query("limit") != "" {

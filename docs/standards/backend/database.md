@@ -37,8 +37,7 @@ collections
 collection_items
 
 creators
-social_posts
-social_post_dishes
+social_videos
 
 trend_scores
 ai_summaries
@@ -280,6 +279,51 @@ Use this table for queries like:
 - bun bo under 100k
 - most-mentioned dish at this venue
 - exact saved item: dish at a specific venue
+
+## social_videos
+
+TikTok, Instagram, YouTube, Facebook, or other social videos related to a venue and optionally a dish.
+
+```sql
+social_videos
+- id uuid primary key default gen_random_uuid()
+- venue_id uuid not null references venues(id)
+- dish_id uuid references dishes(id)
+- platform text not null -- tiktok, instagram, youtube, facebook, other
+- source_url text not null unique
+- source_external_id text
+- creator_handle text
+- creator_display_name text
+- caption text
+- thumbnail_url text
+- view_count bigint default 0
+- like_count bigint default 0
+- comment_count bigint default 0
+- share_count bigint default 0
+- published_at timestamptz
+- fetched_at timestamptz not null
+- created_at timestamptz not null
+- updated_at timestamptz not null
+```
+
+Field meaning:
+
+- `source_url`: canonical social URL. This is unique because the same video should not be imported twice.
+- `source_external_id`: platform-owned video ID when available.
+- `venue_id`: required because TikFood discovery is venue-first on the map.
+- `dish_id`: optional link when a video clearly mentions a specific dish.
+- `platform`: normalized platform slug used by filters such as `platform=tiktok`.
+
+Indexes:
+
+```sql
+create index idx_social_videos_venue_platform on social_videos (venue_id, platform);
+create index idx_social_videos_dish_platform on social_videos (dish_id, platform);
+create index idx_social_videos_view_count on social_videos (view_count desc);
+create index idx_social_videos_published_at on social_videos (published_at desc);
+```
+
+Keep aggregate fields on `venues` such as `social_video_count`, `total_view_count`, and `total_like_count` for fast map/list sorting, but treat `social_videos` as the source table for video URLs and creator/video metadata.
 
 ## tags
 

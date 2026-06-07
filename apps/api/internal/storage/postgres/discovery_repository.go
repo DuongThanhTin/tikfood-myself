@@ -51,6 +51,27 @@ select
   coalesce(v.avg_price_max_vnd, 0),
   coalesce(v.currency, 'VND'),
   coalesce(v.social_video_count, 0),
+  coalesce((
+    select json_agg(video_payload)
+    from (
+      select json_build_object(
+        'id', sv.id::text,
+        'platform', sv.platform,
+        'url', sv.source_url,
+        'creator_handle', coalesce(sv.creator_handle, ''),
+        'caption', coalesce(sv.caption, ''),
+        'thumbnail_url', coalesce(sv.thumbnail_url, ''),
+        'view_count', coalesce(sv.view_count, 0),
+        'like_count', coalesce(sv.like_count, 0),
+        'published_at', case when sv.published_at is null then '' else to_char(sv.published_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') end
+      ) as video_payload
+      from social_videos sv
+      where sv.venue_id = v.id
+        and ($14 = '' or sv.platform = any(string_to_array($14, ',')))
+      order by sv.view_count desc nulls last, sv.published_at desc nulls last
+      limit 3
+    ) ranked_videos
+  ), '[]'::json)::text as social_videos_json,
   coalesce(max(vd.trend_score), 0)::int,
   coalesce(array_to_json(array_remove(array_agg(distinct d.name), null)), '[]'::json)::text as dishes_json,
   coalesce((
@@ -102,10 +123,48 @@ where ($1 = '' or (
       where vd_tag_query.venue_id = v.id
         and (lower(t_query.slug) like '%' || lower($1) || '%' or lower(t_query.label) like '%' || lower($1) || '%')
     )
+    or exists (
+      select 1
+      from social_videos sv_query
+      where sv_query.venue_id = v.id
+        and (
+          lower(coalesce(sv_query.caption, '')) like '%' || lower($1) || '%'
+          or lower(coalesce(sv_query.creator_handle, '')) like '%' || lower($1) || '%'
+          or lower(sv_query.platform) like '%' || lower($1) || '%'
+        )
+    )
+  ))
+  and ($12 = '' or (
+    v.city = $12
+    or lower(unaccent(coalesce(v.city, ''))) = lower(unaccent($12))
+    or exists (
+      select 1
+      from locations city_location
+      where city_location.id = v.city_location_id
+        and (
+          city_location.slug = lower(replace($12, ' ', '-'))
+          or city_location.normalized_name = lower(unaccent($12))
+        )
+    )
+    or exists (
+      select 1
+      from location_aliases city_alias
+      where city_alias.location_id = v.city_location_id
+        and city_alias.normalized_alias = lower(unaccent($12))
+    )
   ))
   and ($2 = '' or (
     v.district = $2
     or lower(unaccent(coalesce(v.district, ''))) = lower(unaccent($2))
+    or exists (
+      select 1
+      from locations district_location
+      where district_location.id = v.district_location_id
+        and (
+          district_location.slug = lower(replace($2, ' ', '-'))
+          or district_location.normalized_name = lower(unaccent($2))
+        )
+    )
     or exists (
       select 1
       from location_aliases district_alias
@@ -163,6 +222,21 @@ where ($1 = '' or (
         and (vd_price.price_max_vnd is null or vd_price.price_max_vnd <= $8)
     ))
   ))
+  and ($13 <= 0 or (
+    ($3 = '' and (v.avg_price_max_vnd is null or v.avg_price_max_vnd >= $13))
+    or ($3 <> '' and exists (
+      select 1
+      from venue_dishes vd_price_min
+      join dishes d_price_min on d_price_min.id = vd_price_min.dish_id
+      where vd_price_min.venue_id = v.id
+        and (
+          d_price_min.normalized_name = lower($3)
+          or lower(d_price_min.name) like '%' || lower($3) || '%'
+          or d_price_min.slug = lower(replace($3, ' ', '-'))
+        )
+        and (vd_price_min.price_max_vnd is null or vd_price_min.price_max_vnd >= $13)
+    ))
+  ))
   and (not $9::boolean or exists (
     select 1
     from venue_opening_hours oh
@@ -173,6 +247,12 @@ where ($1 = '' or (
       and oh.close_time is not null
       and (now() at time zone 'Asia/Ho_Chi_Minh')::time between oh.open_time and oh.close_time
   ))
+  and ($14 = '' or exists (
+    select 1
+    from social_videos sv_platform
+    where sv_platform.venue_id = v.id
+      and sv_platform.platform = any(string_to_array($14, ','))
+  ))
 group by v.id
 order by
   case when $10 = 'distance' and $5::double precision is not null and $6::double precision is not null then ST_Distance(
@@ -180,7 +260,12 @@ order by
     ST_SetSRID(ST_MakePoint($6::double precision, $5::double precision), 4326)::geography
   ) end asc nulls last,
   case when $10 = 'price' then v.avg_price_max_vnd end asc nulls last,
-  case when $10 = 'videos' then v.social_video_count end desc nulls last,
+  case when $10 = 'videos' then (
+    select coalesce(sum(sv_rank.view_count), 0)
+    from social_videos sv_rank
+    where sv_rank.venue_id = v.id
+      and ($14 = '' or sv_rank.platform = any(string_to_array($14, ',')))
+  ) end desc nulls last,
   case when $10 = 'trending' then coalesce(max(vd.trend_score), 0) end desc nulls last,
   coalesce(max(vd.trend_score), 0) desc,
   v.social_video_count desc,
@@ -202,6 +287,9 @@ limit $11
 		search.OpenNow,
 		search.Sort,
 		search.Limit,
+		search.City,
+		search.MinPriceVND,
+		strings.Join(search.Platforms, ","),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("query venues: %w", err)
@@ -213,6 +301,7 @@ limit $11
 		var venue discovery.Venue
 		var categoriesJSON string
 		var dishesJSON string
+		var socialVideosJSON string
 		var distanceMeters sql.NullFloat64
 
 		if err := rows.Scan(
@@ -232,6 +321,7 @@ limit $11
 			&venue.AvgPriceMaxVND,
 			&venue.Currency,
 			&venue.SocialVideoCount,
+			&socialVideosJSON,
 			&venue.TrendScore,
 			&dishesJSON,
 			&venue.AISummary,
@@ -245,6 +335,9 @@ limit $11
 		}
 		if err := json.Unmarshal([]byte(dishesJSON), &venue.TrendingDishes); err != nil {
 			return nil, fmt.Errorf("decode venue dishes: %w", err)
+		}
+		if err := json.Unmarshal([]byte(socialVideosJSON), &venue.SocialVideos); err != nil {
+			return nil, fmt.Errorf("decode venue social videos: %w", err)
 		}
 		if distanceMeters.Valid {
 			venue.DistanceMeters = &distanceMeters.Float64

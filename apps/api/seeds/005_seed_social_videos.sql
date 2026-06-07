@@ -1,0 +1,116 @@
+insert into social_videos (
+  venue_id,
+  dish_id,
+  platform,
+  source_url,
+  source_external_id,
+  creator_handle,
+  creator_display_name,
+  caption,
+  thumbnail_url,
+  view_count,
+  like_count,
+  comment_count,
+  share_count,
+  published_at
+)
+select
+  venue.id,
+  dish.id,
+  seed.platform,
+  seed.source_url,
+  seed.source_external_id,
+  seed.creator_handle,
+  seed.creator_display_name,
+  seed.caption,
+  seed.thumbnail_url,
+  seed.view_count,
+  seed.like_count,
+  seed.comment_count,
+  seed.share_count,
+  seed.published_at
+from (
+  values
+    (
+      'banh-mi-hem-nguyen-trai-district-1',
+      'banh-mi-thit-nuong',
+      'tiktok',
+      'https://www.tiktok.com/@tikfood/video/banh-mi-hem-1',
+      'tt-banh-mi-hem-1',
+      '@tikfood',
+      'TikFood',
+      'Late-night banh mi with grilled pork near Nguyen Trai.',
+      '',
+      120000::bigint,
+      8200::bigint,
+      310::bigint,
+      540::bigint,
+      timestamptz '2026-05-20 10:00:00+00'
+    ),
+    (
+      'banh-mi-hem-nguyen-trai-district-1',
+      'banh-mi-pate',
+      'instagram',
+      'https://www.instagram.com/reel/banh-mi-hem-2/',
+      'ig-banh-mi-hem-2',
+      '@saigonbites',
+      'Saigon Bites',
+      'Crispy banh mi pate and grilled pork combo.',
+      '',
+      80000::bigint,
+      5100::bigint,
+      190::bigint,
+      260::bigint,
+      timestamptz '2026-05-22 10:00:00+00'
+    ),
+    (
+      'pho-bo-nguyen-le-van-sy-district-3',
+      'pho-bo-tai',
+      'tiktok',
+      'https://www.tiktok.com/@tikfood/video/pho-bo-nguyen-1',
+      'tt-pho-bo-nguyen-1',
+      '@tikfood',
+      'TikFood',
+      'Breakfast pho with clear broth and rare beef.',
+      '',
+      95000::bigint,
+      6900::bigint,
+      240::bigint,
+      410::bigint,
+      timestamptz '2026-05-19 23:00:00+00'
+    )
+) as seed(
+  venue_slug,
+  dish_slug,
+  platform,
+  source_url,
+  source_external_id,
+  creator_handle,
+  creator_display_name,
+  caption,
+  thumbnail_url,
+  view_count,
+  like_count,
+  comment_count,
+  share_count,
+  published_at
+)
+join venues venue on venue.slug = seed.venue_slug
+left join dishes dish on dish.slug = seed.dish_slug
+on conflict (source_url) do update
+set
+  venue_id = excluded.venue_id,
+  dish_id = excluded.dish_id,
+  platform = excluded.platform,
+  source_external_id = excluded.source_external_id,
+  creator_handle = excluded.creator_handle,
+  creator_display_name = excluded.creator_display_name,
+  caption = excluded.caption,
+  thumbnail_url = excluded.thumbnail_url,
+  view_count = excluded.view_count,
+  like_count = excluded.like_count,
+  comment_count = excluded.comment_count,
+  share_count = excluded.share_count,
+  published_at = excluded.published_at,
+  fetched_at = now(),
+  updated_at = now();
