@@ -73,16 +73,18 @@ district optional string
 dish optional string
 ```
 
+`district` may be a compatibility alias such as `District 1`, `Quận 1`, `Q1`, or `Q. 1`. Backend repositories must normalize it through `location_aliases`.
+
 Response:
 
 ```json
 {
   "data": [
     {
-      "id": "venue_001",
+      "id": "7b7e7ab7-c7b5-4ef8-8cb9-6330b9d2cf55",
       "name": "Banh Mi Hem",
       "address": "12 Nguyen Trai",
-      "district": "District 1",
+      "district": "Quận 1",
       "latitude": 10.7712,
       "longitude": 106.6899,
       "categories": ["street_food", "banh_mi"],
@@ -93,6 +95,8 @@ Response:
   ]
 }
 ```
+
+`id` is an internal database-generated UUID. Do not use manually configured IDs as primary identifiers in API examples or implementation code.
 
 ## Versioning
 

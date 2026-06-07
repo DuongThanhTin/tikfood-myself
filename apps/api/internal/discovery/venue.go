@@ -64,14 +64,14 @@ func NewVenueService() *VenueService {
 	return &VenueService{
 		venues: []Venue{
 			{
-				ID:               "venue_001",
+				ID:               "11111111-1111-4111-8111-111111111111",
 				Name:             "Banh Mi Hem",
 				Slug:             "banh-mi-hem-nguyen-trai-district-1",
 				ShortDescription: "Late-night banh mi spot trending on social video.",
 				About:            "A compact street-food venue known for grilled pork banh mi, quick service, and strong late-night local buzz near Nguyen Trai.",
 				Address:          "12 Nguyen Trai",
-				City:             "Ho Chi Minh City",
-				District:         "District 1",
+				City:             "Thành phố Hồ Chí Minh",
+				District:         "Quận 1",
 				Latitude:         10.7712,
 				Longitude:        106.6899,
 				Categories:       []string{"street_food", "banh_mi"},
@@ -85,14 +85,14 @@ func NewVenueService() *VenueService {
 				AISummary:        "Trending for late-night banh mi clips with strong local social proof.",
 			},
 			{
-				ID:               "venue_002",
+				ID:               "22222222-2222-4222-8222-222222222222",
 				Name:             "Pho Bo Nguyen",
 				Slug:             "pho-bo-nguyen-le-van-sy-district-3",
 				ShortDescription: "Breakfast pho shop with consistent creator mentions.",
 				About:            "A neighborhood pho venue known for clear broth, beef toppings, and steady breakfast traffic from local regulars and food creators.",
 				Address:          "88 Le Van Sy",
-				City:             "Ho Chi Minh City",
-				District:         "District 3",
+				City:             "Thành phố Hồ Chí Minh",
+				District:         "Quận 3",
 				Latitude:         10.7864,
 				Longitude:        106.6767,
 				Categories:       []string{"noodle", "pho"},
@@ -128,7 +128,7 @@ func (service *VenueService) List(ctx context.Context, search VenueSearch) ([]Ve
 		if search.Query != "" && !matchesQuery(venue, search.Query) {
 			continue
 		}
-		if search.District != "" && venue.District != search.District {
+		if search.District != "" && !matchesDistrict(venue.District, search.District) {
 			continue
 		}
 		if search.Dish != "" && !hasDish(venue.TrendingDishes, search.Dish) {
@@ -182,6 +182,25 @@ func normalizeTags(tags []string) []string {
 		results = append(results, normalized)
 	}
 	return results
+}
+
+func matchesDistrict(value string, target string) bool {
+	return normalizeDistrictAlias(value) == normalizeDistrictAlias(target)
+}
+
+func normalizeDistrictAlias(value string) string {
+	normalized := strings.ToLower(strings.TrimSpace(value))
+	normalized = strings.ReplaceAll(normalized, "quận", "quan")
+	normalized = strings.ReplaceAll(normalized, ".", "")
+	normalized = strings.ReplaceAll(normalized, " ", "")
+	switch normalized {
+	case "quan1", "district1", "q1":
+		return "quan-1"
+	case "quan3", "district3", "q3":
+		return "quan-3"
+	default:
+		return normalized
+	}
 }
 
 func hasDish(dishes []string, target string) bool {

@@ -32,6 +32,7 @@ lat optional float
 lng optional float
 radius_m optional int, max 50000
 district optional string
+city optional string
 open_now optional bool
 max_price_vnd optional int
 tags optional comma-separated string
@@ -71,7 +72,8 @@ Normalized query:
 {
   "occasion": ["date"],
   "max_price_vnd": 500000,
-  "district": "District 1",
+  "city_location_id": "uuid:ho-chi-minh",
+  "district_location_id": "uuid:quan-1",
   "amenity": ["rooftop"],
   "venue_type": ["bar"]
 }
@@ -96,6 +98,60 @@ Normalized query:
 ```
 
 MVP can start with explicit UI filters. Natural-language query parsing can be added later.
+
+## Location Normalization
+
+City, district, ward, and area input must be resolved before filtering venues.
+
+Do not treat raw strings such as `Ho Chi Minh City`, `HCM`, `Quận 1`, or `District 1` as canonical database values. They are aliases for canonical rows in `locations`.
+
+Examples:
+
+```text
+Ho Chi Minh City
+Ho Chi Minh
+HCM
+Hồ Chí Minh
+Tp HCM
+Tp Hồ Chí Minh
+TP. Hồ Chí Minh
+-> locations.slug = ho-chi-minh
+
+District 1
+Quận 1
+Quan 1
+Q1
+Q. 1
+Q.1
+-> locations.slug = quan-1
+```
+
+Resolution flow:
+
+```text
+raw input
+-> trim
+-> lowercase
+-> unaccent
+-> exact match location_aliases.normalized_alias
+-> fallback trigram match when confidence is high enough
+-> use locations.id in venue filters
+```
+
+API handlers may accept raw `city` and `district` strings for MVP compatibility, but repository queries should translate them to canonical location IDs or match through `location_aliases`.
+
+Preferred future API shape:
+
+```text
+city_id optional uuid
+city_slug optional string
+district_id optional uuid
+district_slug optional string
+area_id optional uuid
+area_slug optional string
+```
+
+UI should prefer sending slugs or IDs from a location lookup endpoint instead of arbitrary display text.
 
 ## Filter Mapping
 
@@ -175,6 +231,17 @@ lat=10.77&lng=106.69&radius_m=3000
 -> PostGIS ST_DWithin
 ```
 
+City/district:
+
+```text
+district=Q1
+district=Quận 1
+district=District 1
+-> normalize with unaccent/lowercase
+-> location_aliases.normalized_alias
+-> venues.district_location_id
+```
+
 Most videos:
 
 ```text
@@ -223,6 +290,17 @@ exists (
 )
 ```
 
+Location alias filter:
+
+```sql
+exists (
+  select 1
+  from location_aliases district_alias
+  where district_alias.location_id = venues.district_location_id
+    and district_alias.normalized_alias = lower(unaccent(:district))
+)
+```
+
 Dish-at-venue filter:
 
 ```sql
@@ -245,12 +323,12 @@ Discovery search response:
     {
       "type": "venue",
       "venue": {
-        "id": "venue_001",
+        "id": "7b7e7ab7-c7b5-4ef8-8cb9-6330b9d2cf55",
         "name": "Rooftop Pizza Bar",
         "slug": "rooftop-pizza-bar-district-1",
         "short_description": "Rooftop Italian bar for pizza and date nights.",
         "about": "A rooftop Italian-inspired venue known for pizza, city views, evening dates, and social video buzz.",
-        "district": "District 1",
+        "district": "Quận 1",
         "latitude": 10.77,
         "longitude": 106.69,
         "price_level": 3,
@@ -262,7 +340,7 @@ Discovery search response:
       },
       "matched_dishes": [
         {
-          "id": "dish_001",
+          "id": "a25a4a0e-0e9e-4d5a-8c16-34b3c7793948",
           "name": "Pizza Margherita",
           "slug": "pizza-margherita",
           "price_min_vnd": 180000,
