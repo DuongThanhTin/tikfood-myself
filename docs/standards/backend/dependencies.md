@@ -12,6 +12,37 @@ The current backend uses:
 - `pgx` for PostgreSQL access
 - Standard `testing` and `httptest`
 
+## Current Dependency Pattern
+
+The backend uses explicit constructor injection and a composition root.
+
+Current composition root:
+
+```text
+apps/api/internal/app/container.go
+```
+
+Current runtime wiring:
+
+```text
+config
+-> logger
+-> repository adapter
+-> domain service
+-> HTTP route registrar
+-> Gin router
+-> http.Server
+```
+
+Rules:
+
+- `cmd/server` loads config and starts the app only.
+- `internal/app` chooses concrete adapters.
+- `internal/http/router.go` receives route registrars; it does not receive every service as a separate parameter.
+- Domain services receive repository interfaces through constructors.
+- Handlers receive services through constructors.
+- Missing required dependencies should fail during startup, not be silently created in handlers.
+
 ## Dependency Decision Rules
 
 Before adding a Go module, answer:

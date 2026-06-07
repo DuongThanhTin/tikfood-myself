@@ -13,11 +13,30 @@ apps/api/
   cmd/server/
     main.go
   internal/
+    app/
+      app.go
+      container.go
+    config/
+      config.go
     discovery/
-      venue.go
+      model.go
+      service.go
+      repository.go or fallback_repository.go
+      search.go
     http/
+      dependencies.go
+      errors.go
+      response.go
       router.go
       router_test.go
+      venue_handler.go
+      venue_request.go
+    platform/
+      textutil/
+        normalize.go
+    storage/
+      postgres/
+        discovery_repository.go
   Dockerfile
   go.mod
   README.md
@@ -31,6 +50,7 @@ apps/api/
     main.go                 Process entrypoint
 
   internal/
+    app/                    Composition root and dependency wiring
     config/                 Runtime config parsing
     http/                   Gin router, middleware, handlers, request parsing, response writing
     discovery/              Map/dish discovery domain
@@ -39,7 +59,7 @@ apps/api/
     ingestion/              Social signal ingestion domain
     geo/                    Geo filtering/ranking helpers
     storage/                Database interfaces and PostgreSQL implementations
-    platform/               Cross-cutting infrastructure adapters
+    platform/               Cross-cutting infrastructure adapters and bounded reusable helpers
 
   migrations/               Future SQL migrations
   testdata/                 Test fixtures
@@ -50,11 +70,17 @@ apps/api/
 `cmd/server`:
 
 - Starts the process.
-- Reads config.
-- Creates logger.
-- Wires dependencies.
+- Loads config and calls `internal/app`.
 - Starts HTTP server.
 - Must not contain business logic.
+- Must not directly choose storage implementations.
+
+`internal/app`:
+
+- Owns dependency wiring and process-level composition.
+- Creates logger, repositories, services, router, and HTTP server.
+- Chooses concrete adapters such as Postgres or in-memory fallback.
+- Must not contain business rules or request parsing.
 
 `internal/http`:
 
@@ -62,6 +88,12 @@ apps/api/
 - May call domain services.
 - Must not contain scoring, storage, ingestion, or summary business logic.
 - Must use Gin as the only HTTP framework.
+- `router.go` should only create the Gin router, attach middleware, health routes, and call route registration helpers.
+- `dependencies.go` defines HTTP dependency structs and route registrar composition helpers.
+- Domain-specific handlers should live in files such as `venue_handler.go`, `collection_handler.go`, or `profile_handler.go`.
+- Request parsing should live in files such as `venue_request.go`.
+- Shared API response helpers belong in `response.go`.
+- Stable HTTP error codes/messages belong in `errors.go`.
 
 `internal/<domain>`:
 
@@ -75,7 +107,8 @@ apps/api/
 
 `internal/platform`:
 
-- Owns external integrations, clients, clocks, IDs, and shared infrastructure adapters.
+- Owns external integrations, clients, clocks, IDs, and bounded shared helpers.
+- Shared helpers must live in named packages such as `textutil`, not generic `utils`.
 
 ## File Naming
 
@@ -88,6 +121,8 @@ repository.go
 handler.go
 router.go
 middleware.go
+response.go
+errors.go
 ```
 
 Avoid names like:
@@ -101,6 +136,14 @@ processor.go
 
 unless the file has a very clear bounded responsibility.
 
+Preferred helper naming:
+
+```text
+internal/platform/textutil/normalize.go
+internal/platform/idgen/generator.go
+internal/platform/clock/clock.go
+```
+
 ## Package Rules
 
 - Keep packages small and cohesive.
@@ -108,7 +151,8 @@ unless the file has a very clear bounded responsibility.
 - Domain packages must not import `internal/http`.
 - Storage packages must not import `internal/http`.
 - HTTP can import domain packages.
-- `cmd/server` can import all wiring-level packages.
+- `internal/app` can import config, HTTP, domain, and storage packages.
+- `cmd/server` should import only config/app plus standard library process packages.
 
 ## When Adding A New Backend Feature
 

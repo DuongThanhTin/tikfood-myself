@@ -15,7 +15,7 @@ func TestHealth(t *testing.T) {
 	request := httptest.NewRequest(http.MethodGet, "/health", nil)
 	response := httptest.NewRecorder()
 
-	NewRouter().ServeHTTP(response, request)
+	testRouter().ServeHTTP(response, request)
 
 	if response.Code != http.StatusOK {
 		t.Fatalf("expected 200, got %d", response.Code)
@@ -29,7 +29,7 @@ func TestMapVenues(t *testing.T) {
 	request := httptest.NewRequest(http.MethodGet, "/api/v1/map/venues?district=District%201", nil)
 	response := httptest.NewRecorder()
 
-	NewRouter().ServeHTTP(response, request)
+	testRouter().ServeHTTP(response, request)
 
 	if response.Code != http.StatusOK {
 		t.Fatalf("expected 200, got %d", response.Code)
@@ -56,7 +56,7 @@ func TestDiscoveryVenuesSearch(t *testing.T) {
 	request := httptest.NewRequest(http.MethodGet, "/api/v1/discovery/venues?q=pho&city=HCM&max_price_vnd=120000&tags=pho&platform=tiktok&limit=10", nil)
 	response := httptest.NewRecorder()
 
-	NewRouter().ServeHTTP(response, request)
+	testRouter().ServeHTTP(response, request)
 
 	if response.Code != http.StatusOK {
 		t.Fatalf("expected 200, got %d", response.Code)
@@ -94,7 +94,7 @@ func TestDiscoveryVenuesMinPrice(t *testing.T) {
 	request := httptest.NewRequest(http.MethodGet, "/api/v1/discovery/venues?min_price_vnd=90000&limit=10", nil)
 	response := httptest.NewRecorder()
 
-	NewRouter().ServeHTTP(response, request)
+	testRouter().ServeHTTP(response, request)
 
 	if response.Code != http.StatusOK {
 		t.Fatalf("expected 200, got %d", response.Code)
@@ -118,7 +118,7 @@ func TestDiscoveryVenueDetail(t *testing.T) {
 	request := httptest.NewRequest(http.MethodGet, "/api/v1/discovery/venues/banh-mi-hem-nguyen-trai-district-1", nil)
 	response := httptest.NewRecorder()
 
-	NewRouter().ServeHTTP(response, request)
+	testRouter().ServeHTTP(response, request)
 
 	if response.Code != http.StatusOK {
 		t.Fatalf("expected 200, got %d", response.Code)
@@ -145,7 +145,7 @@ func TestDiscoveryVenueDetailNotFound(t *testing.T) {
 	request := httptest.NewRequest(http.MethodGet, "/api/v1/discovery/venues/not-a-real-venue", nil)
 	response := httptest.NewRecorder()
 
-	NewRouter().ServeHTTP(response, request)
+	testRouter().ServeHTTP(response, request)
 
 	if response.Code != http.StatusNotFound {
 		t.Fatalf("expected 404, got %d", response.Code)
@@ -169,7 +169,7 @@ func TestDiscoveryVenuesInvalidSort(t *testing.T) {
 	request := httptest.NewRequest(http.MethodGet, "/api/v1/discovery/venues?sort=random", nil)
 	response := httptest.NewRecorder()
 
-	NewRouter().ServeHTTP(response, request)
+	testRouter().ServeHTTP(response, request)
 
 	assertInvalidRequest(t, response, "sort")
 }
@@ -178,7 +178,7 @@ func TestDiscoveryVenuesInvalidPlatform(t *testing.T) {
 	request := httptest.NewRequest(http.MethodGet, "/api/v1/discovery/venues?platform=myspace", nil)
 	response := httptest.NewRecorder()
 
-	NewRouter().ServeHTTP(response, request)
+	testRouter().ServeHTTP(response, request)
 
 	assertInvalidRequest(t, response, "platform")
 }
@@ -187,7 +187,7 @@ func TestDiscoveryVenuesDistanceSortRequiresLocation(t *testing.T) {
 	request := httptest.NewRequest(http.MethodGet, "/api/v1/discovery/venues?sort=distance", nil)
 	response := httptest.NewRecorder()
 
-	NewRouter().ServeHTTP(response, request)
+	testRouter().ServeHTTP(response, request)
 
 	assertInvalidRequest(t, response, "sort")
 }
@@ -196,7 +196,7 @@ func TestDiscoveryVenuesInvalidPriceRange(t *testing.T) {
 	request := httptest.NewRequest(http.MethodGet, "/api/v1/discovery/venues?min_price_vnd=200000&max_price_vnd=100000", nil)
 	response := httptest.NewRecorder()
 
-	NewRouter().ServeHTTP(response, request)
+	testRouter().ServeHTTP(response, request)
 
 	assertInvalidRequest(t, response, "min_price_vnd")
 }
@@ -205,8 +205,7 @@ func TestMapVenuesStorageError(t *testing.T) {
 	request := httptest.NewRequest(http.MethodGet, "/api/v1/map/venues", nil)
 	response := httptest.NewRecorder()
 
-	venueService := discovery.NewVenueServiceWithRepository(failingVenueRepository{})
-	NewRouter(venueService).ServeHTTP(response, request)
+	testRouterWithVenueRepository(failingVenueRepository{}).ServeHTTP(response, request)
 
 	if response.Code != http.StatusInternalServerError {
 		t.Fatalf("expected 500, got %d", response.Code)
@@ -235,6 +234,19 @@ func (failingVenueRepository) ListVenues(context.Context, discovery.VenueSearch)
 
 func (failingVenueRepository) GetVenueBySlug(context.Context, string) (discovery.Venue, error) {
 	return discovery.Venue{}, errors.New("storage failed")
+}
+
+func testRouter() http.Handler {
+	return testRouterWithVenueRepository(discovery.NewFallbackVenueRepository())
+}
+
+func testRouterWithVenueRepository(repo discovery.VenueRepository) http.Handler {
+	venueService := discovery.NewVenueService(repo)
+	return NewRouter(RouterDependencies{
+		RouteRegistrars: DefaultRouteRegistrars(HandlerDependencies{
+			Venues: venueService,
+		}),
+	})
 }
 
 func assertInvalidRequest(t *testing.T, response *httptest.ResponseRecorder, field string) {
