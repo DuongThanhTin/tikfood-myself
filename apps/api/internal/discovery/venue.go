@@ -6,36 +6,52 @@ import (
 )
 
 type Venue struct {
-	ID               string   `json:"id"`
-	Name             string   `json:"name"`
-	Slug             string   `json:"slug"`
-	ShortDescription string   `json:"short_description"`
-	About            string   `json:"about"`
-	Address          string   `json:"address"`
-	City             string   `json:"city"`
-	District         string   `json:"district"`
-	Latitude         float64  `json:"latitude"`
-	Longitude        float64  `json:"longitude"`
-	Categories       []string `json:"categories"`
-	PriceLevel       int      `json:"price_level"`
-	AvgPriceMinVND   int      `json:"avg_price_min_vnd"`
-	AvgPriceMaxVND   int      `json:"avg_price_max_vnd"`
-	Currency         string   `json:"currency"`
-	SocialVideoCount int      `json:"social_video_count"`
-	TrendScore       int      `json:"trend_score"`
-	TrendingDishes   []string `json:"trending_dishes"`
-	AISummary        string   `json:"ai_summary"`
-	DistanceMeters   *float64 `json:"distance_meters,omitempty"`
+	ID               string        `json:"id"`
+	Name             string        `json:"name"`
+	Slug             string        `json:"slug"`
+	ShortDescription string        `json:"short_description"`
+	About            string        `json:"about"`
+	Address          string        `json:"address"`
+	City             string        `json:"city"`
+	District         string        `json:"district"`
+	Latitude         float64       `json:"latitude"`
+	Longitude        float64       `json:"longitude"`
+	Categories       []string      `json:"categories"`
+	PriceLevel       int           `json:"price_level"`
+	AvgPriceMinVND   int           `json:"avg_price_min_vnd"`
+	AvgPriceMaxVND   int           `json:"avg_price_max_vnd"`
+	Currency         string        `json:"currency"`
+	SocialVideoCount int           `json:"social_video_count"`
+	SocialVideos     []SocialVideo `json:"social_videos"`
+	TrendScore       int           `json:"trend_score"`
+	TrendingDishes   []string      `json:"trending_dishes"`
+	AISummary        string        `json:"ai_summary"`
+	DistanceMeters   *float64      `json:"distance_meters,omitempty"`
+}
+
+type SocialVideo struct {
+	ID            string `json:"id"`
+	Platform      string `json:"platform"`
+	URL           string `json:"url"`
+	CreatorHandle string `json:"creator_handle"`
+	Caption       string `json:"caption"`
+	ThumbnailURL  string `json:"thumbnail_url"`
+	ViewCount     int64  `json:"view_count"`
+	LikeCount     int64  `json:"like_count"`
+	PublishedAt   string `json:"published_at,omitempty"`
 }
 
 type VenueSearch struct {
 	Query       string
+	City        string
 	District    string
 	Dish        string
 	Tags        []string
+	Platforms   []string
 	Lat         *float64
 	Lng         *float64
 	RadiusM     int
+	MinPriceVND int
 	MaxPriceVND int
 	OpenNow     bool
 	Sort        VenueSort
@@ -80,9 +96,33 @@ func NewVenueService() *VenueService {
 				AvgPriceMaxVND:   80000,
 				Currency:         "VND",
 				SocialVideoCount: 42,
-				TrendScore:       92,
-				TrendingDishes:   []string{"banh mi thit nuong", "banh mi pate"},
-				AISummary:        "Trending for late-night banh mi clips with strong local social proof.",
+				SocialVideos: []SocialVideo{
+					{
+						ID:            "33333333-3333-4333-8333-333333333331",
+						Platform:      "tiktok",
+						URL:           "https://www.tiktok.com/@tikfood/video/banh-mi-hem-1",
+						CreatorHandle: "@tikfood",
+						Caption:       "Late-night banh mi with grilled pork near Nguyen Trai.",
+						ThumbnailURL:  "",
+						ViewCount:     120000,
+						LikeCount:     8200,
+						PublishedAt:   "2026-05-20T10:00:00Z",
+					},
+					{
+						ID:            "33333333-3333-4333-8333-333333333332",
+						Platform:      "instagram",
+						URL:           "https://www.instagram.com/reel/banh-mi-hem-2/",
+						CreatorHandle: "@saigonbites",
+						Caption:       "Crispy banh mi pate and grilled pork combo.",
+						ThumbnailURL:  "",
+						ViewCount:     80000,
+						LikeCount:     5100,
+						PublishedAt:   "2026-05-22T10:00:00Z",
+					},
+				},
+				TrendScore:     92,
+				TrendingDishes: []string{"banh mi thit nuong", "banh mi pate"},
+				AISummary:      "Trending for late-night banh mi clips with strong local social proof.",
 			},
 			{
 				ID:               "22222222-2222-4222-8222-222222222222",
@@ -101,9 +141,22 @@ func NewVenueService() *VenueService {
 				AvgPriceMaxVND:   120000,
 				Currency:         "VND",
 				SocialVideoCount: 35,
-				TrendScore:       87,
-				TrendingDishes:   []string{"pho bo tai", "pho bo vien"},
-				AISummary:        "Popular for breakfast pho videos and consistent creator mentions.",
+				SocialVideos: []SocialVideo{
+					{
+						ID:            "44444444-4444-4444-8444-444444444441",
+						Platform:      "tiktok",
+						URL:           "https://www.tiktok.com/@tikfood/video/pho-bo-nguyen-1",
+						CreatorHandle: "@tikfood",
+						Caption:       "Breakfast pho with clear broth and rare beef.",
+						ThumbnailURL:  "",
+						ViewCount:     95000,
+						LikeCount:     6900,
+						PublishedAt:   "2026-05-19T23:00:00Z",
+					},
+				},
+				TrendScore:     87,
+				TrendingDishes: []string{"pho bo tai", "pho bo vien"},
+				AISummary:      "Popular for breakfast pho videos and consistent creator mentions.",
 			},
 		},
 	}
@@ -128,6 +181,9 @@ func (service *VenueService) List(ctx context.Context, search VenueSearch) ([]Ve
 		if search.Query != "" && !matchesQuery(venue, search.Query) {
 			continue
 		}
+		if search.City != "" && !matchesCity(venue.City, search.City) {
+			continue
+		}
 		if search.District != "" && !matchesDistrict(venue.District, search.District) {
 			continue
 		}
@@ -137,7 +193,13 @@ func (service *VenueService) List(ctx context.Context, search VenueSearch) ([]Ve
 		if search.MaxPriceVND > 0 && venue.AvgPriceMaxVND > search.MaxPriceVND {
 			continue
 		}
+		if search.MinPriceVND > 0 && venue.AvgPriceMaxVND < search.MinPriceVND {
+			continue
+		}
 		if len(search.Tags) > 0 && !hasAnyTag(venue.Categories, search.Tags) {
+			continue
+		}
+		if len(search.Platforms) > 0 && !hasAnyPlatform(venue.SocialVideos, search.Platforms) {
 			continue
 		}
 		results = append(results, venue)
@@ -152,9 +214,11 @@ func (service *VenueService) List(ctx context.Context, search VenueSearch) ([]Ve
 
 func normalizeSearch(search VenueSearch) VenueSearch {
 	search.Query = strings.ToLower(strings.TrimSpace(search.Query))
+	search.City = strings.TrimSpace(search.City)
 	search.District = strings.TrimSpace(search.District)
 	search.Dish = strings.ToLower(strings.TrimSpace(search.Dish))
 	search.Tags = normalizeTags(search.Tags)
+	search.Platforms = normalizeTags(search.Platforms)
 
 	if search.Sort == "" {
 		search.Sort = VenueSortTrending
@@ -184,13 +248,29 @@ func normalizeTags(tags []string) []string {
 	return results
 }
 
+func matchesCity(value string, target string) bool {
+	return normalizeCityAlias(value) == normalizeCityAlias(target)
+}
+
+func normalizeCityAlias(value string) string {
+	normalized := normalizeVietnameseText(value)
+	normalized = strings.ReplaceAll(normalized, ".", "")
+	normalized = strings.ReplaceAll(normalized, " ", "")
+	normalized = strings.ReplaceAll(normalized, "thanhpho", "tp")
+	switch normalized {
+	case "hochiminhcity", "hochiminh", "hcm", "tphcm", "tphochiminh":
+		return "ho-chi-minh"
+	default:
+		return normalized
+	}
+}
+
 func matchesDistrict(value string, target string) bool {
 	return normalizeDistrictAlias(value) == normalizeDistrictAlias(target)
 }
 
 func normalizeDistrictAlias(value string) string {
-	normalized := strings.ToLower(strings.TrimSpace(value))
-	normalized = strings.ReplaceAll(normalized, "quận", "quan")
+	normalized := normalizeVietnameseText(value)
 	normalized = strings.ReplaceAll(normalized, ".", "")
 	normalized = strings.ReplaceAll(normalized, " ", "")
 	switch normalized {
@@ -203,10 +283,35 @@ func normalizeDistrictAlias(value string) string {
 	}
 }
 
+func normalizeVietnameseText(value string) string {
+	normalized := strings.ToLower(strings.TrimSpace(value))
+	replacer := strings.NewReplacer(
+		"à", "a", "á", "a", "ạ", "a", "ả", "a", "ã", "a", "â", "a", "ầ", "a", "ấ", "a", "ậ", "a", "ẩ", "a", "ẫ", "a", "ă", "a", "ằ", "a", "ắ", "a", "ặ", "a", "ẳ", "a", "ẵ", "a",
+		"è", "e", "é", "e", "ẹ", "e", "ẻ", "e", "ẽ", "e", "ê", "e", "ề", "e", "ế", "e", "ệ", "e", "ể", "e", "ễ", "e",
+		"ì", "i", "í", "i", "ị", "i", "ỉ", "i", "ĩ", "i",
+		"ò", "o", "ó", "o", "ọ", "o", "ỏ", "o", "õ", "o", "ô", "o", "ồ", "o", "ố", "o", "ộ", "o", "ổ", "o", "ỗ", "o", "ơ", "o", "ờ", "o", "ớ", "o", "ợ", "o", "ở", "o", "ỡ", "o",
+		"ù", "u", "ú", "u", "ụ", "u", "ủ", "u", "ũ", "u", "ư", "u", "ừ", "u", "ứ", "u", "ự", "u", "ử", "u", "ữ", "u",
+		"ỳ", "y", "ý", "y", "ỵ", "y", "ỷ", "y", "ỹ", "y",
+		"đ", "d",
+	)
+	return replacer.Replace(normalized)
+}
+
 func hasDish(dishes []string, target string) bool {
 	for _, dish := range dishes {
 		if strings.EqualFold(dish, target) {
 			return true
+		}
+	}
+	return false
+}
+
+func hasAnyPlatform(videos []SocialVideo, platforms []string) bool {
+	for _, video := range videos {
+		for _, platform := range platforms {
+			if strings.EqualFold(video.Platform, platform) {
+				return true
+			}
 		}
 	}
 	return false

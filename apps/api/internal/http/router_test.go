@@ -53,7 +53,45 @@ func TestMapVenues(t *testing.T) {
 }
 
 func TestDiscoveryVenuesSearch(t *testing.T) {
-	request := httptest.NewRequest(http.MethodGet, "/api/v1/discovery/venues?q=pho&max_price_vnd=120000&tags=pho&limit=10", nil)
+	request := httptest.NewRequest(http.MethodGet, "/api/v1/discovery/venues?q=pho&city=HCM&max_price_vnd=120000&tags=pho&platform=tiktok&limit=10", nil)
+	response := httptest.NewRecorder()
+
+	NewRouter().ServeHTTP(response, request)
+
+	if response.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", response.Code)
+	}
+
+	var body struct {
+		Data []map[string]any `json:"data"`
+	}
+	if err := json.Unmarshal(response.Body.Bytes(), &body); err != nil {
+		t.Fatalf("invalid json response: %v", err)
+	}
+	if len(body.Data) != 1 {
+		t.Fatalf("expected one venue, got %d", len(body.Data))
+	}
+	if body.Data[0]["slug"] != "pho-bo-nguyen-le-van-sy-district-3" {
+		t.Fatalf("expected pho venue, got %q", body.Data[0]["slug"])
+	}
+	videos, ok := body.Data[0]["social_videos"].([]any)
+	if !ok {
+		t.Fatal("expected social_videos array")
+	}
+	if len(videos) == 0 {
+		t.Fatal("expected at least one social video")
+	}
+	video, ok := videos[0].(map[string]any)
+	if !ok {
+		t.Fatal("expected social video object")
+	}
+	if video["platform"] != "tiktok" {
+		t.Fatalf("expected tiktok social video, got %q", video["platform"])
+	}
+}
+
+func TestDiscoveryVenuesMinPrice(t *testing.T) {
+	request := httptest.NewRequest(http.MethodGet, "/api/v1/discovery/venues?min_price_vnd=90000&limit=10", nil)
 	response := httptest.NewRecorder()
 
 	NewRouter().ServeHTTP(response, request)
@@ -85,6 +123,15 @@ func TestDiscoveryVenuesInvalidSort(t *testing.T) {
 	assertInvalidRequest(t, response, "sort")
 }
 
+func TestDiscoveryVenuesInvalidPlatform(t *testing.T) {
+	request := httptest.NewRequest(http.MethodGet, "/api/v1/discovery/venues?platform=myspace", nil)
+	response := httptest.NewRecorder()
+
+	NewRouter().ServeHTTP(response, request)
+
+	assertInvalidRequest(t, response, "platform")
+}
+
 func TestDiscoveryVenuesDistanceSortRequiresLocation(t *testing.T) {
 	request := httptest.NewRequest(http.MethodGet, "/api/v1/discovery/venues?sort=distance", nil)
 	response := httptest.NewRecorder()
@@ -92,6 +139,15 @@ func TestDiscoveryVenuesDistanceSortRequiresLocation(t *testing.T) {
 	NewRouter().ServeHTTP(response, request)
 
 	assertInvalidRequest(t, response, "sort")
+}
+
+func TestDiscoveryVenuesInvalidPriceRange(t *testing.T) {
+	request := httptest.NewRequest(http.MethodGet, "/api/v1/discovery/venues?min_price_vnd=200000&max_price_vnd=100000", nil)
+	response := httptest.NewRecorder()
+
+	NewRouter().ServeHTTP(response, request)
+
+	assertInvalidRequest(t, response, "min_price_vnd")
 }
 
 func TestMapVenuesStorageError(t *testing.T) {

@@ -35,8 +35,10 @@ district optional string
 city optional string
 open_now optional bool
 max_price_vnd optional int
+min_price_vnd optional int
 tags optional comma-separated string
 dish optional string
+platform optional comma-separated string
 sort optional string
 limit optional int
 ```
@@ -208,6 +210,9 @@ Price:
 ```text
 max_price_vnd=500000
 -> venues.avg_price_max_vnd <= 500000
+
+min_price_vnd=100000
+-> venues.avg_price_max_vnd >= 100000
 ```
 
 Dish-specific price:
@@ -215,6 +220,9 @@ Dish-specific price:
 ```text
 dish=pizza&max_price_vnd=300000
 -> venue_dishes.price_max_vnd <= 300000
+
+dish=pizza&min_price_vnd=100000
+-> venue_dishes.price_max_vnd >= 100000
 ```
 
 Open now:
@@ -246,7 +254,17 @@ Most videos:
 
 ```text
 sort=videos
--> venues.social_video_count desc
+-> social_videos view_count sum desc when social_videos exist
+-> fallback venues.social_video_count desc for aggregate-only records
+```
+
+Social platform:
+
+```text
+platform=tiktok
+platform=tiktok,instagram
+-> social_videos.platform
+-> returned social_videos should be filtered to matching platforms
 ```
 
 Dish-specific video count:

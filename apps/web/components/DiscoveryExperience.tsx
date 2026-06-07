@@ -103,7 +103,7 @@ const tagOptions = [
 ];
 
 const mediaByVenue: Record<string, VenueMedia> = {
-  venue_001: {
+  "11111111-1111-4111-8111-111111111111": {
     cuisine: "Việt Nam",
     rating: "4.8",
     reviews: "128 reviews",
@@ -115,7 +115,7 @@ const mediaByVenue: Record<string, VenueMedia> = {
     viewsA: "1.2M",
     viewsB: "856K"
   },
-  venue_002: {
+  "22222222-2222-4222-8222-222222222222": {
     cuisine: "Phở",
     rating: "4.5",
     reviews: "94 reviews",
@@ -129,7 +129,7 @@ const mediaByVenue: Record<string, VenueMedia> = {
   }
 };
 
-const defaultMedia = mediaByVenue.venue_001;
+const defaultMedia = mediaByVenue["11111111-1111-4111-8111-111111111111"];
 const routeSourceId = "active-route";
 const routeCasingLayerId = "active-route-casing";
 const routeLineLayerId = "active-route-line";

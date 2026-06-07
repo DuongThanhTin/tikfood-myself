@@ -168,12 +168,15 @@ GET /api/v1/discovery/venues
 Query params:
 
 - `q`: optional text search across venue, dish, cuisine, and tags
+- `city`: optional string, MVP compatibility alias such as `HCM`, `Ho Chi Minh`, `Tp Hồ Chí Minh`
 - `district`: optional string, MVP compatibility alias such as `District 1`, `Quận 1`, `Q1`
 - `dish`: optional string
 - `tags`: optional comma-separated tag slugs
+- `platform`: optional comma-separated social platform slugs such as `tiktok`, `instagram`
 - `lat`: optional float, requires `lng`
 - `lng`: optional float, requires `lat`
 - `radius_m`: optional int, max 50000
+- `min_price_vnd`: optional int
 - `max_price_vnd`: optional int
 - `open_now`: optional bool
 - `sort`: optional enum, one of `trending`, `videos`, `distance`, `price`
@@ -206,6 +209,19 @@ Response data item:
   "avg_price_max_vnd": 80000,
   "currency": "VND",
   "social_video_count": 42,
+  "social_videos": [
+    {
+      "id": "0ec82711-4541-4680-866f-4462ce4e7d38",
+      "platform": "tiktok",
+      "url": "https://www.tiktok.com/@tikfood/video/banh-mi-hem-1",
+      "creator_handle": "@tikfood",
+      "caption": "Late-night banh mi with grilled pork near Nguyen Trai.",
+      "thumbnail_url": "",
+      "view_count": 120000,
+      "like_count": 8200,
+      "published_at": "2026-05-20T10:00:00Z"
+    }
+  ],
   "trend_score": 92,
   "trending_dishes": ["banh mi thit nuong"],
   "ai_summary": "Trending for late-night banh mi clips.",
