@@ -2,6 +2,15 @@
 
 Go/Gin backend skeleton for TikFood discovery.
 
+Architecture:
+
+- `cmd/server`: thin process entrypoint.
+- `internal/app`: dependency wiring and concrete adapter selection.
+- `internal/http`: Gin routes, middleware, request parsing, response envelopes.
+- `internal/discovery`: discovery domain models, service, repository interface, fallback repository, and pure search rules.
+- `internal/storage/postgres`: PostgreSQL/PostGIS repository implementation.
+- `internal/platform`: bounded reusable infrastructure helpers such as text normalization.
+
 Implemented:
 
 - `GET /health`

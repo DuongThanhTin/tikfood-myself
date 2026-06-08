@@ -3,7 +3,6 @@ package postgres
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -330,14 +329,8 @@ limit $11
 			return nil, fmt.Errorf("scan venue: %w", err)
 		}
 
-		if err := json.Unmarshal([]byte(categoriesJSON), &venue.Categories); err != nil {
-			return nil, fmt.Errorf("decode venue categories: %w", err)
-		}
-		if err := json.Unmarshal([]byte(dishesJSON), &venue.TrendingDishes); err != nil {
-			return nil, fmt.Errorf("decode venue dishes: %w", err)
-		}
-		if err := json.Unmarshal([]byte(socialVideosJSON), &venue.SocialVideos); err != nil {
-			return nil, fmt.Errorf("decode venue social videos: %w", err)
+		if err := decodeVenueListFields(&venue, categoriesJSON, dishesJSON, socialVideosJSON); err != nil {
+			return nil, err
 		}
 		if distanceMeters.Valid {
 			venue.DistanceMeters = &distanceMeters.Float64
@@ -501,20 +494,8 @@ limit 1
 		return discovery.Venue{}, fmt.Errorf("query venue detail: %w", err)
 	}
 
-	if err := json.Unmarshal([]byte(categoriesJSON), &venue.Categories); err != nil {
-		return discovery.Venue{}, fmt.Errorf("decode venue categories: %w", err)
-	}
-	if err := json.Unmarshal([]byte(socialVideosJSON), &venue.SocialVideos); err != nil {
-		return discovery.Venue{}, fmt.Errorf("decode venue social videos: %w", err)
-	}
-	if err := json.Unmarshal([]byte(trendingDishesJSON), &venue.TrendingDishes); err != nil {
-		return discovery.Venue{}, fmt.Errorf("decode venue trending dishes: %w", err)
-	}
-	if err := json.Unmarshal([]byte(dishesJSON), &venue.Dishes); err != nil {
-		return discovery.Venue{}, fmt.Errorf("decode venue dishes: %w", err)
-	}
-	if err := json.Unmarshal([]byte(openingHoursJSON), &venue.OpeningHours); err != nil {
-		return discovery.Venue{}, fmt.Errorf("decode venue opening hours: %w", err)
+	if err := decodeVenueDetailFields(&venue, categoriesJSON, socialVideosJSON, trendingDishesJSON, dishesJSON, openingHoursJSON); err != nil {
+		return discovery.Venue{}, err
 	}
 
 	return venue, nil

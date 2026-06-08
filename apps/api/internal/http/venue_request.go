@@ -22,19 +22,19 @@ func parseVenueSearch(c *gin.Context) (discovery.VenueSearch, *errorResponse) {
 	}
 
 	if search.Query != "" && len(search.Query) > 120 {
-		return search, invalidQuery("q", "Query must be 120 characters or fewer.")
+		return search, invalidQuery("q", MessageQueryTooLong)
 	}
 	if search.City != "" && len(search.City) > 80 {
-		return search, invalidQuery("city", "City must be 80 characters or fewer.")
+		return search, invalidQuery("city", MessageCityTooLong)
 	}
 	if search.District != "" && len(search.District) > 80 {
-		return search, invalidQuery("district", "District must be 80 characters or fewer.")
+		return search, invalidQuery("district", MessageDistrictTooLong)
 	}
 	for _, platform := range search.Platforms {
 		switch strings.ToLower(platform) {
 		case "tiktok", "instagram", "youtube", "facebook", "other":
 		default:
-			return search, invalidQuery("platform", "Platform must be one of tiktok, instagram, youtube, facebook, or other.")
+			return search, invalidQuery("platform", MessagePlatformInvalid)
 		}
 	}
 
@@ -48,10 +48,10 @@ func parseVenueSearch(c *gin.Context) (discovery.VenueSearch, *errorResponse) {
 			return search, invalidQuery("lng", err.Error())
 		}
 		if lat < -90 || lat > 90 {
-			return search, invalidQuery("lat", "Latitude must be between -90 and 90.")
+			return search, invalidQuery("lat", MessageLatitudeRangeInvalid)
 		}
 		if lng < -180 || lng > 180 {
-			return search, invalidQuery("lng", "Longitude must be between -180 and 180.")
+			return search, invalidQuery("lng", MessageLongitudeRangeInvalid)
 		}
 		search.Lat = &lat
 		search.Lng = &lng
@@ -63,7 +63,7 @@ func parseVenueSearch(c *gin.Context) (discovery.VenueSearch, *errorResponse) {
 			return search, invalidQuery("radius_m", err.Error())
 		}
 		if radius < 0 || radius > 50000 {
-			return search, invalidQuery("radius_m", "Radius must be between 0 and 50000 meters.")
+			return search, invalidQuery("radius_m", MessageRadiusRangeInvalid)
 		}
 		search.RadiusM = radius
 	}
@@ -74,7 +74,7 @@ func parseVenueSearch(c *gin.Context) (discovery.VenueSearch, *errorResponse) {
 			return search, invalidQuery("max_price_vnd", err.Error())
 		}
 		if maxPrice < 0 {
-			return search, invalidQuery("max_price_vnd", "Max price must be greater than or equal to 0.")
+			return search, invalidQuery("max_price_vnd", MessageMaxPriceInvalid)
 		}
 		search.MaxPriceVND = maxPrice
 	}
@@ -84,12 +84,12 @@ func parseVenueSearch(c *gin.Context) (discovery.VenueSearch, *errorResponse) {
 			return search, invalidQuery("min_price_vnd", err.Error())
 		}
 		if minPrice < 0 {
-			return search, invalidQuery("min_price_vnd", "Min price must be greater than or equal to 0.")
+			return search, invalidQuery("min_price_vnd", MessageMinPriceInvalid)
 		}
 		search.MinPriceVND = minPrice
 	}
 	if search.MinPriceVND > 0 && search.MaxPriceVND > 0 && search.MinPriceVND > search.MaxPriceVND {
-		return search, invalidQuery("min_price_vnd", "Min price must be less than or equal to max price.")
+		return search, invalidQuery("min_price_vnd", MessagePriceRangeInvalid)
 	}
 
 	if c.Query("limit") != "" {
@@ -98,7 +98,7 @@ func parseVenueSearch(c *gin.Context) (discovery.VenueSearch, *errorResponse) {
 			return search, invalidQuery("limit", err.Error())
 		}
 		if limit < 1 || limit > 100 {
-			return search, invalidQuery("limit", "Limit must be between 1 and 100.")
+			return search, invalidQuery("limit", MessageLimitRangeInvalid)
 		}
 		search.Limit = limit
 	}
@@ -106,7 +106,7 @@ func parseVenueSearch(c *gin.Context) (discovery.VenueSearch, *errorResponse) {
 	if c.Query("open_now") != "" {
 		openNow, err := strconv.ParseBool(c.Query("open_now"))
 		if err != nil {
-			return search, invalidQuery("open_now", "Open now must be true or false.")
+			return search, invalidQuery("open_now", MessageOpenNowInvalid)
 		}
 		search.OpenNow = openNow
 	}
@@ -114,10 +114,10 @@ func parseVenueSearch(c *gin.Context) (discovery.VenueSearch, *errorResponse) {
 	switch search.Sort {
 	case discovery.VenueSortTrending, discovery.VenueSortVideos, discovery.VenueSortDistance, discovery.VenueSortPrice:
 	default:
-		return search, invalidQuery("sort", "Sort must be one of trending, videos, distance, or price.")
+		return search, invalidQuery("sort", MessageSortInvalid)
 	}
 	if search.Sort == discovery.VenueSortDistance && (search.Lat == nil || search.Lng == nil) {
-		return search, invalidQuery("sort", "Distance sort requires lat and lng.")
+		return search, invalidQuery("sort", MessageDistanceSortLocation)
 	}
 
 	return search, nil
@@ -158,14 +158,4 @@ func parseIntParam(c *gin.Context, name string) (int, error) {
 		return 0, fmt.Errorf("%s must be an integer", name)
 	}
 	return parsed, nil
-}
-
-func invalidQuery(field string, message string) *errorResponse {
-	return &errorResponse{
-		Code:    "invalid_request",
-		Message: message,
-		Details: map[string]any{
-			"field": field,
-		},
-	}
 }

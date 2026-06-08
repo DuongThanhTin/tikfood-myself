@@ -60,6 +60,15 @@ Error:
 
 The backend must use the object shape above for errors.
 
+HTTP handlers must use response helpers from `internal/http/response.go` instead of writing envelopes manually:
+
+```text
+respondWithData
+respondWithBadRequest
+respondWithError
+respondWithInternalServerError
+```
+
 ## Error Object
 
 Standard error shape:
