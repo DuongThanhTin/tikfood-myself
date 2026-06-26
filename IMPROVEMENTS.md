@@ -42,6 +42,19 @@ regression risk.
 `apps/web/lib/api.ts` re-implements `normalizeLocationAlias`. Consolidate on the
 DB as the source of truth; mark in-memory/fallback alias logic as dev-only.
 
+### Fallback repository diverges from the Postgres path (verified at runtime)
+Running the API with no `DATABASE_URL` (in-memory fallback) behaves differently
+from the Postgres repository on two filters, confirmed by live calls:
+- `distance_meters` is always `null` and `sort=distance` does not order by
+  proximity — distance is only computed by the Postgres repo via PostGIS
+  `ST_Distance`. (lat/lng validation still returns 400 when missing, correctly.)
+- `dish=` matches `trending_dishes` by EXACT string in the fallback (`dish=pho`
+  → 0 results, `dish=pho bo tai` → 1), whereas the Postgres path uses
+  `like` / `normalized_name` substring matching.
+Acceptable while the fallback is a dev-only approximation, but document it so the
+divergence is not mistaken for a bug. Long term, either narrow the gap or gate
+distance/dish features behind the Postgres path explicitly.
+
 ## P2 — API / Scaling Polish
 
 ### No pagination metadata
