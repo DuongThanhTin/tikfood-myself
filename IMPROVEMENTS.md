@@ -1,0 +1,62 @@
+# IMPROVEMENTS.md — TikFood Roadmap
+
+Prioritized review findings. This is a roadmap, not a set of mandatory rules.
+CLAUDE.md only references the relevant constraints (e.g. do not show fabricated
+ratings).
+
+## P0 — Product Credibility
+
+### Fabricated UI data
+`apps/web/components/DiscoveryExperience.tsx` hardcodes `mediaByVenue` with fake
+ratings ("4.8"), review counts ("128 reviews"), badges, and expiring
+`lh3.googleusercontent.com/aida-public/...` image URLs keyed to seed UUIDs. The
+data model has no rating/review fields, and `venues.photos[]` exists in the
+schema but the UI ignores it. Decision needed: either surface real `photos` and
+add rating fields end to end, or remove the rating/review UI until real data
+exists. Until then, fake data must be clearly marked as placeholder.
+
+### Trend score & AI summary are static seed values
+`trend_scores` and `ai_summaries` tables exist (migration 001) but no worker
+populates them. The core differentiation — realtime trend scoring and AI "why
+trending" summaries — does not exist yet. Roadmap: social ingestion →
+trend-scoring worker → AI-summary worker.
+
+## P1 — Engineering Robustness
+
+### No CI
+There is no `.github/workflows`. Add GitHub Actions: `go test` / `go vet` /
+`go build` for `apps/api`, and `typecheck` / `lint` / `build` for `apps/web`.
+This enforces the "tests updated" rule.
+
+### Thin test coverage
+Only `apps/api/internal/http/router_test.go` exists. Add table-driven tests for
+`normalizeSearch` and alias matching (`apps/api/internal/discovery/search.go`)
+and for the in-memory fallback repository filter. The long list SQL is a
+regression risk.
+
+### Location-alias logic duplicated in three places / two paradigms
+`apps/api/internal/discovery/search.go` hardcodes `quan-1`/`quan-3`; the DB has
+`locations` / `location_aliases` (migration 003) used by the SQL query; and
+`apps/web/lib/api.ts` re-implements `normalizeLocationAlias`. Consolidate on the
+DB as the source of truth; mark in-memory/fallback alias logic as dev-only.
+
+## P2 — API / Scaling Polish
+
+### No pagination metadata
+The list endpoint returns a bare array in `data` with only `limit`. This is
+where a `meta` field (total / cursor) is legitimately useful — reserve it for
+pagination. (Future.)
+
+### OSRM public demo server
+`apps/web/components/DiscoveryExperience.tsx` calls `router.project-osrm.org`
+directly from the browser — rate-limited, no SLA, not production-safe. Replace
+with self-hosted or managed routing.
+
+### Shallow health check
+`GET /health` returns `{ "ok": true }` without pinging the DB. Add a readiness
+check that verifies the database before orchestration relies on it.
+
+### Repo mixes automation tooling and product app
+`apps/ai-code-runner` and the n8n workflow docs live beside the product app.
+`starters/tikfood` hints the product graduates to its own repo. A conscious
+decision for later.
