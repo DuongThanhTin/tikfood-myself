@@ -32,8 +32,8 @@ Services never import or reference HTTP / `gin.Context`.
 
 ## Repository
 
-`VenueRepository` is an interface with two implementations: `postgres`
-(`storage/postgres`) and the in-memory fallback (`discovery`). Repositories do
+`VenueRepository` is an interface with two implementations: `DiscoveryRepository`
+in `storage/postgres` and the in-memory fallback in `discovery`. Repositories do
 persistence only — no business rules, no HTTP.
 
 ## Response Envelope (real)

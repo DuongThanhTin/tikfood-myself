@@ -10,10 +10,12 @@ ratings).
 `apps/web/components/DiscoveryExperience.tsx` hardcodes `mediaByVenue` with fake
 ratings ("4.8"), review counts ("128 reviews"), badges, and expiring
 `lh3.googleusercontent.com/aida-public/...` image URLs keyed to seed UUIDs. The
-data model has no rating/review fields, and `venues.photos[]` exists in the
-schema but the UI ignores it. Decision needed: either surface real `photos` and
-add rating fields end to end, or remove the rating/review UI until real data
-exists. Until then, fake data must be clearly marked as placeholder.
+data model has no rating/review fields. `venues.photos[]` exists in the schema
+but is not mapped in the Go `Venue` model or the repository query, and the UI
+ignores it entirely — so surfacing real photos requires changes end to end:
+model, SQL query, API response, and UI. Decision needed: either surface real
+`photos` and add rating fields end to end, or remove the rating/review UI until
+real data exists. Until then, fake data must be clearly marked as placeholder.
 
 ### Trend score & AI summary are static seed values
 `trend_scores` and `ai_summaries` tables exist (migration 001) but no worker

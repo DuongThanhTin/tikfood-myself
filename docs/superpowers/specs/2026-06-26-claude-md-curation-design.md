@@ -1,7 +1,7 @@
 # Design: AI Agent Guidance (CLAUDE.md) + Improvement Roadmap
 
 Date: 2026-06-26
-Status: Approved (pending spec review)
+Status: Approved (implemented)
 
 ## Goal
 
