@@ -1,7 +1,11 @@
 # Design: Venue Ingestion from Google Places (Sub-project A)
 
 Date: 2026-06-27
-Status: Approved (pending spec review)
+Status: DEFERRED (future option — no budget for a Google Places billing account).
+The active sub-project A uses OpenStreetMap instead — see
+`2026-06-27-venue-ingestion-osm-design.md`. This document is retained on purpose so
+the team can develop the Google Places direction later (richer data: rating, photos,
+structured opening hours).
 
 ## Context
 

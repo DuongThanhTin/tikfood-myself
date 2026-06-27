@@ -1,5 +1,10 @@
 # Venue Ingestion from Google Places Implementation Plan
 
+> **STATUS: DEFERRED (future option).** Sub-project A is being implemented against
+> OpenStreetMap instead (no budget for a Google Places billing account). This plan is
+> retained as a documented future direction — revisit when budget allows. The active
+> plan is `2026-06-27-venue-ingestion-osm.md`.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** A re-runnable Go CLI (`apps/api/cmd/ingest`) that ingests Ho Chi Minh City restaurants/cafes from the Google Places API one district at a time, upserting idempotently.
