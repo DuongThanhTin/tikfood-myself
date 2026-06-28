@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"strconv"
+	"strings"
 
 	"github.com/DuongThanhTin/tikfood-myself/apps/api/internal/config"
 	"github.com/DuongThanhTin/tikfood-myself/apps/api/internal/discovery"
@@ -55,7 +57,14 @@ func (container *Container) Close() error {
 func buildVenueRepository(cfg config.Config, logger *slog.Logger) (discovery.VenueRepository, func() error, error) {
 	if cfg.DatabaseURL == "" {
 		logger.Info("using in-memory discovery storage")
-		return discovery.NewFallbackVenueRepository(), nil, nil
+		repo := discovery.NewFallbackVenueRepository()
+		if district := strings.TrimSpace(os.Getenv("INGEST_ON_START")); district != "" {
+			limit := envInt("INGEST_LIMIT", 12)
+			if err := seedFallbackFromOSM(repo, cfg.OverpassEndpoint, district, limit, logger); err != nil {
+				logger.Warn("OSM preview seed failed; serving base seed only", "error", err)
+			}
+		}
+		return repo, nil, nil
 	}
 
 	db, err := sql.Open("pgx", cfg.DatabaseURL)
@@ -69,4 +78,13 @@ func buildVenueRepository(cfg config.Config, logger *slog.Logger) (discovery.Ven
 
 	logger.Info("using postgres discovery storage")
 	return postgres.NewDiscoveryRepository(db), db.Close, nil
+}
+
+func envInt(key string, fallback int) int {
+	if v := strings.TrimSpace(os.Getenv(key)); v != "" {
+		if n, err := strconv.Atoi(v); err == nil && n > 0 {
+			return n
+		}
+	}
+	return fallback
 }

@@ -16,6 +16,12 @@ func NewFallbackVenueRepository() *FallbackVenueRepository {
 	return &FallbackVenueRepository{venues: fallbackVenues()}
 }
 
+// AddVenues appends extra venues to the in-memory set (used to preview
+// ingested data on the UI without a database).
+func (repo *FallbackVenueRepository) AddVenues(venues []Venue) {
+	repo.venues = append(repo.venues, venues...)
+}
+
 func (repo *FallbackVenueRepository) ListVenues(_ context.Context, search VenueSearch) ([]Venue, error) {
 	results := make([]Venue, 0, len(repo.venues))
 
