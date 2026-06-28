@@ -1,0 +1,42 @@
+{
+  "version": 0.6,
+  "elements": [
+    {
+      "type": "node",
+      "id": 1770305118,
+      "lat": 10.7751001,
+      "lon": 106.7029693,
+      "tags": {
+        "amenity": "cafe",
+        "name": "Cà Phê Ciao",
+        "cuisine": "vietnamese;international;coffee_shop",
+        "opening_hours": "Mo-Su 07:00-23:00",
+        "phone": "+8438231130",
+        "website": "https://ciaocafe.vn/",
+        "addr:housenumber": "74-76",
+        "addr:street": "Nguyễn Huệ"
+      }
+    },
+    {
+      "type": "node",
+      "id": 411918246,
+      "lat": 10.7848583,
+      "lon": 106.700098,
+      "tags": {
+        "amenity": "fast_food",
+        "name": "Phở Số 1 Hà Nội"
+      }
+    },
+    {
+      "type": "node",
+      "id": 999,
+      "lat": 10.0,
+      "lon": 106.0,
+      "tags": {
+        "amenity": "restaurant",
+        "contact:phone": "+84123",
+        "contact:website": "https://x.test"
+      }
+    }
+  ]
+}
