@@ -31,6 +31,8 @@ type Venue struct {
 	OpeningHours     []OpeningHour `json:"opening_hours,omitempty"`
 	AISummary        string        `json:"ai_summary"`
 	DistanceMeters   *float64      `json:"distance_meters,omitempty"`
+	contactPhone     string
+	contactWebsite   string
 }
 
 type SocialVideo struct {
