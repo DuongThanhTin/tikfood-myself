@@ -89,7 +89,12 @@ marked `TODO`; do not claim production-ready.
 | Path | Purpose |
 | --- | --- |
 | `docs/ai/` | AI-OS spine: `AI-CONTRACT.md`, `CONTEXT-LOADING.md`, `ROADMAP.md` |
-| `docs/standards/` | Engineering standards. `backend/` is deep (13 files); frontend/api/deps/logging at root |
+| `docs/adr/` | Architecture Decision Records (process + template + ADRs) |
+| `docs/services/` | Per-service contracts (api, web, ai-code-runner) |
+| `docs/recipes/` | Step-by-step domain playbooks (add API, fix bug, refactor, …) |
+| `docs/thinking/` | Thinking framework / decision heuristics |
+| `docs/verification/` | Definition of Done + review guide |
+| `docs/standards/` | Engineering standards. `backend/` is deep (13 files); frontend/api/deps/logging/testing/security/performance/prompt at root |
 | `docs/agents/` | Human-readable agent role docs (pair with `packages/prompts/`) |
 | `docs/tikfood/` | Product source of truth: `product-vision.md`, `mvp-scope.md`, `anti-goals.md` |
 | `docs/handbook/` | Bilingual onboarding handbook (Parts 1–2 complete; 3–8 being filled) |
@@ -101,10 +106,10 @@ marked `TODO`; do not claim production-ready.
 | `docs/roadmap.md` / `docs/openai-integration-plan.md` / `docs/restructure-prompt.md` | Product roadmap / OpenAI plan / historical restructure spec |
 | `docs/REPOSITORY-MAP.md` | This file |
 
-**Future directories (forecast in handbook §2.5, created by the AI-OS roadmap):**
-`docs/adr/`, `docs/services/`, `docs/thinking/`, `docs/verification/`,
-`docs/recipes/`. Marked here so the map matches [`docs/ai/ROADMAP.md`](ai/ROADMAP.md);
-each is created only when its phase runs, never as an empty placeholder.
+The `docs/adr/`, `docs/services/`, `docs/thinking/`, `docs/verification/`, and
+`docs/recipes/` directories above were forecast in handbook §2.5 and created by the
+AI-OS roadmap ([`docs/ai/ROADMAP.md`](ai/ROADMAP.md)). No empty placeholders exist — each
+dir holds real content.
 
 ## Other top-level dirs
 

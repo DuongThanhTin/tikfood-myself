@@ -31,9 +31,16 @@ Bản đồ quy tắc gọn nằm ở mục *Monorepo Map* của [`/CLAUDE.md`](
 
 | Thư mục | Nội dung | Đọc khi nào |
 | --- | --- | --- |
-| [`docs/standards/`](../standards/) | Chuẩn kỹ thuật (backend/frontend/API/logging/AI rules) — **nguồn sự thật** | Trước khi đổi code app |
+| [`docs/ai/`](../ai/) | AI-OS spine: [`AI-CONTRACT.md`](../ai/AI-CONTRACT.md), [`CONTEXT-LOADING.md`](../ai/CONTEXT-LOADING.md), [`ROADMAP.md`](../ai/ROADMAP.md) | Đầu mỗi phiên |
+| [`docs/REPOSITORY-MAP.md`](../REPOSITORY-MAP.md) | Bản đồ mọi thư mục → mục đích | Khi định vị chỗ cần sửa |
+| [`docs/standards/`](../standards/) | Chuẩn kỹ thuật (backend/frontend/API/logging/AI rules/testing/security/performance/prompt) — **nguồn sự thật** | Trước khi đổi code app |
+| [`docs/adr/`](../adr/) | Architecture Decision Records (quyết định + lý do) | Khi thiết kế / trước khi trái với một quyết định cũ |
+| [`docs/services/`](../services/) | Hợp đồng dịch vụ (api/web/ai-code-runner) | Khi đổi thứ liên-dịch-vụ |
+| [`docs/recipes/`](../recipes/) | Playbook từng bước theo loại việc | Khi bắt tay làm một task |
+| [`docs/thinking/`](../thinking/) | Khung tư duy / heuristics | Khi phân loại & quyết định |
+| [`docs/verification/`](../verification/) | Definition of Done + Review guide | Trước khi tuyên bố "xong" / review |
 | [`docs/agents/`](../agents/) | Hợp đồng con người-đọc-được của từng agent runner | Khi làm việc với ai-code-runner |
-| [`docs/tikfood/`](../tikfood/) | Định vị sản phẩm, MVP scope, anti-goals | Khi quyết định phạm vi feature |
+| [`docs/tikfood/`](../tikfood/) | Định vị sản phẩm, MVP scope, anti-goals, [`domain-model.md`](../tikfood/domain-model.md) | Khi quyết định phạm vi feature |
 | [`docs/superpowers/`](../superpowers/) | `specs/` và `plans/` thật của quy trình brainstorm→plan→execute | Khi bắt đầu/tiếp tục một feature |
 | [`docs/handbook/`](.) | Chính bộ sổ tay này (giải thích, không phải nguồn sự thật) | Onboarding |
 | Các file lẻ | [`architecture.md`](../architecture.md), [`security.md`](../security.md), [`roadmap.md`](../roadmap.md), [`runner-contract.md`](../runner-contract.md), [`local-development.md`](../local-development.md) | Theo chủ đề |
@@ -68,21 +75,23 @@ khai báo tường minh:
 anti-goal cho chính app TikFood). Anti-goal phải được giữ trong `packages/prompts/**`,
 `packages/config/tikfood.ai-agent.yaml`, `docs/tikfood/**`, `starters/tikfood/**`.
 
-## 2.5 Thư mục đề xuất cho tương lai (chưa tồn tại)
+## 2.5 Các thư mục AI-OS (đã tạo)
 
-Cấu trúc lý tưởng thường nhắc tới `recipes/`, `playbooks/`, `verification/`,
-`thinking/`, `adr/`. **Repo hiện chưa có** các thư mục này — nên handbook mô tả hiện
-trạng thật thay vì giả vờ chúng tồn tại. Khi thực sự cần, đề xuất ánh xạ:
+Các thư mục từng được đề xuất cho tương lai nay **đã tồn tại**, được tạo theo
+[`docs/ai/ROADMAP.md`](../ai/ROADMAP.md) — không còn là placeholder:
 
-| Ý tưởng | Chỗ đã có tương đương hôm nay | Ghi chú |
+| Thư mục | Vai trò | Thay cho ý tưởng cũ |
 | --- | --- | --- |
-| `recipes/` | các workflow domain → [Phần 4](04-domain-workflows.md) | Có thể tách file khi Phần 4 chín |
-| `playbooks/` | [Phần 3 — Core Workflow](03-core-workflow.md) | — |
-| `verification/` | skill `verification-before-completion` | Đã có dưới dạng skill |
-| `thinking/` | `docs/superpowers/specs/` | Spec đang đóng vai này |
-| `adr/` | (chưa có) | Tạo `docs/adr/` khi có quyết định kiến trúc đầu tiên |
+| [`docs/recipes/`](../recipes/) | Playbook từng bước theo loại việc | `recipes/` |
+| [Phần 3 — Core Workflow](03-core-workflow.md) | Quy trình chung 15 bước | `playbooks/` |
+| [`docs/verification/`](../verification/) | Definition of Done + Review guide | `verification/` |
+| [`docs/thinking/`](../thinking/) | Khung tư duy / heuristics | `thinking/` |
+| [`docs/adr/`](../adr/) | Architecture Decision Records | `adr/` |
+| [`docs/services/`](../services/) | Hợp đồng dịch vụ per-service | (mới) |
+| [`docs/ai/`](../ai/) | Spine: contract, context-loading, roadmap | (mới) |
 
-Không tạo thư mục rỗng — thêm khi có nội dung thật, theo nguyên tắc "code wins".
+Nguyên tắc giữ nguyên: không tạo thư mục rỗng — mỗi thư mục trên có nội dung thật và
+**link** tới nguồn sự thật, không chép lại; "code wins" khi mâu thuẫn.
 
 ---
 
