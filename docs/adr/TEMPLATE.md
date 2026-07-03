@@ -4,6 +4,8 @@
 - **Date:** YYYY-MM-DD
 - **Deciders:** <who approved> (human approval required for accepted status)
 - **Type:** decision | retroactive (documents an existing decision)
+- **Supersedes:** ADR-XXXX (omit if none)
+- **Superseded-by:** ADR-XXXX (omit if none)
 
 ## Context
 

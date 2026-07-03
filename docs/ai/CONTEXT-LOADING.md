@@ -26,8 +26,11 @@ standards you may not need.
 
 ## 2. Task-type loading matrix
 
-After classifying the task, load the app-specific and topic docs it needs. Read the
-owning `CLAUDE.md` **before** editing any app.
+After classifying the task (use [`docs/thinking/README.md`](../thinking/README.md) §1),
+load the app-specific and topic docs it needs. Read the owning `CLAUDE.md` **before**
+editing any app. For a common task type, the matching [`docs/recipes/`](../recipes/)
+recipe already bundles the skill + docs + steps — prefer it over reconstructing from
+this matrix.
 
 | Task type | Read before acting (in addition to the core) |
 | --- | --- |
@@ -35,12 +38,12 @@ owning `CLAUDE.md` **before** editing any app.
 | **Frontend change** (`apps/web`) | [`apps/web/CLAUDE.md`](../../apps/web/CLAUDE.md) → [`docs/standards/frontend-architecture.md`](../standards/frontend-architecture.md); keep `lib/api.ts` types in sync with Go JSON tags |
 | **API contract / response shape** | [`docs/standards/api-contracts.md`](../standards/api-contracts.md) + [`docs/standards/backend/request-response.md`](../standards/backend/request-response.md); update `apps/web/lib/api.ts` too |
 | **Runner / automation** (`apps/ai-code-runner`) | [`docs/runner-contract.md`](../runner-contract.md) + [`docs/agents/`](../agents/) + [`packages/config/*.yaml`](../../packages/config/) |
-| **Runtime prompt** (`packages/prompts`) | the paired [`docs/agents/*`](../agents/) role doc + (when created) `docs/standards/prompt-engineering.md`; output must be JSON-only |
+| **Runtime prompt** (`packages/prompts`) | the paired [`docs/agents/*`](../agents/) role doc + [`docs/standards/prompt-engineering.md`](../standards/prompt-engineering.md); output must be JSON-only |
 | **Schema / contract** (`packages/schemas`) | **Protected path** — get human approval; then [`docs/runner-contract.md`](../runner-contract.md) |
 | **Migration** (`apps/api/migrations`) | **Requires human approval**; then [`docs/standards/backend/database.md`](../standards/backend/database.md) |
 | **Product scope / feature framing** | [`docs/tikfood/`](../tikfood/) (vision / mvp-scope / anti-goals) |
-| **Architecture question** | [`docs/architecture.md`](../architecture.md) + (when created) `docs/services/*` and `docs/adr/` |
-| **Security-sensitive change** | [`docs/security.md`](../security.md) (runner) + (when created) `docs/standards/application-security.md` (product) |
+| **Architecture question** | [`docs/architecture.md`](../architecture.md) + [`docs/services/`](../services/) + [`docs/adr/`](../adr/) |
+| **Security-sensitive change** | [`docs/security.md`](../security.md) (runner) + [`docs/standards/application-security.md`](../standards/application-security.md) (product) |
 
 If a task spans areas, load each area's owner doc — but only the sections you need.
 
@@ -53,7 +56,7 @@ Load the **process skill before implementation**, per handbook §1.5:
 - Before claiming done → `verification-before-completion`.
 
 Hard skills (TDD, systematic-debugging) are followed exactly; pattern skills adapt.
-Recipes in `docs/recipes/` (when created) name the exact skill + docs per task type.
+Recipes in [`docs/recipes/`](../recipes/) name the exact skill + docs per task type.
 
 ## 4. When to drop context or delegate
 
@@ -67,6 +70,8 @@ Recipes in `docs/recipes/` (when created) name the exact skill + docs per task t
 - **Use a git worktree** for isolated feature work per the `using-git-worktrees` skill.
 - Prefer the dedicated read/search tools over shell `cat`/`grep` for single files you
   actually need in context.
+- **Read ranges, not whole files** — for a large file (>~400 lines) where you need one
+  function/section, read the relevant range instead of the entire file.
 
 ## 5. Order of authority when sources conflict
 

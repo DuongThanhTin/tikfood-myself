@@ -97,7 +97,7 @@ marked `TODO`; do not claim production-ready.
 | `docs/standards/` | Engineering standards. `backend/` is deep (13 files); frontend/api/deps/logging/testing/security/performance/prompt at root |
 | `docs/agents/` | Human-readable agent role docs (pair with `packages/prompts/`) |
 | `docs/tikfood/` | Product source of truth: `product-vision.md`, `mvp-scope.md`, `anti-goals.md` |
-| `docs/handbook/` | Bilingual onboarding handbook (Parts 1–2 complete; 3–8 being filled) |
+| `docs/handbook/` | Bilingual onboarding handbook (Parts 1–8 complete; explainer + links) |
 | `docs/superpowers/` | Real spec-driven-development trail: `specs/` (designs) + `plans/` (implementation plans) |
 | `docs/architecture.md` | System architecture (automation + product) |
 | `docs/security.md` | **Runner/automation** security policy (distinct from product app security) |
@@ -117,5 +117,5 @@ dir holds real content.
 | --- | --- |
 | `workflows/n8n/` | n8n setup, mapping, example workflow (`ai-feature-to-pr-workflow.md`, `workflow.example.json`) |
 | `examples/feature-requests/` | Sample runner payloads (`tikfood-ai-summary`, `tikfood-dish-search`, `tikfood-realtime-map`) |
-| `starters/tikfood/` | Seed for a real product repo: `.ai-agent.yaml`, `project-docs/` (VISION/REQUIREMENTS/ARCHITECTURE/TASKBOARD), `automation/`. Ships **no app source** |
+| `starters/tikfood/` | Seed for a real product repo: `.ai-agent.yaml`, `project-docs/` (VISION/REQUIREMENTS/ARCHITECTURE/TASKBOARD/AI-OS), `automation/`. Ships **no app source** |
 | `.superpowers/sdd/` | Spec-driven-development working state (task briefs/reports/progress) |

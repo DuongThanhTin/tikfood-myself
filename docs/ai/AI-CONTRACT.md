@@ -90,13 +90,13 @@ Clear verb names (`CreateUser`, `FindByEmail`, `VenueDetail`). Avoid `Do`, `Hand
 
 Runtime prompts must return **valid JSON only** when they instruct model output (no
 Markdown/prose outside JSON). Preserve product context and anti-goals in every prompt.
-→ Source: [`/.ai-agent.yaml`](../../.ai-agent.yaml) → `coding_rules` · [`packages/prompts/`](../../packages/prompts/) · (standard, when created) `docs/standards/prompt-engineering.md`
+→ Source: [`/.ai-agent.yaml`](../../.ai-agent.yaml) → `coding_rules` · [`packages/prompts/`](../../packages/prompts/) · [`docs/standards/prompt-engineering.md`](../standards/prompt-engineering.md)
 
 ## 9. Honesty & verification
 
 Run real checks before reporting; report skipped checks honestly; never claim tests
 passed unless they ran and passed.
-→ Source: [`/.ai-agent.yaml`](../../.ai-agent.yaml) → `testing_rules` · (guide, when created) `docs/verification/definition-of-done.md`
+→ Source: [`/.ai-agent.yaml`](../../.ai-agent.yaml) → `testing_rules` · [`docs/verification/definition-of-done.md`](../verification/definition-of-done.md)
 
 ---
 
