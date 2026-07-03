@@ -75,3 +75,26 @@ check that verifies the database before orchestration relies on it.
 `apps/ai-code-runner` and the n8n workflow docs live beside the product app.
 `starters/tikfood` hints the product graduates to its own repo. A conscious
 decision for later.
+
+## AI Operating System handoffs
+
+The AI Operating System (`docs/ai/ROADMAP.md`) delivered documentation only. The
+following are **code/infra** items it deliberately left to humans; each is governed by
+an AI-OS doc so the eventual implementation has a standard to meet. Most already appear
+above — this maps them to their governing doc/recipe.
+
+- **CI** (`.github/workflows/`, protected path) — enables the completion gate in
+  `docs/verification/definition-of-done.md`. See *No CI* (P1).
+- **Frontend test harness** (Vitest + React Testing Library) — required by
+  `docs/standards/testing.md` → *Frontend*; today `apps/web` has zero tests. Bootstrap
+  one test, then cover `lib/api.ts` + filter/format utils. (Extends *Thin test
+  coverage*, P1.)
+- **Backend test gaps** — `normalizeSearch`/alias + fallback filter, per
+  `docs/standards/testing.md`. See *Thin test coverage* (P1).
+- **Location-alias consolidation** — DB as source of truth; recorded in
+  `docs/adr/0004-in-memory-fallback-repository.md`. See *Location-alias logic
+  duplicated* (P1).
+- **Fabricated UI data** — governed by `docs/standards/application-security.md` §2 and
+  `docs/services/web.md`. See *Fabricated UI data* (P0).
+- **Trend-scoring / AI-summary workers** — architecture in `docs/architecture.md` §2.2;
+  perf rules in `docs/standards/performance.md`. See *Trend score & AI summary* (P0).
