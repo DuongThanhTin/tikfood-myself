@@ -41,6 +41,10 @@ backend_stack:
     - AI summaries
 
 frontend_stack:
+  # TARGET stack for a future product repo — NOT the current apps/web.
+  # apps/web today uses plain CSS (no Tailwind/shadcn) and no TanStack Query.
+  # See docs/adr/0005-plain-css-frontend.md and apps/web/CLAUDE.md (code wins).
+  status: target_not_current
   framework: Next.js App Router
   language: TypeScript
   styling: Tailwind CSS

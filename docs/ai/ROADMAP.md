@@ -8,6 +8,10 @@
 
 Status: **Complete** (2026-07-03) — all 8 phases generated. Owner: Repository Architect role.
 
+> **Scope:** the build plan for the AI Operating System **documentation**. Sibling
+> planning docs: [`docs/roadmap.md`](../roadmap.md) = automation build phases ·
+> [`IMPROVEMENTS.md`](../../IMPROVEMENTS.md) = prioritized code/infra findings.
+
 ## Guiding principles
 
 1. **Index/link, never duplicate.** Layer-1 rules stay canonical in `CLAUDE.md`,

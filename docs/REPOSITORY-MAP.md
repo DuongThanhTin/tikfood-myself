@@ -103,7 +103,9 @@ marked `TODO`; do not claim production-ready.
 | `docs/security.md` | **Runner/automation** security policy (distinct from product app security) |
 | `docs/runner-contract.md` | `POST /jobs/feature` request/response contract + runner rules |
 | `docs/local-development.md` | Local dev setup |
-| `docs/roadmap.md` / `docs/openai-integration-plan.md` / `docs/restructure-prompt.md` | Product roadmap / OpenAI plan / historical restructure spec |
+| `docs/roadmap.md` | Automation build phases (Phase 1–4). See also `IMPROVEMENTS.md` (findings), `docs/ai/ROADMAP.md` (AI-OS docs) |
+| `docs/openai-integration-plan.md` | Plan for the deferred OpenAI integration |
+| `docs/archive/` | Superseded/historical docs (kept for record, not current) |
 | `docs/REPOSITORY-MAP.md` | This file |
 
 The `docs/adr/`, `docs/services/`, `docs/thinking/`, `docs/verification/`, and

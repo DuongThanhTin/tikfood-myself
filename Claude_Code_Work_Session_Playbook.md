@@ -2,6 +2,13 @@
 
 > Mục tiêu: Chuẩn hóa cách bắt đầu mọi feature hoặc bug để Claude luôn
 > có đủ context và làm việc nhất quán.
+>
+> **Vị trí trong hệ thống:** đây là bộ **prompt sẵn-dùng theo từng session**. Bản đồ
+> quy trình đầy đủ (15 bước + skill + doc) ở
+> [`docs/handbook/03-core-workflow.md`](docs/handbook/03-core-workflow.md); cổng "xong"
+> ở [`docs/verification/definition-of-done.md`](docs/verification/definition-of-done.md);
+> heuristics phân loại/quyết định ở [`docs/thinking/README.md`](docs/thinking/README.md).
+> Khi các doc đó mâu thuẫn với code → code thắng.
 
 ------------------------------------------------------------------------
 

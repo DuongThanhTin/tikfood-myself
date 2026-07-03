@@ -7,7 +7,7 @@ Dependencies must be intentional. A small dependency surface keeps the repo easi
 - Prefer standard library and existing local helpers before adding a package.
 - Add a dependency only when it removes real complexity or provides a mature, well-known capability.
 - Do not add packages for trivial formatting, string manipulation, or one-off helpers.
-- Do not add a package that introduces delivery, cart, order, payment, booking, reservation, chat, monetization, or livestream scope.
+- Do not add a package that introduces any MVP anti-goal scope (canonical list: [`docs/tikfood/anti-goals.md`](../tikfood/anti-goals.md)).
 - Update lockfiles when dependencies change.
 - Run relevant tests after dependency changes.
 - Mention new dependencies in the implementation summary.

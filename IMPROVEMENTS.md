@@ -4,6 +4,10 @@ Prioritized review findings. This is a roadmap, not a set of mandatory rules.
 CLAUDE.md only references the relevant constraints (e.g. do not show fabricated
 ratings).
 
+> **Scope:** prioritized code/infra findings to fix. Sibling planning docs:
+> [`docs/roadmap.md`](docs/roadmap.md) = automation build phases ·
+> [`docs/ai/ROADMAP.md`](docs/ai/ROADMAP.md) = AI Operating System documentation build.
+
 ## P0 — Product Credibility
 
 ### Fabricated UI data

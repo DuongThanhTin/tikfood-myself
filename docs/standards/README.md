@@ -59,3 +59,9 @@ read standards
 -> run relevant checks
 -> report assumptions, risks, and skipped checks honestly
 ```
+
+The full version of this workflow — with per-step docs, skills, and gates — lives in
+[`docs/handbook/03-core-workflow.md`](../handbook/03-core-workflow.md); step-by-step task
+recipes are in [`docs/recipes/`](../recipes/); decision heuristics in
+[`docs/thinking/README.md`](../thinking/README.md); the completion gate in
+[`docs/verification/definition-of-done.md`](../verification/definition-of-done.md).

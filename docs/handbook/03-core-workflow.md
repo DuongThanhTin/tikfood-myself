@@ -4,8 +4,12 @@
 > tới artifact thật trong repo (recipes, thinking, verification) thay vì lặp lại nội dung.
 
 Quy trình cốt lõi từ khi nhận request đến khi hoàn thành. Nguyên tắc: **hiểu trước khi
-code, một task mỗi phiên, verification bắt buộc, review tách khỏi implementation** (xem
-`Claude_Code_Work_Session_Playbook.md`).
+code, một task mỗi phiên, verification bắt buộc, review tách khỏi implementation**.
+
+Phần này là **bản đồ** quy trình. Bộ **prompt sẵn-dùng theo từng session**
+(Discovery/Planning/Implementation/…) nằm ở
+[`Claude_Code_Work_Session_Playbook.md`](../../Claude_Code_Work_Session_Playbook.md) —
+dùng nó khi cần prompt cụ thể để dán.
 
 ## Template cho mỗi bước
 

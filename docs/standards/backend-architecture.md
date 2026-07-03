@@ -1,126 +1,26 @@
 # Backend Architecture Standard
 
-Detailed backend standards live under `docs/standards/backend/`.
+> **This page is a pointer.** The detailed, authoritative backend standards live under
+> [`docs/standards/backend/`](backend/). This file previously restated backend
+> architecture and had drifted from the code (it named `net/http`, an `error`-string
+> envelope, and in-memory-only persistence). To avoid a second, conflicting source it no
+> longer describes the architecture — read the canonical docs below. Code wins on
+> conflict.
 
-Read these first for backend work:
+Read these for backend work, in order:
 
-- `docs/standards/backend/README.md`
-- `docs/standards/backend/structure.md`
-- `docs/standards/backend/architecture.md`
-- `docs/standards/backend/dependencies.md`
-- `docs/standards/backend/database.md`
-- `docs/standards/backend/search-filtering.md`
-- `docs/standards/backend/request-response.md`
-- `docs/standards/backend/errors.md`
-- `docs/standards/backend/logging.md`
-- `docs/standards/backend/testing.md`
-- `docs/standards/backend/scaling.md`
+- [`backend/README.md`](backend/README.md) — index + current backend state
+- [`backend/structure.md`](backend/structure.md) — directory layout & ownership
+- [`backend/architecture.md`](backend/architecture.md) — layering & responsibilities
+- [`backend/patterns.md`](backend/patterns.md) — handler/service/repository patterns
+- [`backend/request-response.md`](backend/request-response.md) — the real `{ data, error }` envelope
+- [`backend/errors.md`](backend/errors.md) · [`backend/database.md`](backend/database.md) ·
+  [`backend/logging.md`](backend/logging.md) · [`backend/testing.md`](backend/testing.md) ·
+  [`backend/dependencies.md`](backend/dependencies.md) ·
+  [`backend/search-filtering.md`](backend/search-filtering.md) ·
+  [`backend/scaling.md`](backend/scaling.md) ·
+  [`backend/framework.md`](backend/framework.md)
 
-Backend code lives in `apps/api`.
-
-TikFood backend is a Go service for realtime social food discovery. It must stay focused on map discovery, dish discovery, trend scoring, social proof, AI summaries, hidden gems, and geo intelligence.
-
-## Current Backend Baseline
-
-- Language: Go
-- HTTP: standard library `net/http`
-- Entrypoint: `apps/api/cmd/server/main.go`
-- Routes: `apps/api/internal/http`
-- Discovery domain: `apps/api/internal/discovery`
-- Persistence: in-memory MVP data for now
-
-## Layering
-
-Use this direction:
-
-```text
-cmd/server
--> internal/http
--> internal/<domain>
--> internal/storage
--> database or external systems
-```
-
-Responsibilities:
-
-- `cmd/server`: process startup, port, server wiring.
-- `internal/http`: routes, request parsing, response writing, status codes.
-- `internal/<domain>`: domain models and business rules.
-- `internal/storage`: database access once persistence exists.
-
-HTTP handlers should stay thin. If a handler starts doing filtering, scoring, persistence, or summarization logic, move that behavior into a domain service.
-
-## Domain Boundaries
-
-Current and future domains:
-
-- `discovery`: map venues, dish search, discovery feed
-- `trend`: trend scoring and ranking
-- `summary`: AI-generated venue/dish summaries
-- `ingestion`: social signal ingestion
-- `geo`: geospatial filtering and ranking
-
-Keep these separate. Do not blend trend scoring, AI summary generation, ingestion, and HTTP transport code.
-
-## API Rules
-
-- Use JSON request and response bodies.
-- Use explicit typed structs.
-- Use `snake_case` JSON fields for API responses.
-- Return a consistent envelope:
-
-```json
-{
-  "data": {},
-  "error": ""
-}
-```
-
-- Omit `error` when there is no error.
-- Use proper HTTP status codes.
-
-## Error Handling
-
-- Do not panic for request-level errors.
-- Validate request input at the transport boundary.
-- Return clear error messages without leaking internals.
-- Do not include secrets, tokens, SQL details, or stack traces in API responses.
-
-## Testing
-
-Required for backend changes:
-
-```bash
-npm run api:test
-```
-
-Add tests for:
-
-- New endpoints
-- Filtering behavior
-- Domain service behavior
-- Error cases
-
-## Persistence Direction
-
-When persistence is added:
-
-- Use PostgreSQL + PostGIS.
-- Keep migrations explicit.
-- Put database code under `internal/storage`.
-- Keep SQL and storage models separate from HTTP response structs when complexity grows.
-
-## Anti-Goals
-
-Do not add backend logic for:
-
-- Delivery
-- Cart
-- Orders
-- Checkout
-- Payment
-- Booking or reservations
-- In-app chat
-- Social follow graph
-- Creator monetization
-- Livestream
+The reasoning behind key backend choices (Gin + pgx, layering, envelope) is recorded in
+[`docs/adr/`](../adr/) (ADR-0001, 0002, 0003). App-specific rules "as built today" are in
+[`apps/api/CLAUDE.md`](../../apps/api/CLAUDE.md).

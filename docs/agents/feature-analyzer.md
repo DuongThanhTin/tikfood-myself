@@ -16,7 +16,7 @@ Valid JSON only. Output should include feature area, task type, product alignmen
 
 ## Runtime Prompt Location
 
-No canonical runtime prompt is currently included. Add one under `packages/prompts/` before wiring this agent into `ai-code-runner`.
+`packages/prompts/feature-analyzer.md` (see the [prompts index](../../packages/prompts/README.md)).
 
 ## JSON Contract
 

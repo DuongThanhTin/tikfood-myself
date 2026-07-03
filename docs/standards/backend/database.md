@@ -7,7 +7,7 @@ This schema is the target discovery MVP schema. The current API still uses in-me
 ## Core Principles
 
 - Model venues, dishes, social proof, search filters, user saves, and collections explicitly.
-- Keep delivery, cart, order, checkout, payment, booking, reservation, chat, monetization, and livestream out of the MVP schema.
+- Keep MVP anti-goals out of the schema (canonical list: [`docs/tikfood/anti-goals.md`](../../tikfood/anti-goals.md)) — no delivery, cart, order, checkout, payment, booking, reservation, chat, monetization, or livestream tables.
 - Prefer normalized tags because TikFood search/filtering is tag-heavy.
 - Store price at the correct level: venue, dish concept, and dish-at-venue.
 - Generate AI summaries asynchronously later; do not generate expensive summaries inside map/search requests.

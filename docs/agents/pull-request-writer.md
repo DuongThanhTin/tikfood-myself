@@ -18,7 +18,7 @@ Valid JSON only. Output should include `pr_title`, `pr_body`, risks, test summar
 
 ## Runtime Prompt Location
 
-No standalone canonical runtime prompt is currently included. PR title/body requirements are embedded in `packages/prompts/coding-agent.md` and validated by `packages/prompts/reviewer.md`.
+`packages/prompts/pull-request-writer.md` (see the [prompts index](../../packages/prompts/README.md)). PR fields must match `packages/schemas/runner-success-response.schema.json`; the `coding-agent` also emits `pr_title`/`pr_body` for the pre-PR-writer path.
 
 ## JSON Contract
 

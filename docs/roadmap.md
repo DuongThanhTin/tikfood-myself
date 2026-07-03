@@ -1,4 +1,10 @@
-# Roadmap
+# Roadmap — Automation Build Phases
+
+> **Scope:** the phased build-out of the automation workspace (runner, OpenAI, PR flow,
+> production hardening). This is one of three planning docs — don't confuse them:
+> **this file** = automation build phases · [`IMPROVEMENTS.md`](../IMPROVEMENTS.md) =
+> prioritized code/infra findings · [`docs/ai/ROADMAP.md`](ai/ROADMAP.md) = the AI
+> Operating System documentation build.
 
 ## Phase 1
 

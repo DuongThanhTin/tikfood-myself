@@ -82,20 +82,10 @@ Rules:
 
 ## Product Guardrails
 
-Do not add UI for:
-
-- Delivery
-- Cart
-- Orders
-- Checkout
-- Payment
-- Booking or reservations
-- In-app chat
-- Social follow graph
-- Creator monetization
-- Livestream
-
-If a request asks for these areas, block or request human approval.
+Do not add UI for any MVP anti-goal (delivery, cart, checkout, booking, chat, follow
+graph, monetization, livestream, …). The canonical list is
+[`docs/tikfood/anti-goals.md`](../tikfood/anti-goals.md). If a request asks for these
+areas, block or request human approval.
 
 ## Testing And Checks
 

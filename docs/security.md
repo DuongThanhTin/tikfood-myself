@@ -2,6 +2,11 @@
 
 This workspace is for controlled AI-assisted PR generation, not unsupervised production mutation.
 
+> **Scope:** this file governs **runner/automation** security (secrets, git, shell
+> allowlist, human-approval gates for AI-generated PRs). For **product application**
+> security (input validation, authz, CORS, rate limiting, PII in `apps/api`/`apps/web`),
+> see [`docs/standards/application-security.md`](standards/application-security.md).
+
 ## Credentials
 
 - Use least-privilege GitHub tokens for local MVP.
