@@ -15,6 +15,9 @@ docs_required:
   before_coding:
     - README.md
     - .ai-agent.yaml
+    - docs/ai/AI-CONTRACT.md
+    - docs/ai/CONTEXT-LOADING.md
+    - docs/REPOSITORY-MAP.md
     - docs/architecture.md
     - docs/standards/**
     - docs/standards/backend/**

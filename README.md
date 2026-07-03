@@ -29,6 +29,19 @@ docs/
   standards/            Engineering standards for AI and human contributors
 ```
 
+## AI Operating System
+
+This repo is set up so Claude Code (and the `ai-code-runner`) can work like a senior engineer. Start with:
+
+- `docs/ai/AI-CONTRACT.md` — rules of engagement (what's allowed / forbidden / gated).
+- `docs/REPOSITORY-MAP.md` — every directory and its purpose.
+- `docs/ai/CONTEXT-LOADING.md` — what to read per task type.
+- `docs/recipes/` — step-by-step playbooks (add API, fix bug, refactor, …).
+- `docs/adr/` — architecture decisions; `docs/services/` — service contracts.
+- `docs/verification/definition-of-done.md` — the completion gate.
+- `docs/handbook/` — bilingual onboarding narrative that ties it together.
+- `docs/ai/ROADMAP.md` — how this system was built and what remains.
+
 ## Run Locally
 
 Create `.env` from `.env.example`, then start the stack:

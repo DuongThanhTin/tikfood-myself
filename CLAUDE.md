@@ -4,6 +4,20 @@ TikFood is realtime social food discovery (TikTok + Google Maps for food):
 dish-first, map-first, social-proof-driven, trend-scored, geo-aware,
 AI-summary-assisted. Discovery only.
 
+## Start Here (AI Operating System)
+
+This repo runs an AI Operating System — explicit rules, context, decisions, and
+task recipes. At session start read, in order:
+
+1. `docs/ai/AI-CONTRACT.md` — canonical rules-of-engagement (indexes the sources below).
+2. `docs/REPOSITORY-MAP.md` — every directory → purpose.
+3. `docs/ai/CONTEXT-LOADING.md` — what else to read for your task type.
+
+Then classify the task (`docs/thinking/README.md`), open the matching recipe
+(`docs/recipes/`), and finish against `docs/verification/definition-of-done.md`.
+Decisions are recorded in `docs/adr/`; service contracts in `docs/services/`; the
+onboarding narrative in `docs/handbook/`.
+
 ## MVP Anti-Goals (block or require human approval)
 
 Do not implement: delivery, cart, order, checkout, payment, booking,

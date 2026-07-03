@@ -12,6 +12,10 @@ Any AI coding assistant, including Codex, Cursor, Claude, or a future `ai-code-r
 - `docs/standards/api-contracts.md`
 - `docs/standards/logging-observability.md`
 - `docs/standards/ai-implementation-rules.md`
+- `docs/standards/testing.md`
+- `docs/standards/application-security.md`
+- `docs/standards/performance.md`
+- `docs/standards/prompt-engineering.md`
 
 ## Non-Negotiables
 
