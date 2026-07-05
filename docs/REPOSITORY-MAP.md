@@ -98,6 +98,8 @@ marked `TODO`; do not claim production-ready.
 | `docs/agents/` | Human-readable agent role docs (pair with `packages/prompts/`) |
 | `docs/tikfood/` | Product source of truth: `product-vision.md`, `mvp-scope.md`, `anti-goals.md` |
 | `docs/handbook/` | Bilingual onboarding handbook (Parts 1–8 complete; explainer + links) |
+| `docs/design/` | **Canonical** `apps/web` design system: `00–09` foundations (principles, brand, color, spacing, grid, typography, icons, motion, a11y), `components/`, `patterns/`, `pages/`, `playbooks/`. As-built; not-yet-built items are labeled **Proposed**. Supersedes `docs/design-system/` |
+| `docs/design-system/` | Redirect pointer → `docs/design/` (superseded; original audit archived under `docs/archive/`) |
 | `docs/superpowers/` | Real spec-driven-development trail: `specs/` (designs) + `plans/` (implementation plans) |
 | `docs/architecture.md` | System architecture (automation + product) |
 | `docs/security.md` | **Runner/automation** security policy (distinct from product app security) |
