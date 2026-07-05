@@ -7,7 +7,13 @@ AI-summary-assisted. Discovery only.
 ## Start Here (AI Operating System)
 
 This repo runs an AI Operating System — explicit rules, context, decisions, and
-task recipes. At session start read, in order:
+task recipes.
+
+**New here, opening a fresh terminal, or starting a feature?** Go to
+`docs/getting-started/` — practical kickoff steps, git-worktree how-to, and paste-ready
+templates (session kickoff, feature brief, PR).
+
+At session start read, in order:
 
 1. `docs/ai/AI-CONTRACT.md` — canonical rules-of-engagement (indexes the sources below).
 2. `docs/REPOSITORY-MAP.md` — every directory → purpose.

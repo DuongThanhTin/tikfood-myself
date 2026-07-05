@@ -88,6 +88,7 @@ marked `TODO`; do not claim production-ready.
 
 | Path | Purpose |
 | --- | --- |
+| `docs/getting-started/` | **Practical entry point** for humans + fresh sessions: how to start in a new terminal, kick off a feature, and use git worktrees, with paste-ready templates. Linked from `CLAUDE.md` "Start Here" |
 | `docs/ai/` | AI-OS spine: `AI-CONTRACT.md`, `CONTEXT-LOADING.md`, `ROADMAP.md` |
 | `docs/adr/` | Architecture Decision Records (process + template + ADRs) |
 | `docs/services/` | Per-service contracts (api, web, ai-code-runner) |
