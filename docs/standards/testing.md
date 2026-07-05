@@ -8,7 +8,7 @@
 
 **Related:** [`docs/standards/backend/testing.md`](backend/testing.md) (Go specifics) ·
 [`docs/verification/definition-of-done.md`](../verification/definition-of-done.md)
-(the completion gate, added in a later phase) · [`IMPROVEMENTS.md`](../../IMPROVEMENTS.md)
+(the completion gate) · [`IMPROVEMENTS.md`](../../IMPROVEMENTS.md)
 (current coverage gaps).
 
 ## Philosophy

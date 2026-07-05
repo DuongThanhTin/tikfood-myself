@@ -2,10 +2,11 @@
 
 > **Why this doc exists:** the runtime prompts in [`packages/prompts/`](../../packages/prompts/)
 > (`repo-context-reader`, `coding-agent`, `reviewer`) already follow a strong, consistent
-> shape — but that convention was never written down, so new prompts risked drifting and
-> two pipeline roles (`feature-analyzer`, `pull-request-writer`) still lack prompts. This
-> standard documents the convention as a reusable template. It embodies the roadmap
-> principle: **reusable prompts over ad-hoc mega-prompts.**
+> shape — but that convention was never written down, so new prompts risked drifting. All
+> five pipeline roles now have prompts written to this standard (`feature-analyzer` and
+> `pull-request-writer` were the last two added). This standard documents the convention
+> as a reusable template. It embodies the roadmap principle: **reusable prompts over
+> ad-hoc mega-prompts.**
 
 **Related:** [`packages/prompts/`](../../packages/prompts/) (the prompts) ·
 [`docs/agents/`](../agents/) (their human-readable role docs) ·

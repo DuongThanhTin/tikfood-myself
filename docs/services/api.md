@@ -9,7 +9,8 @@
 ## Purpose
 
 Serve read-only food-discovery data (venues, dishes, social videos, geo) to the web
-frontend. Discovery only — no writes, no anti-goal features.
+frontend. Discovery only — no writes, no anti-goal features. Entity vocabulary behind the
+fields: [`docs/tikfood/domain-model.md`](../tikfood/domain-model.md).
 
 ## Interface
 

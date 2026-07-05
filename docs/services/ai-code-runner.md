@@ -32,8 +32,10 @@ Full behavior spec: [`docs/runner-contract.md`](../runner-contract.md).
 ## Dependencies
 
 - **n8n** (caller/orchestrator; owns PR creation + notifications).
-- **Runtime prompts** in [`packages/prompts/`](../../packages/prompts/):
-  `repo-context-reader`, `coding-agent`, `reviewer` (JSON-only output). Their role docs:
+- **Runtime prompts** in [`packages/prompts/`](../../packages/prompts/) — the 5-stage
+  pipeline `feature-analyzer → repo-context-reader → coding-agent → reviewer →
+  pull-request-writer` (JSON-only output; index:
+  [`packages/prompts/README.md`](../../packages/prompts/README.md)). Role docs:
   [`docs/agents/`](../agents/).
 - **Policy** from [`.ai-agent.yaml`](../../.ai-agent.yaml) /
   [`packages/config/tikfood.ai-agent.yaml`](../../packages/config/tikfood.ai-agent.yaml)
@@ -55,12 +57,12 @@ n8n (`ai-feature-to-pr` workflow). See [`workflows/n8n/`](../../workflows/n8n/).
 - Responses **must** validate against the JSON schemas — changing a schema is a
   **protected-path** change (human approval).
 - Mark unfinished stages clearly as `TODO`; make no production claims.
-- Runtime prompts must return valid JSON only (prompt standard — added in a later phase).
+- Runtime prompts must return valid JSON only (see [`docs/standards/prompt-engineering.md`](../standards/prompt-engineering.md)).
 
 ## Current state — MVP skeleton (honest)
 
 Present: HTTP entry, guards, and repo tools (`gitWorkspace`, `gitDiff`, `readFile`,
-`writeFile`, `searchRepo`, `runCommand`, `repoContext`). **`TODO`:** model calls, guarded
-edits, verification, review, commit, and push. Two pipeline roles have docs but **no
-runtime prompt** yet: `feature-analyzer`, `pull-request-writer` (added in roadmap
-Phase 7). See [`docs/architecture.md`](../architecture.md) §1.
+`writeFile`, `searchRepo`, `runCommand`, `repoContext`), and all 5 pipeline prompts in
+`packages/prompts/`. **`TODO`:** model calls, guarded edits, verification, review,
+commit, and push — i.e. wiring the prompts into the runner. See
+[`docs/architecture.md`](../architecture.md) §1.

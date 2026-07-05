@@ -53,8 +53,8 @@ End users (browser). No other service depends on `apps/web`.
 - **Accessibility:** keep `aria-label` on icon-only buttons; label inputs. Vietnamese UI
   copy is the norm.
 - **No anti-goal UI** (cart/checkout/booking/chat/etc.) — human approval required.
-- Verify with `npm run web:typecheck` and `npm run web:build` (no test infra yet — see
-  Testing Standard, added in a later roadmap phase).
+- Verify with `npm run web:typecheck` and `npm run web:build` (no unit-test harness yet —
+  see [`docs/standards/testing.md`](../standards/testing.md) → *Frontend*).
 
 ## Current state
 

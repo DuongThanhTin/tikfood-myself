@@ -9,7 +9,7 @@
 **Related:** [`docs/REPOSITORY-MAP.md`](REPOSITORY-MAP.md) (where everything lives) ·
 [`docs/adr/`](adr/) (why the shape is what it is) · [`docs/standards/`](standards/)
 (the binding implementation rules) · [`docs/runner-contract.md`](runner-contract.md).
-Per-service contracts live in `docs/services/` (added in a later roadmap phase).
+Per-service contracts live in [`docs/services/`](services/).
 
 ---
 
@@ -32,12 +32,14 @@ n8n → ai-code-runner → repo clone → repo-context-reader → coding-agent
 **Current state (honest):** `ai-code-runner` is an **MVP skeleton**. The HTTP contract,
 guards (`commandGuard`/`fileGuard`/`secretGuard`), and repo tools exist; model calls,
 edits, verification, review, and push stages are **`TODO`**. Do not describe it as
-production-ready. Contract: [`docs/runner-contract.md`](runner-contract.md); schemas:
+production-ready. Contract: [`docs/services/ai-code-runner.md`](services/ai-code-runner.md) ·
+[`docs/runner-contract.md`](runner-contract.md); schemas:
 [`packages/schemas/`](../packages/schemas/).
 
 **Roadmap:** implement the TODO stages (OpenAI integration —
-see [`docs/openai-integration-plan.md`](openai-integration-plan.md)); complete the two
-missing runtime prompts (`feature-analyzer`, `pull-request-writer`).
+see [`docs/openai-integration-plan.md`](openai-integration-plan.md)). All five pipeline
+prompts now exist in [`packages/prompts/`](../packages/prompts/); wiring them into the
+runner is the remaining work.
 
 ## 2. TikFood Product
 
@@ -58,8 +60,10 @@ Social ingestion → PostgreSQL/PostGIS → Trend-scoring workers
   ([ADR-0004](adr/0004-in-memory-fallback-repository.md)).
   Endpoints: `GET /health`, `GET /api/v1/discovery/venues`,
   `GET /api/v1/discovery/venues/:slug`, `GET /api/v1/map/venues`.
+  Contract: [`docs/services/api.md`](services/api.md).
 - **`apps/web`** — Next.js App Router + TypeScript discovery UX, MapLibre GL map, plain
   CSS ([ADR-0005](adr/0005-plain-css-frontend.md)), data via `lib/api.ts`.
+  Contract: [`docs/services/web.md`](services/web.md).
 - **Venue ingestion** — `apps/api/internal/ingest` + `cmd/ingest` provides an OSM/
   Overpass ingestion path (CLI). It is **not yet wired to an HTTP endpoint**.
 - **Database** — PostgreSQL/PostGIS with SQL migrations in `apps/api/migrations`
