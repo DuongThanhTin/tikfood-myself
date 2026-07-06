@@ -57,9 +57,11 @@ chốt + lý do (→ ADR) · 5. Quy ước ngôn ngữ doc · 6. Chuẩn team / 
 | `docs/adr/{README,TEMPLATE}.md.tmpl` | như tên | Ghi quyết định đắt-để-đảo-ngược |
 | `docs/contracts/README.md.tmpl` | như tên | Index mọi contract |
 | `docs/contracts/CONTRACT.template.md` | `docs/contracts/<iface>.md` | Template contract dày (HTTP/event/job/CLI) |
+| `docs/recipes/RECIPE.template.md` | `docs/recipes/<task>.md` | Playbook cho 1 loại việc lặp lại — **chỉ viết khi đau** |
 
-**Cố ý KHÔNG có (Tier 3 — chỉ viết khi đau):** `handbook/`, `thinking/`, design-system,
-bộ recipe đầy đủ. Xem [`../ai-os-blueprint.md`](../ai-os-blueprint.md) §Tier-3.
+**Cố ý KHÔNG có (Tier 3 — chỉ viết khi đau):** `handbook/`, `thinking/`, design-system.
+Recipe thì đã có sẵn *template* (viết recipe cụ thể khi một loại việc lặp ≥2 lần và bị lệch).
+Xem [`../ai-os-blueprint.md`](../ai-os-blueprint.md) §Tier-3.
 
 ## 5. Bootstrap prompt (dán cho Claude ở repo mới)
 
