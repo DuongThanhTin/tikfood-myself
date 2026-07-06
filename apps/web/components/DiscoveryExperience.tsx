@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Map as MapLibreMap, Marker } from "maplibre-gl";
 import { fetchDiscoveryVenues, fetchVenueDetail, type SocialVideo, type Venue, type VenueSearchParams } from "../lib/api";
+import { AuthCta } from "./auth/AuthCta";
 
 type DiscoveryExperienceProps = {
   initialVenues: Venue[];
@@ -564,10 +565,7 @@ export function DiscoveryExperience({ initialVenues }: DiscoveryExperienceProps)
               </div>
             </section>
 
-            <section className="authCta">
-              <p>Đăng nhập để lưu lại những địa điểm bạn yêu thích</p>
-              <button type="button">Đăng nhập ngay</button>
-            </section>
+            <AuthCta />
           </>
         ) : (
           <div className="collapsedTabs" aria-label="Collapsed navigation">

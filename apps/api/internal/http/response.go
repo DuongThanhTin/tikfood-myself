@@ -21,6 +21,10 @@ func respondWithData(c *gin.Context, data any) {
 	c.JSON(http.StatusOK, response{Data: data})
 }
 
+func respondWithCreated(c *gin.Context, data any) {
+	c.JSON(http.StatusCreated, response{Data: data})
+}
+
 func respondWithError(c *gin.Context, status int, code string, message string) {
 	c.JSON(status, response{
 		Data: nil,

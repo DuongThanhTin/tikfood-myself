@@ -19,9 +19,22 @@ boundaries it honors.
 - **Entry:** `app/page.tsx` (server component) fetches initial venues and passes
   `initialVenues` to the client `components/DiscoveryExperience.tsx`.
 - **Surfaces:** map (MapLibre GL, lazy-imported), venue list/rail, venue detail,
-  filters.
+  filters; **auth** — `/login`, `/register`, `/forgot-password` (placeholder),
+  `/auth/google/callback`.
 - **Styling:** plain CSS in `app/globals.css`
   ([ADR-0005](../adr/0005-plain-css-frontend.md)).
+
+### Authentication ([ADR-0007](../adr/0007-authentication-approach.md))
+
+- **`components/auth/AuthProvider.tsx`** — session context wrapped around the app in
+  `app/layout.tsx`; exposes `useAuth()` with `{ user, status, login, register, logout,
+  loginWithGoogleUrl }`. Silent bootstrap via the refresh cookie on mount.
+- **`lib/auth.ts`** — the auth client (`register`/`login`/`refresh`/`logout`/`getMe`/
+  `googleLoginUrl`); keeps the access token in memory, sends `credentials: "include"`,
+  attaches `Bearer`, and does one silent refresh + retry on 401. Discovery calls in
+  `lib/api.ts` stay public/unauthenticated.
+- **`lib/validation.ts`** + `components/auth/{FormField,AuthForm,GoogleSignInButton,
+  AuthCta,RequireAuth}.tsx` — reuse existing tokens/classes; no new design language.
 
 ## Dependencies
 
@@ -53,13 +66,14 @@ End users (browser). No other service depends on `apps/web`.
 - **Accessibility:** keep `aria-label` on icon-only buttons; label inputs. Vietnamese UI
   copy is the norm.
 - **No anti-goal UI** (cart/checkout/booking/chat/etc.) — human approval required.
-- Verify with `npm run web:typecheck` and `npm run web:build` (no unit-test harness yet —
-  see [`docs/standards/testing.md`](../standards/testing.md) → *Frontend*).
+- Verify with `make verify-web` (typecheck + Vitest + build), or the individual
+  `npm --workspace apps/web run {typecheck,test,build}`.
 
 ## Current state
 
 `components/DiscoveryExperience.tsx` (~1350 lines) concentrates map/filters/detail/cards;
 an approved split into `VenueMap`/`VenueDetail`/`VenueRailCard`/filter controls/format
-utils is pending. **Zero frontend tests** today. Some UI data is placeholder — see
+utils is pending. A Vitest + React Testing Library harness is in place (auth client,
+provider, forms, guard, plus `VenueList`). Some UI data is placeholder — see
 `IMPROVEMENTS.md` (*Fabricated UI data*); do not treat ratings/reviews/photos as real
 until wired end-to-end.

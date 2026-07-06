@@ -58,5 +58,5 @@ a decision worth an ADR?"
 | [0004](0004-in-memory-fallback-repository.md) | In-memory fallback repository selected by `DATABASE_URL` | Accepted (retroactive) |
 | [0005](0005-plain-css-frontend.md) | Plain CSS for `apps/web`, no framework yet | Accepted (retroactive) |
 | [0006](0006-bilingual-handbook.md) | Bilingual handbook (VN prose + EN technical) | Superseded by [ADR-0008](0008-documentation-language-policy.md) |
-| 0007 | *Reserved:* authentication approach — proposed in [`docs/features/authentication/`](../features/authentication/overview.md), ADR not yet written | Proposed |
+| [0007](0007-authentication-approach.md) | Authentication approach (JWT access + rotating refresh, Google SSO) | Accepted |
 | [0008](0008-documentation-language-policy.md) | Documentation language policy (one canonical language per doc) | Accepted |

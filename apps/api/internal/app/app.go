@@ -26,6 +26,7 @@ func New(cfg config.Config) (*App, error) {
 		Handler: apihttp.NewRouter(apihttp.RouterDependencies{
 			Logger:          container.Logger,
 			RouteRegistrars: container.RouteRegistrars,
+			AllowedOrigins:  cfg.AllowedOrigins,
 		}),
 	}
 
