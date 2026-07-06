@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { AuthForm } from "../../components/auth/AuthForm";
+import { GoogleSignInButton } from "../../components/auth/GoogleSignInButton";
 
 export const metadata = {
   title: "Đăng nhập · TikFood"
@@ -16,11 +17,17 @@ export default function LoginPage() {
         <AuthForm
           mode="login"
           footer={
-            <p className="authSwitch">
-              Chưa có tài khoản? <Link href="/register">Tạo tài khoản</Link>
-              <br />
-              <Link href="/forgot-password">Quên mật khẩu?</Link>
-            </p>
+            <>
+              <div className="authDivider">
+                <span>hoặc</span>
+              </div>
+              <GoogleSignInButton />
+              <p className="authSwitch">
+                Chưa có tài khoản? <Link href="/register">Tạo tài khoản</Link>
+                <br />
+                <Link href="/forgot-password">Quên mật khẩu?</Link>
+              </p>
+            </>
           }
         />
       </section>
