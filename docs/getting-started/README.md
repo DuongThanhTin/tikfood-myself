@@ -1,7 +1,5 @@
 # Getting Started — Làm việc với repo này (cùng Claude Code)
 
-> 🇬🇧 English: [`en/README.md`](en/README.md)
->
 > **Đây là cửa vào.** Nếu bạn vừa mở một terminal mới, sắp làm một feature mới, hoặc quên
 > "nên bắt đầu từ đâu" — đọc đúng một file bên dưới rồi làm theo. Có sẵn **ví dụ mẫu chi
 > tiết** (ngay trong file này) và **template copy-paste** (`templates/`) cho từng việc.
