@@ -1603,3 +1603,77 @@ h3 {
     height: 240px;
   }
 }
+
+/* --- Authentication (ADR-0007) — layout containers composed only from existing tokens --- */
+.authPage {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  background: var(--surface);
+}
+
+.authCard {
+  width: 100%;
+  max-width: 420px;
+  display: grid;
+  gap: 16px;
+  padding: 28px 24px;
+  border: 1px solid var(--outline);
+  border-radius: 16px;
+  background: var(--glass-strong);
+  box-shadow: var(--shadow);
+}
+
+.authCard h1 {
+  margin: 0;
+  color: var(--on-surface);
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-size: 24px;
+}
+
+.authSubtitle {
+  margin: 0;
+  color: var(--on-muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.authForm {
+  display: grid;
+  gap: 14px;
+}
+
+/* Auth fields reuse .field's label layout; inputs mirror the existing select styling. */
+.authField input {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid var(--outline);
+  border-radius: 10px;
+  padding: 0 12px;
+  color: var(--on-surface);
+  background: var(--surface-low);
+  outline: 0;
+}
+
+.authField input:focus {
+  border-color: var(--primary);
+}
+
+.authField input:disabled {
+  opacity: 0.7;
+}
+
+.authSwitch {
+  margin: 0;
+  color: var(--on-muted);
+  font-size: 13px;
+  line-height: 1.9;
+  text-align: center;
+}
+
+.authSwitch a {
+  color: var(--primary);
+  font-weight: 800;
+}
