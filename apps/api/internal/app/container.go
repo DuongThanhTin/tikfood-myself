@@ -1,9 +1,7 @@
 package app
 
 import (
-	"crypto/rand"
 	"database/sql"
-	"encoding/hex"
 	"fmt"
 	"log/slog"
 	"os"
@@ -122,7 +120,13 @@ func buildAuthService(cfg config.Config, logger *slog.Logger, db *sql.DB) (*auth
 			// A real (non-dev) deployment must never run with an empty JWT secret.
 			return nil, fmt.Errorf("JWT_SECRET is required when DATABASE_URL is set")
 		}
-		secret = randomSecret()
+		generated, err := auth.RandomHexToken()
+		if err != nil {
+			// Fail closed: never fall back to a predictable secret. A boot without usable
+			// randomness must abort rather than silently sign tokens with a guessable key.
+			return nil, fmt.Errorf("generate ephemeral dev jwt secret: %w", err)
+		}
+		secret = generated
 		logger.Warn("JWT_SECRET not set; using an ephemeral development secret (access tokens do not survive a restart)")
 	}
 
@@ -153,14 +157,6 @@ func googleAuthOrNil(g *auth.GoogleOAuth) auth.GoogleAuthenticator {
 		return nil
 	}
 	return g
-}
-
-func randomSecret() string {
-	var b [32]byte
-	if _, err := rand.Read(b[:]); err != nil {
-		return "ephemeral-dev-secret-do-not-use-in-production"
-	}
-	return hex.EncodeToString(b[:])
 }
 
 func envInt(key string, fallback int) int {

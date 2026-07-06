@@ -1,8 +1,6 @@
 package http
 
 import (
-	"crypto/rand"
-	"encoding/hex"
 	"errors"
 	"net/http"
 	"time"
@@ -145,7 +143,7 @@ func (handler *AuthHandler) Logout(c *gin.Context) {
 // GoogleLogin begins the Authorization Code flow: it sets a short-lived anti-CSRF
 // state cookie and redirects the browser to Google's consent screen.
 func (handler *AuthHandler) GoogleLogin(c *gin.Context) {
-	state, err := randomState()
+	state, err := auth.RandomHexToken()
 	if err != nil {
 		respondWithInternalServerError(c, MessageAuthFailed)
 		return
@@ -239,14 +237,6 @@ func (handler *AuthHandler) clearStateCookie(c *gin.Context) {
 	c.SetCookie(stateCookieName, "", -1, refreshCookiePath, "", handler.cookieSecure, true)
 }
 
-func randomState() (string, error) {
-	var b [32]byte
-	if _, err := rand.Read(b[:]); err != nil {
-		return "", err
-	}
-	return hex.EncodeToString(b[:]), nil
-}
-
 func invalidBody() *errorResponse {
 	return &errorResponse{Code: ErrorCodeInvalidRequest, Message: MessageInvalidRequestBody}
 }
@@ -265,6 +255,12 @@ func respondWithAuthError(c *gin.Context, err error) {
 		respondWithError(c, http.StatusUnprocessableEntity, ErrorCodeDomainRejected, MessageWeakPassword)
 	case errors.Is(err, auth.ErrEmailTaken):
 		respondWithError(c, http.StatusUnprocessableEntity, ErrorCodeDomainRejected, MessageEmailTaken)
+	case errors.Is(err, auth.ErrEmailNotVerified):
+		respondWithError(c, http.StatusForbidden, ErrorCodeForbidden, MessageEmailNotVerified)
+	case errors.Is(err, auth.ErrAccountExistsUsePassword):
+		respondWithError(c, http.StatusConflict, ErrorCodeConflict, MessageAccountExistsUsePassword)
+	case errors.Is(err, auth.ErrGoogleSubTaken):
+		respondWithError(c, http.StatusConflict, ErrorCodeConflict, MessageGoogleAccountLinked)
 	default:
 		respondWithInternalServerError(c, MessageAuthFailed)
 	}

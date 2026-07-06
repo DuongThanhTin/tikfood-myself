@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 import { useAuth } from "../../../../components/auth/AuthProvider";
+
+const HOME_PATH = "/";
 
 // Landing page for the Google OAuth redirect. The backend has already set the httpOnly
 // refresh cookie, so AuthProvider's bootstrap (refresh -> getMe) authenticates the
@@ -13,12 +15,14 @@ import { useAuth } from "../../../../components/auth/AuthProvider";
 export default function GoogleCallbackPage() {
   const { status } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
-    if (status === "authenticated") {
-      router.replace("/");
+    // Redirect home once authenticated, but never onto the page we are already on.
+    if (status === "authenticated" && pathname !== HOME_PATH) {
+      router.replace(HOME_PATH);
     }
-  }, [status, router]);
+  }, [status, router, pathname]);
 
   if (status === "anonymous") {
     return (

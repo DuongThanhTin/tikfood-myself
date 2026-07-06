@@ -114,3 +114,15 @@ func HashRefreshToken(raw string) string {
 	sum := sha256.Sum256([]byte(raw))
 	return hex.EncodeToString(sum[:])
 }
+
+// RandomHexToken returns 32 bytes of cryptographic randomness, hex-encoded. It is the
+// shared source for opaque, non-guessable strings that are not refresh tokens — the
+// OAuth anti-CSRF state and the ephemeral dev-only JWT secret. It fails closed: a
+// crypto/rand failure is returned, never masked with a predictable value.
+func RandomHexToken() (string, error) {
+	var b [32]byte
+	if _, err := rand.Read(b[:]); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(b[:]), nil
+}

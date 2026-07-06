@@ -2,7 +2,7 @@
 // lib/api.ts discovery wrappers). The access token is kept in memory only; the refresh
 // token lives in an httpOnly cookie the browser sends automatically with
 // `credentials: "include"`. Field names are snake_case to match the Go JSON tags.
-import { getClientApiBaseUrl } from "./api";
+import { type ApiResponse, getClientApiBaseUrl } from "./api";
 
 export type AuthUser = {
   id: string;
@@ -19,11 +19,6 @@ export type TokenResponse = {
 };
 
 type AuthSession = TokenResponse & { user: AuthUser };
-
-type ApiEnvelope<T> = {
-  data: T;
-  error?: { code: string; message: string; details?: Record<string, unknown> };
-};
 
 // ApiError carries the server's error code + message so the UI can render error.message.
 export class ApiError extends Error {
@@ -55,7 +50,7 @@ function authUrl(path: string): string {
 }
 
 async function readEnvelope<T>(response: Response): Promise<T> {
-  const body = (await response.json().catch(() => null)) as ApiEnvelope<T> | null;
+  const body = (await response.json().catch(() => null)) as ApiResponse<T> | null;
   if (!response.ok || !body) {
     const code = body?.error?.code ?? "internal_error";
     const message = body?.error?.message ?? "Đã xảy ra lỗi. Vui lòng thử lại.";
@@ -122,8 +117,17 @@ export function googleLoginUrl(): string {
   return authUrl("/api/v1/auth/google/login");
 }
 
+// canReplayBody reports whether a request body may be resent on the silent-refresh
+// retry. String / FormData / URLSearchParams / Blob / ArrayBuffer bodies re-read fine
+// from the same reference, but a ReadableStream is consumed by the first send — retrying
+// it would resend an empty body, so we surface the 401 instead of a silent wrong request.
+function canReplayBody(body: BodyInit | null | undefined): boolean {
+  return !(typeof ReadableStream !== "undefined" && body instanceof ReadableStream);
+}
+
 // authFetch attaches the Bearer access token and, on a 401, performs a single silent
-// refresh then retries once. The `allowRefresh` guard prevents an infinite loop.
+// refresh then retries once. The `allowRefresh` guard prevents an infinite loop, and a
+// non-replayable (streamed) body disables the retry so it never resends empty.
 export async function authFetch(path: string, init: RequestInit = {}, allowRefresh = true): Promise<Response> {
   const headers = new Headers(init.headers);
   if (accessToken) {
@@ -131,7 +135,7 @@ export async function authFetch(path: string, init: RequestInit = {}, allowRefre
   }
 
   const response = await fetch(authUrl(path), { ...init, headers, credentials: "include" });
-  if (response.status === 401 && allowRefresh) {
+  if (response.status === 401 && allowRefresh && canReplayBody(init.body)) {
     const refreshed = await refresh().then(() => true).catch(() => false);
     if (refreshed) {
       return authFetch(path, init, false);

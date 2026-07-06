@@ -48,13 +48,26 @@ returning ` + userColumns
 		user.Email, user.PasswordHash, user.DisplayName, user.GoogleSub, user.EmailVerified,
 	))
 	if err != nil {
-		var pgErr *pgconn.PgError
-		if errors.As(err, &pgErr) && pgErr.Code == "23505" && pgErr.ConstraintName == "users_email_key" {
+		switch uniqueViolation(err) {
+		case "users_email_key":
 			return auth.User{}, auth.ErrEmailTaken
+		case "users_google_sub_key":
+			return auth.User{}, auth.ErrGoogleSubTaken
 		}
 		return auth.User{}, fmt.Errorf("create user: %w", err)
 	}
 	return created, nil
+}
+
+// uniqueViolation returns the constraint name when err is a Postgres unique-violation
+// (SQLSTATE 23505), or "" otherwise. It lets repositories map a specific collision to a
+// clean domain error instead of leaking a generic 500.
+func uniqueViolation(err error) string {
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+		return pgErr.ConstraintName
+	}
+	return ""
 }
 
 func (repo *UserRepository) FindByEmail(ctx context.Context, email string) (auth.User, error) {
@@ -85,6 +98,9 @@ returning ` + userColumns
 		return auth.User{}, auth.ErrUserNotFound
 	}
 	if err != nil {
+		if uniqueViolation(err) == "users_google_sub_key" {
+			return auth.User{}, auth.ErrGoogleSubTaken
+		}
 		return auth.User{}, fmt.Errorf("link google sub: %w", err)
 	}
 	return user, nil

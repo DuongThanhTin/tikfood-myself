@@ -60,7 +60,9 @@ export type OpeningHour = {
   is_closed: boolean;
 };
 
-type ApiResponse<T> = {
+// ApiResponse is the shared {data,error} envelope every endpoint returns. The auth
+// client reuses this type rather than redeclaring its own.
+export type ApiResponse<T> = {
   data: T;
   error?: {
     code: string;

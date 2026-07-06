@@ -13,6 +13,7 @@ import (
 var (
 	ErrUserNotFound         = errors.New("user not found")
 	ErrEmailTaken           = errors.New("email already registered")
+	ErrGoogleSubTaken       = errors.New("google account already linked to another user")
 	ErrRefreshTokenNotFound = errors.New("refresh token not found")
 )
 

@@ -1,10 +1,17 @@
 package http
 
+import (
+	"fmt"
+
+	"github.com/DuongThanhTin/tikfood-myself/apps/api/internal/auth"
+)
+
 const (
 	ErrorCodeInvalidRequest = "invalid_request"
 	ErrorCodeUnauthorized   = "unauthorized"
 	ErrorCodeForbidden      = "forbidden"
 	ErrorCodeNotFound       = "not_found"
+	ErrorCodeConflict       = "conflict"
 	ErrorCodeDomainRejected = "domain_rejected"
 	ErrorCodeInternal       = "internal_error"
 )
@@ -32,12 +39,21 @@ const (
 	MessageInvalidRequestBody = "Request body is malformed."
 	MessageInvalidCredentials = "Invalid email or password."
 	MessageInvalidEmail       = "Email address is invalid."
-	MessageWeakPassword       = "Password must be at least 8 characters."
 	MessageEmailTaken         = "Email is already registered."
 	MessageSessionExpired     = "Session expired. Please sign in again."
 	MessageEmailNotVerified   = "Your Google email is not verified."
 	MessageAuthFailed         = "Authentication failed."
+	// MessageAccountExistsUsePassword steers a Google sign-in to the existing password
+	// login when auto-linking would be unsafe (the existing account is not email-verified).
+	MessageAccountExistsUsePassword = "An account with this email already exists. Sign in with your password."
+	// MessageGoogleAccountLinked covers the rare race where a Google identity is already
+	// linked to a different user.
+	MessageGoogleAccountLinked = "This Google account is already linked to another user."
 )
+
+// MessageWeakPassword is derived from auth.MinPasswordLength so the user-facing minimum
+// and the validator can never drift apart.
+var MessageWeakPassword = fmt.Sprintf("Password must be at least %d characters.", auth.MinPasswordLength)
 
 func invalidQuery(field string, message string) *errorResponse {
 	return &errorResponse{

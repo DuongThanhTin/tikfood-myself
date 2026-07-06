@@ -151,6 +151,26 @@ func (r *MemoryRefreshTokenRepository) RevokeRefreshToken(_ context.Context, tok
 	return true, nil
 }
 
+func (r *MemoryRefreshTokenRepository) RotateRefreshToken(_ context.Context, oldHash string, newToken RefreshToken) (bool, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	// Compare-and-revoke under the same lock that guards the store, mirroring the
+	// single-transaction guarantee of the Postgres implementation.
+	old, ok := r.tokens[oldHash]
+	if !ok || old.RevokedAt != nil {
+		return false, nil // lost the race or replay: nothing live to rotate, store nothing
+	}
+	now := time.Now()
+	old.RevokedAt = &now
+	r.tokens[oldHash] = old
+
+	newToken.ID = newID()
+	newToken.CreatedAt = now
+	r.tokens[newToken.TokenHash] = newToken
+	return true, nil
+}
+
 func (r *MemoryRefreshTokenRepository) RevokeAllForUser(_ context.Context, userID string) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()

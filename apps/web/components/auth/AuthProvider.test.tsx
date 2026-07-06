@@ -13,6 +13,12 @@ vi.mock("../../lib/auth", () => ({
   googleLoginUrl: () => "http://api.local/api/v1/auth/google/login"
 }));
 
+// Mock the API base URL so the bootstrap guard can be toggled per test.
+let apiBaseUrl = "http://api.local";
+vi.mock("../../lib/api", () => ({
+  getClientApiBaseUrl: () => apiBaseUrl
+}));
+
 import { getMe, login, logout, refresh } from "../../lib/auth";
 
 const user = { id: "u1", email: "a@b.com", display_name: "A", email_verified: true, created_at: "", updated_at: "" };
@@ -31,6 +37,7 @@ function Probe() {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  apiBaseUrl = "http://api.local";
 });
 
 afterEach(() => {
@@ -63,6 +70,19 @@ describe("AuthProvider", () => {
 
     await waitFor(() => expect(screen.getByTestId("status").textContent).toBe("anonymous"));
     expect(screen.getByTestId("email").textContent).toBe("none");
+  });
+
+  it("stays anonymous without hitting the network when no API base URL is configured", async () => {
+    apiBaseUrl = "";
+
+    render(
+      <AuthProvider>
+        <Probe />
+      </AuthProvider>
+    );
+
+    await waitFor(() => expect(screen.getByTestId("status").textContent).toBe("anonymous"));
+    expect(refresh).not.toHaveBeenCalled();
   });
 
   it("login updates the user", async () => {

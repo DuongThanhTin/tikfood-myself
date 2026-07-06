@@ -15,10 +15,18 @@ var (
 	ErrWeakPassword       = errors.New("password does not meet requirements")
 	ErrRefreshInvalid     = errors.New("refresh token is invalid or expired")
 	ErrEmailNotVerified   = errors.New("google email is not verified")
+	// ErrAccountExistsUsePassword is returned when a Google login matches an existing
+	// account by email that has never proven ownership of that email (email_verified is
+	// false — the case for every password account today). Auto-linking there would let an
+	// attacker who pre-registered the victim's email absorb the victim's Google identity,
+	// so we refuse and steer the user to their existing password login instead.
+	ErrAccountExistsUsePassword = errors.New("an account with this email already exists; sign in with your password")
 )
 
 const (
-	minPasswordLength = 8
+	// MinPasswordLength is the single source of truth for the password floor; the HTTP
+	// layer derives its user-facing message from it so the two cannot drift.
+	MinPasswordLength = 8
 	maxPasswordBytes  = 72 // bcrypt truncates beyond this; reject rather than silently cut.
 )
 
@@ -146,17 +154,7 @@ func (s *AuthService) Refresh(ctx context.Context, rawRefresh string, meta Sessi
 		return TokenPair{}, err
 	}
 
-	// Atomic compare-and-revoke: only the first concurrent refresh flips this token and
-	// gets to mint a new pair. A loser (or a replay of an already-rotated token) sees
-	// revoked=false and is rejected, so a single token never yields two live families.
-	revoked, err := s.refreshTokens.RevokeRefreshToken(ctx, hash)
-	if err != nil {
-		return TokenPair{}, err
-	}
-	if !revoked {
-		return TokenPair{}, ErrRefreshInvalid
-	}
-	return s.issueTokens(ctx, user, meta)
+	return s.rotateTokens(ctx, user, hash, meta)
 }
 
 // Logout revokes the presented refresh token. It is idempotent — logging out an
@@ -170,9 +168,10 @@ func (s *AuthService) Logout(ctx context.Context, rawRefresh string) error {
 }
 
 // LoginWithGoogle provisions or links a user from a Google profile and issues a token
-// pair. Resolution order: (1) existing google_sub, (2) existing email — linked only
-// when Google reports the email verified (guarding against account takeover), else
-// rejected, (3) otherwise a new OAuth-only account (no password).
+// pair. Resolution order: (1) existing google_sub, (2) existing email — auto-linked only
+// when Google reports the email verified AND the existing account is itself already
+// email-verified (guarding against account takeover), otherwise rejected, (3) otherwise a
+// new OAuth-only account (no password).
 func (s *AuthService) LoginWithGoogle(ctx context.Context, profile GoogleProfile, meta SessionMeta) (User, TokenPair, error) {
 	if profile.Sub == "" {
 		return User{}, TokenPair{}, ErrRefreshInvalid
@@ -192,6 +191,14 @@ func (s *AuthService) LoginWithGoogle(ctx context.Context, profile GoogleProfile
 	if existing, err := s.users.FindByEmail(ctx, email); err == nil {
 		if !profile.EmailVerified {
 			return User{}, TokenPair{}, ErrEmailNotVerified
+		}
+		// Only auto-link when the existing account has itself proven ownership of this
+		// email. A password account with email_verified=false may have been seeded by an
+		// attacker under the victim's address; linking the victim's verified Google
+		// identity onto it would silently merge the two. Refuse and send the user to their
+		// existing password login (from where an explicit, authenticated link is safe).
+		if !existing.EmailVerified {
+			return User{}, TokenPair{}, ErrAccountExistsUsePassword
 		}
 		linked, err := s.users.LinkGoogleSub(ctx, existing.ID, profile.Sub)
 		if err != nil {
@@ -246,6 +253,37 @@ func sanitize(user User) User {
 	return user
 }
 
+// rotateTokens issues a new pair and swaps it for the presented refresh token in a
+// single atomic step: the store revokes oldHash and persists the replacement in one DB
+// transaction (compare-and-revoke inside the tx). Only the first concurrent refresh wins
+// (revoked=true); a loser or a replay of an already-rotated token sees revoked=false and
+// is rejected, so a single token never yields two live families — and a crash between
+// revoke and store can never leave a session with no valid refresh token.
+func (s *AuthService) rotateTokens(ctx context.Context, user User, oldHash string, meta SessionMeta) (TokenPair, error) {
+	access, expiresAt, err := s.issuer.IssueAccessToken(user)
+	if err != nil {
+		return TokenPair{}, err
+	}
+	raw, hash, err := NewRefreshTokenValue()
+	if err != nil {
+		return TokenPair{}, err
+	}
+	revoked, err := s.refreshTokens.RotateRefreshToken(ctx, oldHash, RefreshToken{
+		UserID:    user.ID,
+		TokenHash: hash,
+		ExpiresAt: time.Now().Add(s.refreshTTL),
+		UserAgent: meta.UserAgent,
+		IP:        meta.IP,
+	})
+	if err != nil {
+		return TokenPair{}, err
+	}
+	if !revoked {
+		return TokenPair{}, ErrRefreshInvalid
+	}
+	return TokenPair{AccessToken: access, RefreshTokenRaw: raw, AccessExpiresAt: expiresAt}, nil
+}
+
 func (s *AuthService) issueTokens(ctx context.Context, user User, meta SessionMeta) (TokenPair, error) {
 	access, expiresAt, err := s.issuer.IssueAccessToken(user)
 	if err != nil {
@@ -284,5 +322,5 @@ func validEmail(email string) bool {
 }
 
 func validPassword(password string) bool {
-	return len(password) >= minPasswordLength && len([]byte(password)) <= maxPasswordBytes
+	return len(password) >= MinPasswordLength && len([]byte(password)) <= maxPasswordBytes
 }
