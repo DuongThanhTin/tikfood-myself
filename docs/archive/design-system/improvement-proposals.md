@@ -1,5 +1,9 @@
 # Design System — Improvement Proposals
 
+> **⚠️ ARCHIVED** (superseded by [`docs/design/`](../../design/00-overview.md)), but **still
+> referenced**: the canonical foundations link to the §A/§B findings below for detail. The
+> findings remain valid; the doc-set critique reflects the pre-migration `docs/design-system/**` layout.
+
 > **Proposals only.** This is a review of the generated design-system documentation
 > (`docs/design-system/**`) and the underlying `apps/web` code it describes. It
 > **proposes** changes; it does not apply any. **No application code and no existing

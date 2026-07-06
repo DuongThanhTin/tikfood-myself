@@ -1,5 +1,9 @@
 # Design System Audit — Roadmap
 
+> **⚠️ ARCHIVED — superseded by [`docs/design/`](../../design/00-overview.md).** Frozen
+> snapshot of the original audit plan; not maintained. Use `docs/design/` for the current
+> design system.
+
 > **What this is.** A plan for documenting the *current* `apps/web` design system by
 > reverse-engineering the shipped code. This roadmap is produced **before** the
 > documentation itself (deliverable order agreed with the maintainer).

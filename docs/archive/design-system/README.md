@@ -1,5 +1,11 @@
 # TikFood Web — Design System (as-built)
 
+> **⚠️ ARCHIVED — superseded by [`docs/design/`](../../design/00-overview.md).** This is a
+> frozen snapshot of the original reverse-engineering audit; its code line-references
+> reflect the **pre-migration** layout and are **not maintained**. Use `docs/design/` for
+> the current design system. Kept because the canonical foundations (`03–09`) link here
+> for detailed consistency findings.
+
 > **Reverse-engineered documentation of the *current* `apps/web` design system.**
 > Every value here is traceable to source. Where the code is inconsistent, the
 > inconsistency is documented, not fixed. No application code was changed to produce
