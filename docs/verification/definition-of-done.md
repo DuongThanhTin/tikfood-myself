@@ -74,7 +74,7 @@ The per-surface checklists below describe **what** each gate proves; `make verif
 
 ## Automation runner — `apps/ai-code-runner`
 
-- [ ] `npm run runner:test` passes.
+- [ ] `make verify-runner` passes (`tsc --noEmit` + Vitest; see `src/guards/commandGuard.test.ts`).
 - [ ] Responses validate against `packages/schemas/*`.
 - [ ] Hard contract honored: input validated first; `ai/*` branch only; no `main`/`master`
       push; no secrets read; no success claim without verified+committed+pushed branch.
