@@ -55,9 +55,9 @@ The per-surface checklists below describe **what** each gate proves; `make verif
 
 ## Frontend — `apps/web`
 
-- [ ] `npm run web:typecheck` passes.
-- [ ] `npm run web:build` succeeds.
-- [ ] Unit tests pass **if** the harness exists; otherwise state that no unit tests ran.
+- [ ] `make verify-web` passes (typecheck + Vitest unit tests + production build).
+- [ ] New/changed component behavior is covered by a Vitest test (harness lives in
+      `apps/web`; see `components/VenueList.test.tsx` for the pattern).
 - [ ] Types in `lib/api.ts` still match the Go JSON tags (snake_case).
 - [ ] API access still routed through `lib/api.ts`; envelope respected.
 - [ ] Accessibility preserved (labels / `aria-label` on icon-only buttons).
