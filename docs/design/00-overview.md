@@ -2,8 +2,7 @@
 
 > **Canonical home** for the TikFood `apps/web` design system. This tree
 > (`docs/design/`) supersedes the earlier `docs/design-system/` audit set, now archived
-> at [`docs/archive/design-system/`](../archive/design-system/) (a redirect pointer
-> remains at `docs/design-system/`).
+> at [`docs/archive/design-system/`](../archive/design-system/).
 
 ## What this is
 
@@ -69,9 +68,9 @@ docs/design/
 
 Migration is **complete**. The original reverse-engineering audit (per-component docs,
 the inconsistency register, and the consolidated **improvement proposals**) is preserved
-as a frozen snapshot at [`docs/archive/design-system/`](../archive/design-system/); a
-redirect pointer remains at `docs/design-system/`. The foundations docs here (`03–09`)
-embed the key consistency findings inline and link into the archived proposals for detail.
+as a frozen snapshot at [`docs/archive/design-system/`](../archive/design-system/). The
+foundations docs here (`03–09`) embed the key consistency findings inline and link into the
+archived proposals for detail.
 The archived docs are historical and not maintained (their code line-references reflect the
 pre-migration layout).
 
