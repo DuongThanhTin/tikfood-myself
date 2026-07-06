@@ -93,15 +93,16 @@ marked `TODO`; do not claim production-ready.
 | `docs/adr/` | Architecture Decision Records (process + template + ADRs) |
 | `docs/services/` | Per-service contracts (api, web, ai-code-runner) |
 | `docs/recipes/` | Step-by-step domain playbooks (add API, fix bug, refactor, …) |
+| `docs/workflows/` | End-to-end **runnable** workflows per task type (feature/bug/refactor/gated) — orchestrate recipes + skills + approval gates by link (no copy) |
 | `docs/thinking/` | Thinking framework / decision heuristics |
 | `docs/verification/` | Definition of Done + review guide |
 | `docs/standards/` | Engineering standards. `backend/` is deep (13 files); frontend/api/deps/logging/testing/security/performance/prompt at root |
 | `docs/agents/` | Human-readable agent role docs (pair with `packages/prompts/`) |
 | `docs/tikfood/` | Product source of truth: `product-vision.md`, `mvp-scope.md`, `anti-goals.md` |
 | `docs/handbook/` | Bilingual onboarding handbook (Parts 1–8 complete; explainer + links) |
-| `docs/design/` | **Canonical** `apps/web` design system: `00–09` foundations (principles, brand, color, spacing, grid, typography, icons, motion, a11y), `components/`, `patterns/`, `pages/`, `playbooks/`. As-built; not-yet-built items are labeled **Proposed**. Supersedes `docs/design-system/` |
-| `docs/design-system/` | Redirect pointer → `docs/design/` (superseded; original audit archived under `docs/archive/`) |
+| `docs/design/` | **Canonical** `apps/web` design system: `00–09` foundations (principles, brand, color, spacing, grid, typography, icons, motion, a11y), `components/`, `patterns/`, `pages/`, `playbooks/`. As-built; not-yet-built items are labeled **Proposed**. Supersedes the earlier design-system audit (archived under `docs/archive/`) |
 | `docs/superpowers/` | Real spec-driven-development trail: `specs/` (designs) + `plans/` (implementation plans) |
+| `docs/features/` | Per-feature **design packages** (design-only; one subdir per feature, e.g. `authentication/`; each with an index `README.md`). Sits between Discovery and the implementation plan |
 | `docs/architecture.md` | System architecture (automation + product) |
 | `docs/security.md` | **Runner/automation** security policy (distinct from product app security) |
 | `docs/runner-contract.md` | `POST /jobs/feature` request/response contract + runner rules |
