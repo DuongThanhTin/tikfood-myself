@@ -695,13 +695,21 @@ h3 {
   line-height: 1.5;
 }
 
-.authCta button {
+.authCta button,
+.authCta .authCtaButton {
   min-height: 46px;
   border: 0;
   border-radius: 12px;
   color: #4e2600;
   background: var(--primary);
   font-weight: 800;
+}
+
+.authCta .authCtaButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
 }
 
 .collapsedTabs {
