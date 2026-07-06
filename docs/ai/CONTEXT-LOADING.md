@@ -39,10 +39,10 @@ gates end-to-end.
 | --- | --- |
 | **Backend change** (`apps/api`) | [`apps/api/CLAUDE.md`](../../apps/api/CLAUDE.md) → [`docs/standards/backend/README.md`](../standards/backend/) → the specific backend standard (architecture / patterns / errors / request-response / testing) for the file you touch |
 | **Frontend change** (`apps/web`) | [`apps/web/CLAUDE.md`](../../apps/web/CLAUDE.md) → [`docs/standards/frontend-architecture.md`](../standards/frontend-architecture.md); keep `lib/api.ts` types in sync with Go JSON tags |
-| **API contract / response shape** | [`docs/standards/api-contracts.md`](../standards/api-contracts.md) + [`docs/standards/backend/request-response.md`](../standards/backend/request-response.md); update `apps/web/lib/api.ts` too |
-| **Runner / automation** (`apps/ai-code-runner`) | [`docs/runner-contract.md`](../runner-contract.md) + [`docs/agents/`](../agents/) + [`packages/config/*.yaml`](../../packages/config/) |
+| **API contract / response shape** | [`docs/contracts/api.md`](../contracts/api.md) + [`docs/standards/backend/request-response.md`](../standards/backend/request-response.md); update `apps/web/lib/api.ts` too |
+| **Runner / automation** (`apps/ai-code-runner`) | [`docs/contracts/runner.md`](../contracts/runner.md) + [`docs/agents/`](../agents/) + [`packages/config/*.yaml`](../../packages/config/) |
 | **Runtime prompt** (`packages/prompts`) | the paired [`docs/agents/*`](../agents/) role doc + [`docs/standards/prompt-engineering.md`](../standards/prompt-engineering.md); output must be JSON-only |
-| **Schema / contract** (`packages/schemas`) | **Protected path** — get human approval; then [`docs/runner-contract.md`](../runner-contract.md) |
+| **Schema / contract** (`packages/schemas`) | **Protected path** — get human approval; then [`docs/contracts/runner.md`](../contracts/runner.md) |
 | **Migration** (`apps/api/migrations`) | **Requires human approval**; then [`docs/standards/backend/database.md`](../standards/backend/database.md) |
 | **Product scope / feature framing** | [`docs/tikfood/`](../tikfood/) (vision / mvp-scope / anti-goals) |
 | **Architecture question** | [`docs/architecture.md`](../architecture.md) + [`docs/services/`](../services/) + [`docs/adr/`](../adr/) |

@@ -81,7 +81,7 @@ Depends on: Phase 1.
 Purpose: make cross-service change safe.
 - `docs/services/api.md`, `docs/services/web.md`, `docs/services/ai-code-runner.md`
   (inputs/outputs/dependencies/current endpoints/change rules), linking
-  `docs/standards/api-contracts.md` and `docs/runner-contract.md`.
+  `docs/contracts/api.md` and `docs/contracts/runner.md`.
 Depends on: Phase 2.
 
 ### Phase 4 — Standards Completion  ·  P1  ·  Medium  ·  Impact: High

@@ -64,7 +64,7 @@ Owner rules: [`apps/web/CLAUDE.md`](../apps/web/CLAUDE.md) +
 
 ### `apps/ai-code-runner` — automation runner (MVP skeleton)
 Owner: [`apps/ai-code-runner/README.md`](../apps/ai-code-runner/README.md) +
-contract in [`docs/runner-contract.md`](runner-contract.md). Incomplete stages are
+contract in [`docs/contracts/runner.md`](contracts/runner.md). Incomplete stages are
 marked `TODO`; do not claim production-ready.
 
 | Path | Purpose |
@@ -96,7 +96,7 @@ marked `TODO`; do not claim production-ready.
 | `docs/workflows/` | End-to-end **runnable** workflows per task type (feature/bug/refactor/gated) — orchestrate recipes + skills + approval gates by link (no copy) |
 | `docs/thinking/` | Thinking framework / decision heuristics |
 | `docs/verification/` | Definition of Done + review guide |
-| `docs/standards/` | Engineering standards. `backend/` is deep (13 files); frontend/api/deps/logging/testing/security/performance/prompt at root |
+| `docs/standards/` | Engineering standards. `backend/` is deep (13 files); frontend/deps/logging/testing/security/performance/prompt at root. (API contract moved to `docs/contracts/api.md`) |
 | `docs/agents/` | Human-readable agent role docs (pair with `packages/prompts/`) |
 | `docs/tikfood/` | Product source of truth: `product-vision.md`, `mvp-scope.md`, `anti-goals.md` |
 | `docs/handbook/` | Bilingual onboarding handbook (Parts 1–8 complete; explainer + links) |
@@ -105,7 +105,7 @@ marked `TODO`; do not claim production-ready.
 | `docs/features/` | Per-feature **design packages** (design-only; one subdir per feature, e.g. `authentication/`; each with an index `README.md`). Sits between Discovery and the implementation plan |
 | `docs/architecture.md` | System architecture (automation + product) |
 | `docs/security.md` | **Runner/automation** security policy (distinct from product app security) |
-| `docs/runner-contract.md` | `POST /jobs/feature` request/response contract + runner rules |
+| `docs/contracts/` | Wire contracts gathered in one place: `api.md` (`{data,error}` envelope, status codes, versioning) + `runner.md` (`POST /jobs/feature`). Index (`README.md`) links to `packages/schemas/` (source of truth) + ADR-0003 |
 | `docs/local-development.md` | Local dev setup |
 | `docs/roadmap.md` | Automation build phases (Phase 1–4). See also `IMPROVEMENTS.md` (findings), `docs/ai/ROADMAP.md` (AI-OS docs) |
 | `docs/openai-integration-plan.md` | Plan for the deferred OpenAI integration |

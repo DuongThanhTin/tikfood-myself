@@ -3,7 +3,7 @@
 > **Why this doc exists:** a single at-a-glance contract for the automation runner — its
 > job endpoint, the guarantees it must honor, its dependencies, and its **honest
 > current state (MVP skeleton)** — so nobody mistakes the skeleton for a finished
-> service. The wire contract lives in [`docs/runner-contract.md`](../runner-contract.md)
+> service. The wire contract lives in [`docs/contracts/runner.md`](../contracts/runner.md)
 > and [`packages/schemas/`](../../packages/schemas/); policy lives in
 > [`.ai-agent.yaml`](../../.ai-agent.yaml) and [`packages/config/`](../../packages/config/).
 
@@ -27,7 +27,7 @@ n8n. It **must not** merge PRs and must never push `main`/`master`.
   [`runner-failure-response.schema.json`](../../packages/schemas/runner-failure-response.schema.json)
   — `success:false`, `stage`, `error`, `logs`, `recommendation`.
 
-Full behavior spec: [`docs/runner-contract.md`](../runner-contract.md).
+Full behavior spec: [`docs/contracts/runner.md`](../contracts/runner.md).
 
 ## Dependencies
 

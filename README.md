@@ -128,7 +128,7 @@ Before changing backend, frontend, or automation code, read:
 - `docs/standards/backend-architecture.md`
 - `docs/standards/backend/README.md`
 - `docs/standards/frontend-architecture.md`
-- `docs/standards/api-contracts.md`
+- `docs/contracts/api.md`
 - `docs/standards/logging-observability.md`
 - `docs/standards/ai-implementation-rules.md`
 

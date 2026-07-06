@@ -48,7 +48,7 @@ monetization, livestream.
 - Create PR branches under `ai/`. Humans review and merge.
 - Do not claim success unless the branch was created, changes verified, committed,
   and pushed.
-→ Source: [`/CLAUDE.md`](../../CLAUDE.md) · [`docs/security.md`](../security.md) · [`docs/runner-contract.md`](../runner-contract.md)
+→ Source: [`/CLAUDE.md`](../../CLAUDE.md) · [`docs/security.md`](../security.md) · [`docs/contracts/runner.md`](../contracts/runner.md)
 
 ## 4. Protected paths — require human approval
 

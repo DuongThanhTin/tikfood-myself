@@ -33,7 +33,7 @@ response.
 7. **Frontend sync** — if consumed by web, update `apps/web/lib/api.ts` types + calls in
    the same change.
 8. **Docs** — update [`docs/services/api.md`](../services/api.md) and
-   [`api-contracts.md`](../standards/api-contracts.md).
+   [`api-contracts.md`](../contracts/api.md).
 
 ## Verification
 Table-driven tests for the parser (valid + each invalid class + boundaries) and the

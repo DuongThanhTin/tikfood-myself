@@ -16,12 +16,12 @@ Read these first:
 - `docs/standards/backend-architecture.md`
 - `docs/standards/backend/README.md`
 - `docs/standards/frontend-architecture.md`
-- `docs/standards/api-contracts.md`
+- `docs/contracts/api.md`
 - `docs/standards/logging-observability.md`
 
 If the request touches automation, also read:
 
-- `docs/runner-contract.md`
+- `docs/contracts/runner.md`
 - `docs/openai-integration-plan.md`
 - `apps/ai-code-runner/README.md`
 

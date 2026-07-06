@@ -44,7 +44,7 @@ fields: [`docs/tikfood/domain-model.md`](../tikfood/domain-model.md).
 Invalid input → `400` with `error.code = invalid_request`. Codes are defined in
 `internal/http/errors.go` (`invalid_request`, `not_found`, `internal_error`); raw SQL/
 errors are never leaked. Full request/response detail:
-[`docs/standards/api-contracts.md`](../standards/api-contracts.md),
+[`docs/contracts/api.md`](../contracts/api.md),
 [`docs/standards/backend/request-response.md`](../standards/backend/request-response.md).
 
 ## Dependencies

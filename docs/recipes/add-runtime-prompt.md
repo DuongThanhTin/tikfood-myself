@@ -10,7 +10,7 @@ JSON-valid.
 - [`docs/standards/prompt-engineering.md`](../standards/prompt-engineering.md) (the Prompt
   Standard — the template) · existing prompts in [`packages/prompts/`](../../packages/prompts/).
 - The paired role doc in [`docs/agents/`](../agents/).
-- [`docs/runner-contract.md`](../runner-contract.md) + [`packages/schemas/`](../../packages/schemas/).
+- [`docs/contracts/runner.md`](../contracts/runner.md) + [`packages/schemas/`](../../packages/schemas/).
 
 ## Process skill
 `brainstorming` to pin the role's single responsibility and its I/O; then author.

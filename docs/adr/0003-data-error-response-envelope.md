@@ -46,5 +46,5 @@ All API responses use the envelope:
 ## Sources / links
 
 - [`apps/api/CLAUDE.md`](../../apps/api/CLAUDE.md) → *Response Envelope (real)* / *Error Handling*.
-- [`docs/standards/api-contracts.md`](../standards/api-contracts.md), [`docs/standards/backend/request-response.md`](../standards/backend/request-response.md), [`docs/standards/backend/errors.md`](../standards/backend/errors.md).
+- [`docs/contracts/api.md`](../contracts/api.md), [`docs/standards/backend/request-response.md`](../standards/backend/request-response.md), [`docs/standards/backend/errors.md`](../standards/backend/errors.md).
 - Consumer: [`apps/web/CLAUDE.md`](../../apps/web/CLAUDE.md) → *API Access*.

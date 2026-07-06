@@ -116,7 +116,7 @@ Behavior: verifies `state`, exchanges the code, provisions/links the user, sets 
 
 ## Related repository documentation
 
-- [`docs/standards/api-contracts.md`](../../standards/api-contracts.md) — API contract rules.
+- [`docs/contracts/api.md`](../../contracts/api.md) — API contract rules.
 - [`docs/standards/backend/request-response.md`](../../standards/backend/request-response.md) — request parsing & envelope.
 - [`docs/standards/backend/errors.md`](../../standards/backend/errors.md) — error codes & mapping.
 - [`docs/adr/0003-data-error-response-envelope.md`](../../adr/0003-data-error-response-envelope.md) — the immutable `{data,error}` envelope.

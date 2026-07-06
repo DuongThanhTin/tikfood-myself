@@ -6,7 +6,7 @@
 > All prompts follow the [Prompt Standard](../../docs/standards/prompt-engineering.md);
 > each pairs with a human-readable role doc in [`docs/agents/`](../../docs/agents/).
 
-**Related:** [`docs/runner-contract.md`](../../docs/runner-contract.md) ·
+**Related:** [`docs/contracts/runner.md`](../../docs/contracts/runner.md) ·
 [`packages/schemas/`](../schemas/) (I/O contracts) ·
 [`docs/services/ai-code-runner.md`](../../docs/services/ai-code-runner.md) ·
 recipe: [add-runtime-prompt](../../docs/recipes/add-runtime-prompt.md).

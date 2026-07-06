@@ -1,8 +1,8 @@
 # Service Contracts
 
 > **Why this directory exists:** the repo documents API shapes
-> ([`docs/standards/api-contracts.md`](../standards/api-contracts.md)) and the runner
-> job ([`docs/runner-contract.md`](../runner-contract.md)), but there was no per-service
+> ([`docs/contracts/api.md`](../contracts/api.md)) and the runner
+> job ([`docs/contracts/runner.md`](../contracts/runner.md)), but there was no per-service
 > page answering, at a glance: *what does this service expose, what does it depend on,
 > who consumes it, and what are the rules for changing it?* These contracts give each
 > runnable service one such page so cross-service changes are safe and intentional.

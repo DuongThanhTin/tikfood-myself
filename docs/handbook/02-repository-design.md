@@ -10,7 +10,7 @@ phối nó — đọc file đó trước khi chạm vào vùng đó.
 | --- | --- | --- | --- |
 | [`apps/api`](../../apps/api) | Backend discovery API | Go + Gin, `database/sql` qua pgx (không GORM), slog, PostGIS | [`apps/api/CLAUDE.md`](../../apps/api/CLAUDE.md), [`docs/standards/backend/`](../standards/backend/) |
 | [`apps/web`](../../apps/web) | Frontend discovery UX | Next.js App Router + TS, MapLibre GL, plain CSS | [`apps/web/CLAUDE.md`](../../apps/web/CLAUDE.md), [`docs/standards/frontend-architecture.md`](../standards/frontend-architecture.md) |
-| [`apps/ai-code-runner`](../../apps/ai-code-runner) | Runner automation (n8n → runner → PR), **MVP skeleton** | TypeScript | [`docs/agents/`](../agents/), [`docs/runner-contract.md`](../runner-contract.md) |
+| [`apps/ai-code-runner`](../../apps/ai-code-runner) | Runner automation (n8n → runner → PR), **MVP skeleton** | TypeScript | [`docs/agents/`](../agents/), [`docs/contracts/runner.md`](../contracts/runner.md) |
 | [`packages/`](../../packages) | Prompts, schemas, config policies dùng chung | — | [`packages/prompts/`](../../packages/prompts/), [`packages/schemas/`](../../packages/schemas/), [`packages/config/`](../../packages/config/) |
 | [`workflows/n8n`](../../workflows) | Docs & ví dụ workflow n8n | — | `workflows/n8n/README.md` |
 | [`docs/`](../) | Toàn bộ tài liệu (xem 2.2) | — | — |
@@ -43,7 +43,7 @@ Bản đồ quy tắc gọn nằm ở mục *Monorepo Map* của [`/CLAUDE.md`](
 | [`docs/tikfood/`](../tikfood/) | Định vị sản phẩm, MVP scope, anti-goals, [`domain-model.md`](../tikfood/domain-model.md) | Khi quyết định phạm vi feature |
 | [`docs/superpowers/`](../superpowers/) | `specs/` và `plans/` thật của quy trình brainstorm→plan→execute | Khi bắt đầu/tiếp tục một feature |
 | [`docs/handbook/`](.) | Chính bộ sổ tay này (giải thích, không phải nguồn sự thật) | Onboarding |
-| Các file lẻ | [`architecture.md`](../architecture.md), [`security.md`](../security.md), [`roadmap.md`](../roadmap.md), [`runner-contract.md`](../runner-contract.md), [`local-development.md`](../local-development.md) | Theo chủ đề |
+| Các file lẻ | [`architecture.md`](../architecture.md), [`security.md`](../security.md), [`roadmap.md`](../roadmap.md), [`contracts/runner.md`](../contracts/runner.md), [`local-development.md`](../local-development.md) | Theo chủ đề |
 
 ## 2.3 CLAUDE.md phân tầng
 

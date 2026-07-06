@@ -10,7 +10,7 @@
 
 **Related:** [`packages/prompts/`](../../packages/prompts/) (the prompts) ·
 [`docs/agents/`](../agents/) (their human-readable role docs) ·
-[`docs/runner-contract.md`](../runner-contract.md) ·
+[`docs/contracts/runner.md`](../contracts/runner.md) ·
 [`packages/schemas/`](../../packages/schemas/) (I/O contracts) ·
 [`docs/ai/AI-CONTRACT.md`](../ai/AI-CONTRACT.md) §8.
 

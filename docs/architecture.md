@@ -8,7 +8,7 @@
 
 **Related:** [`docs/REPOSITORY-MAP.md`](REPOSITORY-MAP.md) (where everything lives) ·
 [`docs/adr/`](adr/) (why the shape is what it is) · [`docs/standards/`](standards/)
-(the binding implementation rules) · [`docs/runner-contract.md`](runner-contract.md).
+(the binding implementation rules) · [`docs/contracts/runner.md`](contracts/runner.md).
 Per-service contracts live in [`docs/services/`](services/).
 
 ---
@@ -33,7 +33,7 @@ n8n → ai-code-runner → repo clone → repo-context-reader → coding-agent
 guards (`commandGuard`/`fileGuard`/`secretGuard`), and repo tools exist; model calls,
 edits, verification, review, and push stages are **`TODO`**. Do not describe it as
 production-ready. Contract: [`docs/services/ai-code-runner.md`](services/ai-code-runner.md) ·
-[`docs/runner-contract.md`](runner-contract.md); schemas:
+[`docs/contracts/runner.md`](contracts/runner.md); schemas:
 [`packages/schemas/`](../packages/schemas/).
 
 **Roadmap:** implement the TODO stages (OpenAI integration —
