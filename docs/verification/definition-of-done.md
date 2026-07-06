@@ -85,7 +85,7 @@ The per-surface checklists below describe **what** each gate proves; `make verif
 | If you changed… | Update |
 | --- | --- |
 | Directory layout | [`docs/REPOSITORY-MAP.md`](../REPOSITORY-MAP.md) |
-| API surface / envelope | [`docs/services/api.md`](../services/api.md), `apps/web/lib/api.ts`, [`api-contracts.md`](../contracts/api.md) |
+| API surface / envelope | [`docs/services/api.md`](../services/api.md), `apps/web/lib/api.ts`, [`contracts/api.md`](../contracts/api.md) |
 | A significant decision | a new [ADR](../adr/) |
 | Runner contract/schema | [`docs/contracts/runner.md`](../contracts/runner.md) (schema = protected path) |
 | A rule/standard | the owning standard + its index |

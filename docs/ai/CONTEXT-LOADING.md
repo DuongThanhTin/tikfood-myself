@@ -1,8 +1,9 @@
 # Context-Loading Protocol
 
 > **Why this file exists:** `docs/handbook/01` §1.4 gives a default *order* for loading
-> context, and handbook Part 6 (Context Engineering) is still a placeholder. Without a
-> concrete protocol, every session re-improvises what to read — loading too little
+> context, and handbook Part 6 (Context Engineering) explains the principle but defers
+> the concrete protocol to this file. Without a single operational protocol, every
+> session re-improvises what to read — loading too little
 > (missing a rule) or too much (burning context on irrelevant files). This is the
 > operational protocol: **what to read, in what order, per task type, and when to
 > drop context or delegate to a sub-agent.** It is the runtime companion to

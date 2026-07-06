@@ -33,11 +33,21 @@ Error response:
 ```json
 {
   "data": null,
-  "error": "Human-readable error message"
+  "error": {
+    "code": "invalid_request",
+    "message": "Human-readable error message",
+    "details": {}
+  }
 }
 ```
 
-Current API code uses this envelope shape. Keep it consistent.
+`error` is an **object** — `code` (string), `message` (string), optional `details`
+— **not** a bare string. Codes come from `apps/api/internal/http/errors.go`
+(`invalid_request`, `not_found`, `internal_error`). This matches the running code
+(`apps/api/internal/http/response.go`),
+[ADR-0003](../adr/0003-data-error-response-envelope.md), `apps/api/CLAUDE.md`, and the
+frontend types in `apps/web/lib/api.ts`. Keep it consistent; do not invent a
+`{ "success": ... }` shape.
 
 ## HTTP Status Codes
 

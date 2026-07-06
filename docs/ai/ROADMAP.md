@@ -30,8 +30,15 @@ Status: **Complete** (2026-07-03) — all 8 phases generated. Owner: Repository 
 The repo is already AI-first with a strong Layer-1 (rules) and deep backend
 standards. The gaps are cross-cutting AI-OS capabilities that the handbook itself
 already forecasts (`docs/handbook/02` §2.5 names `recipes/`, `playbooks/`,
-`verification/`, `thinking/`, `adr/` as future dirs; Parts 3–8 are skeleton/
-placeholder). This roadmap fulfills that plan.
+`verification/`, `thinking/`, `adr/` as future dirs; Parts 3–8 were skeleton/
+placeholder **at audit time**). This roadmap fulfills that plan.
+
+> **Note (snapshot):** the *Audit summary* and *Gap register* below record the
+> **2026-07-03 audit state** — the starting point, not the current state. Every item
+> was addressed; see the **Progress log** at the bottom. In particular, handbook
+> Parts 3–8 are now filled (explainer + links), and CI + the web/runner test harnesses
+> (originally "out of scope" below) have since landed. Read the Progress log for the
+> live status.
 
 Gap register (priority: P0 foundation · P1 high leverage · P2 later):
 
@@ -142,3 +149,7 @@ Depends on: all prior phases.
   `CLAUDE.md` "Start Here" + `README.md` AI-OS section added. Link check: 394 links, 0 broken.
 - 2026-07-03 — **All phases complete.** Remaining handoffs (CI, frontend test harness,
   location-alias consolidation, fabricated-UI-data, worker infra) tracked in `IMPROVEMENTS.md`.
+- 2026-07-06 — **Enforcement layer added** (branch `ai/enforcement-and-contracts`): root
+  `Makefile` (`make verify`), Vitest harnesses for `apps/web` + `apps/ai-code-runner`,
+  `.github/workflows/verify.yml` (CI), and `docs/contracts/` consolidation. Clears the
+  CI + frontend-test-harness handoffs above. DoD/recipes point at `make verify`.

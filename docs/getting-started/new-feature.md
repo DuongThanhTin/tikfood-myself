@@ -42,7 +42,9 @@ Reuse trước; dùng token thay hardcode; data qua `lib/api.ts`; copy tiếng V
 test khi đổi hành vi.
 
 ### 6. Kết thúc & PR
-Đối chiếu [`docs/verification/definition-of-done.md`](../verification/definition-of-done.md).
+Chạy **`make verify`** (api + web + runner — hoặc `make verify-web` / `verify-api` /
+`verify-runner` cho một surface) và đối chiếu
+[`docs/verification/definition-of-done.md`](../verification/definition-of-done.md).
 Commit (message kết bằng dòng `Co-Authored-By:` theo repo). Mở PR bằng
 [`templates/pr-description.md`](templates/pr-description.md) (body kết bằng dòng
 `🤖 Generated with Claude Code`).
