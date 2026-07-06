@@ -14,6 +14,7 @@ type RouteRegistrar interface {
 type RouterDependencies struct {
 	Logger          *slog.Logger
 	RouteRegistrars []RouteRegistrar
+	AllowedOrigins  []string
 }
 
 func NewRouter(deps RouterDependencies) http.Handler {
@@ -24,7 +25,7 @@ func NewRouter(deps RouterDependencies) http.Handler {
 
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
-	router.Use(recoveryMiddleware(logger), requestIDMiddleware(), requestLoggingMiddleware(logger))
+	router.Use(recoveryMiddleware(logger), requestIDMiddleware(), requestLoggingMiddleware(logger), corsMiddleware(deps.AllowedOrigins))
 	_ = router.SetTrustedProxies(nil)
 
 	router.GET("/health", func(c *gin.Context) {

@@ -36,6 +36,10 @@ func (handler *AuthHandler) RegisterRoutes(v1 *gin.RouterGroup) {
 	group.POST("/login", handler.Login)
 	group.POST("/refresh", handler.Refresh)
 	group.POST("/logout", handler.Logout)
+
+	protected := group.Group("")
+	protected.Use(authMiddleware(handler.auth))
+	protected.GET("/me", handler.Me)
 }
 
 type registerRequest struct {
@@ -112,6 +116,26 @@ func (handler *AuthHandler) Logout(c *gin.Context) {
 
 	handler.clearRefreshCookie(c)
 	respondWithData(c, gin.H{"logged_out": true})
+}
+
+func (handler *AuthHandler) Me(c *gin.Context) {
+	userID := currentUserID(c)
+	if userID == "" {
+		respondWithError(c, http.StatusUnauthorized, ErrorCodeUnauthorized, MessageSessionExpired)
+		return
+	}
+
+	user, err := handler.auth.Me(c.Request.Context(), userID)
+	if errors.Is(err, auth.ErrUserNotFound) {
+		respondWithError(c, http.StatusUnauthorized, ErrorCodeUnauthorized, MessageSessionExpired)
+		return
+	}
+	if err != nil {
+		respondWithInternalServerError(c, MessageAuthFailed)
+		return
+	}
+
+	respondWithData(c, gin.H{"user": user})
 }
 
 // authPayload builds the shared success body for register/login.

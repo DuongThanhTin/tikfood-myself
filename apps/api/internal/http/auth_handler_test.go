@@ -14,7 +14,7 @@ import (
 
 func testAuthRouter(t *testing.T) http.Handler {
 	t.Helper()
-	issuer, err := auth.NewTokenIssuer("test-secret-value", 15*time.Minute)
+	issuer, err := auth.NewTokenIssuer(testJWTSecret, 15*time.Minute)
 	if err != nil {
 		t.Fatalf("NewTokenIssuer: %v", err)
 	}
@@ -25,6 +25,7 @@ func testAuthRouter(t *testing.T) http.Handler {
 		720*time.Hour,
 	)
 	return NewRouter(RouterDependencies{
+		AllowedOrigins: []string{"http://localhost:3000"},
 		RouteRegistrars: DefaultRouteRegistrars(HandlerDependencies{
 			Venues:       newTestVenueService(),
 			Auth:         service,
@@ -32,6 +33,35 @@ func testAuthRouter(t *testing.T) http.Handler {
 			CookieSecure: false,
 		}),
 	})
+}
+
+const testJWTSecret = "test-secret-value"
+
+// accessTokenFrom extracts the access_token from a register/login response body.
+func accessTokenFrom(t *testing.T, rec *httptest.ResponseRecorder) string {
+	t.Helper()
+	var body struct {
+		Data struct {
+			AccessToken string `json:"access_token"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), &body); err != nil {
+		t.Fatalf("invalid json: %v", err)
+	}
+	if body.Data.AccessToken == "" {
+		t.Fatal("expected an access token in the response")
+	}
+	return body.Data.AccessToken
+}
+
+func doGet(router http.Handler, path string, header map[string]string) *httptest.ResponseRecorder {
+	req := httptest.NewRequest(http.MethodGet, path, nil)
+	for k, v := range header {
+		req.Header.Set(k, v)
+	}
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+	return rec
 }
 
 func newTestVenueService() *discovery.VenueService {
@@ -225,6 +255,87 @@ func TestAuthResponsesUseEnvelope(t *testing.T) {
 	}
 	if _, ok := body["data"]; !ok {
 		t.Fatal("expected a data field in the envelope")
+	}
+}
+
+func TestAuthMiddleware_ValidTokenAllows(t *testing.T) {
+	router := testAuthRouter(t)
+	reg := doJSON(router, http.MethodPost, "/api/v1/auth/register",
+		`{"email":"me@example.com","password":"password123","display_name":"Me"}`, nil)
+	if reg.Code != http.StatusCreated {
+		t.Fatalf("register: %d", reg.Code)
+	}
+	token := accessTokenFrom(t, reg)
+
+	rec := doGet(router, "/api/v1/auth/me", map[string]string{"Authorization": "Bearer " + token})
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d (%s)", rec.Code, rec.Body.String())
+	}
+	var body struct {
+		Data struct {
+			User struct {
+				Email string `json:"email"`
+			} `json:"user"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), &body); err != nil {
+		t.Fatalf("invalid json: %v", err)
+	}
+	if body.Data.User.Email != "me@example.com" {
+		t.Fatalf("unexpected /me user: %+v", body.Data.User)
+	}
+}
+
+func TestAuthMiddleware_MissingTokenReturns401(t *testing.T) {
+	router := testAuthRouter(t)
+	rec := doGet(router, "/api/v1/auth/me", nil)
+	if rec.Code != http.StatusUnauthorized {
+		t.Fatalf("expected 401, got %d", rec.Code)
+	}
+	assertErrorCode(t, rec, "unauthorized")
+}
+
+func TestAuthMiddleware_ExpiredReturns401(t *testing.T) {
+	router := testAuthRouter(t)
+	// Mint a token that is already expired, signed with the same secret the router uses.
+	expiredIssuer, err := auth.NewTokenIssuer(testJWTSecret, -time.Minute)
+	if err != nil {
+		t.Fatalf("NewTokenIssuer: %v", err)
+	}
+	token, _, err := expiredIssuer.IssueAccessToken(auth.User{ID: "u1", Email: "e@x.com"})
+	if err != nil {
+		t.Fatalf("IssueAccessToken: %v", err)
+	}
+	rec := doGet(router, "/api/v1/auth/me", map[string]string{"Authorization": "Bearer " + token})
+	if rec.Code != http.StatusUnauthorized {
+		t.Fatalf("expected 401 for expired token, got %d", rec.Code)
+	}
+}
+
+func TestCORS_AllowsConfiguredOrigin(t *testing.T) {
+	router := testAuthRouter(t)
+	rec := doGet(router, "/health", map[string]string{"Origin": "http://localhost:3000"})
+	if got := rec.Header().Get("Access-Control-Allow-Origin"); got != "http://localhost:3000" {
+		t.Fatalf("expected ACAO to echo the origin, got %q", got)
+	}
+	if got := rec.Header().Get("Access-Control-Allow-Credentials"); got != "true" {
+		t.Fatalf("expected credentials allowed, got %q", got)
+	}
+}
+
+func TestCORS_RejectsUnknownOrigin(t *testing.T) {
+	router := testAuthRouter(t)
+	rec := doGet(router, "/health", map[string]string{"Origin": "http://evil.example.com"})
+	if got := rec.Header().Get("Access-Control-Allow-Origin"); got != "" {
+		t.Fatalf("expected no ACAO for an unknown origin, got %q", got)
+	}
+}
+
+func TestDiscoveryRoutesStayPublic(t *testing.T) {
+	router := testAuthRouter(t)
+	rec := doGet(router, "/api/v1/map/venues?district=District%201", nil)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("discovery must stay public, got %d", rec.Code)
 	}
 }
 

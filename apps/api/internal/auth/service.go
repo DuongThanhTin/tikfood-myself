@@ -161,6 +161,12 @@ func (s *AuthService) Logout(ctx context.Context, rawRefresh string) error {
 	return s.refreshTokens.RevokeRefreshToken(ctx, HashRefreshToken(rawRefresh))
 }
 
+// ParseAccessToken validates a Bearer access token and returns its claims. It lets
+// HTTP middleware authenticate requests without reaching into the token issuer.
+func (s *AuthService) ParseAccessToken(raw string) (AccessClaims, error) {
+	return s.issuer.ParseAccessToken(raw)
+}
+
 // Me returns the current user by id.
 func (s *AuthService) Me(ctx context.Context, userID string) (User, error) {
 	user, err := s.users.FindByID(ctx, userID)
