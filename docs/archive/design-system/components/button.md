@@ -112,7 +112,7 @@ Real usages from `components/DiscoveryExperience.tsx`:
 - [Foundations — Color / Typography / Motion](../01-foundations.md)
 - [Component catalog — Buttons](../03-components.md#buttons)
 - [Inconsistency register — R4, R5, R10](../05-inconsistencies.md)
-- Frontend rules: [`apps/web/CLAUDE.md`](../../../apps/web/CLAUDE.md)
+- Frontend rules: [`apps/web/CLAUDE.md`](../../../../apps/web/CLAUDE.md)
 
 ## Future improvements
 

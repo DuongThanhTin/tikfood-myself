@@ -48,6 +48,6 @@ rather than trusting the doc. Authoritative sources, in order: `app/globals.css`
 
 ## Related
 
-- Frontend engineering rules: [`apps/web/CLAUDE.md`](../../apps/web/CLAUDE.md)
-- Frontend architecture standard: [`docs/standards/frontend-architecture.md`](../standards/frontend-architecture.md)
-- Repository map: [`docs/REPOSITORY-MAP.md`](../REPOSITORY-MAP.md)
+- Frontend engineering rules: [`apps/web/CLAUDE.md`](../../../apps/web/CLAUDE.md)
+- Frontend architecture standard: [`docs/standards/frontend-architecture.md`](../../standards/frontend-architecture.md)
+- Repository map: [`docs/REPOSITORY-MAP.md`](../../REPOSITORY-MAP.md)
