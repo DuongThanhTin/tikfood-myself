@@ -33,6 +33,15 @@ export function AuthForm({ mode, footer }: AuthFormProps) {
 
   const copy = COPY[mode];
 
+  // Update a field's value and clear its stale inline error (and aria-invalid) as the
+  // user edits, so a fixed field stops advertising an error before the next submit.
+  function changeField(setter: (value: string) => void, key: "email" | "password" | "displayName") {
+    return (value: string) => {
+      setter(value);
+      setErrors((prev) => (prev[key] ? { ...prev, [key]: null } : prev));
+    };
+  }
+
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     setFormError(null);
@@ -69,7 +78,7 @@ export function AuthForm({ mode, footer }: AuthFormProps) {
           label="Tên hiển thị"
           type="text"
           value={displayName}
-          onChange={setDisplayName}
+          onChange={changeField(setDisplayName, "displayName")}
           error={errors.displayName}
           autoComplete="name"
           disabled={submitting}
@@ -81,7 +90,7 @@ export function AuthForm({ mode, footer }: AuthFormProps) {
         label="Email"
         type="email"
         value={email}
-        onChange={setEmail}
+        onChange={changeField(setEmail, "email")}
         error={errors.email}
         autoComplete="email"
         disabled={submitting}
@@ -92,7 +101,7 @@ export function AuthForm({ mode, footer }: AuthFormProps) {
         label="Mật khẩu"
         type="password"
         value={password}
-        onChange={setPassword}
+        onChange={changeField(setPassword, "password")}
         error={errors.password}
         autoComplete={mode === "login" ? "current-password" : "new-password"}
         disabled={submitting}

@@ -45,6 +45,17 @@ describe("AuthForm (login)", () => {
     expect(login).not.toHaveBeenCalled();
   });
 
+  it("clears a field's inline error once the user fixes it", async () => {
+    render(<AuthForm mode="login" />);
+    type("Email", "not-an-email");
+    type("Mật khẩu", "password123");
+    fireEvent.click(screen.getByRole("button", { name: "Đăng nhập" }));
+    expect(await screen.findByText("Email không hợp lệ.")).toBeInTheDocument();
+
+    type("Email", "user@example.com");
+    expect(screen.queryByText("Email không hợp lệ.")).not.toBeInTheDocument();
+  });
+
   it("disables the submit button while submitting", async () => {
     let resolveLogin: () => void = () => {};
     login.mockReturnValue(new Promise<void>((resolve) => (resolveLogin = resolve)));

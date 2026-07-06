@@ -24,9 +24,11 @@ type RefreshTokenRepository interface {
 	StoreRefreshToken(ctx context.Context, token RefreshToken) (RefreshToken, error)
 	// FindRefreshTokenByHash returns the token with the given hash, or ErrRefreshTokenNotFound.
 	FindRefreshTokenByHash(ctx context.Context, tokenHash string) (RefreshToken, error)
-	// RevokeRefreshToken marks the token with the given hash revoked. Idempotent: it is not
-	// an error if the token is unknown or already revoked.
-	RevokeRefreshToken(ctx context.Context, tokenHash string) error
+	// RevokeRefreshToken marks the token with the given hash revoked and reports whether it
+	// actually flipped a live token (true) versus finding it unknown/already-revoked (false).
+	// Idempotent: revoking an unknown/already-revoked token is not an error. The bool lets
+	// rotation detect a lost race (a concurrent refresh already consumed the token).
+	RevokeRefreshToken(ctx context.Context, tokenHash string) (bool, error)
 	// RevokeAllForUser revokes every active token belonging to the user.
 	RevokeAllForUser(ctx context.Context, userID string) error
 }

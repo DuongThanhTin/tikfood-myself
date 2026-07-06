@@ -57,12 +57,19 @@ from refresh_tokens where token_hash = $1 limit 1`
 	return token, nil
 }
 
-func (repo *RefreshTokenRepository) RevokeRefreshToken(ctx context.Context, tokenHash string) error {
+func (repo *RefreshTokenRepository) RevokeRefreshToken(ctx context.Context, tokenHash string) (bool, error) {
 	const query = `update refresh_tokens set revoked_at = now() where token_hash = $1 and revoked_at is null`
-	if _, err := repo.db.ExecContext(ctx, query, tokenHash); err != nil {
-		return fmt.Errorf("revoke refresh token: %w", err)
+	result, err := repo.db.ExecContext(ctx, query, tokenHash)
+	if err != nil {
+		return false, fmt.Errorf("revoke refresh token: %w", err)
 	}
-	return nil
+	// The `revoked_at is null` predicate makes this an atomic compare-and-revoke: exactly
+	// one concurrent refresh flips the row (1 affected), the loser sees 0.
+	affected, err := result.RowsAffected()
+	if err != nil {
+		return false, fmt.Errorf("revoke refresh token: %w", err)
+	}
+	return affected > 0, nil
 }
 
 func (repo *RefreshTokenRepository) RevokeAllForUser(ctx context.Context, userID string) error {

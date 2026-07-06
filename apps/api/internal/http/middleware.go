@@ -54,6 +54,9 @@ func corsMiddleware(allowedOrigins []string) gin.HandlerFunc {
 		}
 	}
 	return func(c *gin.Context) {
+		// Set Vary: Origin on every response the middleware touches (not just the allowed
+		// branch) so a shared cache never serves one origin's ACAO header to another.
+		c.Header("Vary", "Origin")
 		origin := c.GetHeader("Origin")
 		if origin != "" {
 			if _, ok := allowed[origin]; ok {
@@ -61,7 +64,6 @@ func corsMiddleware(allowedOrigins []string) gin.HandlerFunc {
 				c.Header("Access-Control-Allow-Credentials", "true")
 				c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
 				c.Header("Access-Control-Allow-Headers", "Authorization, Content-Type")
-				c.Header("Vary", "Origin")
 			}
 		}
 		if c.Request.Method == http.MethodOptions {

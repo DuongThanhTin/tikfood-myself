@@ -135,11 +135,9 @@ func (handler *AuthHandler) Refresh(c *gin.Context) {
 
 func (handler *AuthHandler) Logout(c *gin.Context) {
 	raw, _ := c.Cookie(refreshCookieName)
-	if err := handler.auth.Logout(c.Request.Context(), raw); err != nil {
-		respondWithInternalServerError(c, MessageAuthFailed)
-		return
-	}
-
+	// Best-effort, idempotent: always clear the client cookie so the browser is logged out
+	// even if server-side revocation hit a transient error (the token expires on its own).
+	_ = handler.auth.Logout(c.Request.Context(), raw)
 	handler.clearRefreshCookie(c)
 	respondWithData(c, gin.H{"logged_out": true})
 }

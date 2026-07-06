@@ -137,18 +137,18 @@ func (r *MemoryRefreshTokenRepository) FindRefreshTokenByHash(_ context.Context,
 	return RefreshToken{}, ErrRefreshTokenNotFound
 }
 
-func (r *MemoryRefreshTokenRepository) RevokeRefreshToken(_ context.Context, tokenHash string) error {
+func (r *MemoryRefreshTokenRepository) RevokeRefreshToken(_ context.Context, tokenHash string) (bool, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
 	token, ok := r.tokens[tokenHash]
 	if !ok || token.RevokedAt != nil {
-		return nil // idempotent
+		return false, nil // idempotent: nothing live to revoke
 	}
 	now := time.Now()
 	token.RevokedAt = &now
 	r.tokens[tokenHash] = token
-	return nil
+	return true, nil
 }
 
 func (r *MemoryRefreshTokenRepository) RevokeAllForUser(_ context.Context, userID string) error {

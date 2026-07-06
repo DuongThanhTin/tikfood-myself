@@ -146,9 +146,15 @@ func (s *AuthService) Refresh(ctx context.Context, rawRefresh string, meta Sessi
 		return TokenPair{}, err
 	}
 
-	// Revoke the old token before issuing the new one so it can never be reused.
-	if err := s.refreshTokens.RevokeRefreshToken(ctx, hash); err != nil {
+	// Atomic compare-and-revoke: only the first concurrent refresh flips this token and
+	// gets to mint a new pair. A loser (or a replay of an already-rotated token) sees
+	// revoked=false and is rejected, so a single token never yields two live families.
+	revoked, err := s.refreshTokens.RevokeRefreshToken(ctx, hash)
+	if err != nil {
 		return TokenPair{}, err
+	}
+	if !revoked {
+		return TokenPair{}, ErrRefreshInvalid
 	}
 	return s.issueTokens(ctx, user, meta)
 }
@@ -159,7 +165,8 @@ func (s *AuthService) Logout(ctx context.Context, rawRefresh string) error {
 	if rawRefresh == "" {
 		return nil
 	}
-	return s.refreshTokens.RevokeRefreshToken(ctx, HashRefreshToken(rawRefresh))
+	_, err := s.refreshTokens.RevokeRefreshToken(ctx, HashRefreshToken(rawRefresh))
+	return err
 }
 
 // LoginWithGoogle provisions or links a user from a Google profile and issues a token

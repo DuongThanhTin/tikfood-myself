@@ -111,8 +111,12 @@ func TestMemoryRefreshTokenRepository_StoreFindRevoke(t *testing.T) {
 		t.Fatal("expected token to be usable before revoke/expiry")
 	}
 
-	if err := repo.RevokeRefreshToken(ctx, "hash-1"); err != nil {
+	didRevoke, err := repo.RevokeRefreshToken(ctx, "hash-1")
+	if err != nil {
 		t.Fatalf("RevokeRefreshToken: %v", err)
+	}
+	if !didRevoke {
+		t.Fatal("expected RevokeRefreshToken to report a live token was revoked")
 	}
 	revoked, err := repo.FindRefreshTokenByHash(ctx, "hash-1")
 	if err != nil {
@@ -122,12 +126,12 @@ func TestMemoryRefreshTokenRepository_StoreFindRevoke(t *testing.T) {
 		t.Fatal("expected token to be unusable after revoke")
 	}
 
-	// Revoke is idempotent, including for unknown hashes.
-	if err := repo.RevokeRefreshToken(ctx, "hash-1"); err != nil {
-		t.Fatalf("second RevokeRefreshToken: %v", err)
+	// Revoke is idempotent, including for unknown hashes; a second revoke reports false.
+	if again, err := repo.RevokeRefreshToken(ctx, "hash-1"); err != nil || again {
+		t.Fatalf("second RevokeRefreshToken: again=%v err=%v", again, err)
 	}
-	if err := repo.RevokeRefreshToken(ctx, "does-not-exist"); err != nil {
-		t.Fatalf("revoke unknown hash should be idempotent: %v", err)
+	if again, err := repo.RevokeRefreshToken(ctx, "does-not-exist"); err != nil || again {
+		t.Fatalf("revoke unknown hash should be idempotent false: again=%v err=%v", again, err)
 	}
 
 	if _, err := repo.FindRefreshTokenByHash(ctx, "missing"); !errors.Is(err, ErrRefreshTokenNotFound) {

@@ -28,9 +28,11 @@ export function FormField({
   disabled
 }: FormFieldProps) {
   const errorId = `${id}-error`;
+  // The label is associated via htmlFor (not wrapping) and the error is a sibling, so the
+  // error text is linked through aria-describedby without polluting the input's accessible name.
   return (
-    <label className="field authField" htmlFor={id}>
-      <span>{label}</span>
+    <div className="field authField">
+      <label htmlFor={id}>{label}</label>
       <input
         id={id}
         name={id}
@@ -48,6 +50,6 @@ export function FormField({
           {error}
         </span>
       ) : null}
-    </label>
+    </div>
   );
 }

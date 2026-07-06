@@ -97,8 +97,8 @@ export async function refresh(): Promise<TokenResponse> {
   });
   if (!response.ok) {
     clearAccessToken();
-    await readEnvelope<TokenResponse>(response); // throws ApiError
   }
+  // Single read: readEnvelope throws ApiError on !ok, or returns the tokens on success.
   const tokens = await readEnvelope<TokenResponse>(response);
   setAccessToken(tokens.access_token);
   return tokens;
