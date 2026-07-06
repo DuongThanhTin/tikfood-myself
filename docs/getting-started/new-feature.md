@@ -2,6 +2,9 @@
 
 > Dùng khi: bạn có một ý tưởng/feature và muốn làm từ đầu tới PR một cách sạch sẽ,
 > để bất kỳ session mới nào cũng hiểu và làm tiếp được.
+>
+> **Đây là quickstart cho người.** Bản quy trình *chạy-được từng bước* cho AI agent
+> (đủ input/artifact/exit/gate mỗi bước) ở [`docs/workflows/feature.md`](../workflows/feature.md).
 
 ## Quy trình 6 bước
 

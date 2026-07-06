@@ -53,6 +53,10 @@ chạy pipeline prompt ở [`packages/prompts/`](../../packages/prompts/) — xe
 Với từng loại việc cụ thể (Add API, Fix Bug, Refactor…), đừng tự dựng lại 15 bước — mở
 recipe tương ứng ở [Phần 4](04-domain-workflows.md) → [`docs/recipes/`](../recipes/).
 
+Phần này giữ vai trò **bản đồ** 15 bước. Muốn **chạy** trọn request → PR theo từng loại
+task (feature/bug/refactor/gated), dùng [`docs/workflows/`](../workflows/) — nó ghép các
+bước trên với recipe + skill + gate bằng link (không lặp nội dung).
+
 ---
 
 Tiếp theo: [Phần 4 — Domain Workflows](04-domain-workflows.md).

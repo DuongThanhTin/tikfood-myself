@@ -30,7 +30,10 @@ After classifying the task (use [`docs/thinking/README.md`](../thinking/README.m
 load the app-specific and topic docs it needs. Read the owning `CLAUDE.md` **before**
 editing any app. For a common task type, the matching [`docs/recipes/`](../recipes/)
 recipe already bundles the skill + docs + steps — prefer it over reconstructing from
-this matrix.
+this matrix. For the whole **request → PR** path (classify → context → spec/plan →
+branch → implement → verify → PR, with approval gates), run the matching
+[`docs/workflows/`](../workflows/) workflow — it orchestrates the recipe, skills, and
+gates end-to-end.
 
 | Task type | Read before acting (in addition to the core) |
 | --- | --- |

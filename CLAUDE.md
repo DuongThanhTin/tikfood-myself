@@ -19,8 +19,10 @@ At session start read, in order:
 2. `docs/REPOSITORY-MAP.md` — every directory → purpose.
 3. `docs/ai/CONTEXT-LOADING.md` — what else to read for your task type.
 
-Then classify the task (`docs/thinking/README.md`), open the matching recipe
-(`docs/recipes/`), and finish against `docs/verification/definition-of-done.md`.
+Then classify the task (`docs/thinking/README.md`) and run the matching end-to-end
+workflow (`docs/workflows/`) — which orchestrates the right recipe (`docs/recipes/`),
+skills, and approval gates from request to PR — finishing against
+`docs/verification/definition-of-done.md`.
 Decisions are recorded in `docs/adr/`; service contracts in `docs/services/`; the
 onboarding narrative in `docs/handbook/`.
 

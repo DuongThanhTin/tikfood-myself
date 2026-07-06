@@ -10,7 +10,8 @@
 
 **Related:** [`docs/handbook/01-ai-operating-system.md`](../handbook/01-ai-operating-system.md)
 (3-layer model) · [`docs/ai/CONTEXT-LOADING.md`](../ai/CONTEXT-LOADING.md) ·
-[`docs/recipes/`](../recipes/) (step-by-step task guides, added in a later phase) ·
+[`docs/recipes/`](../recipes/) (step-by-step task guides) ·
+[`docs/workflows/`](../workflows/) (runnable request→PR per task type) ·
 [`docs/verification/definition-of-done.md`](../verification/definition-of-done.md).
 
 ## 1. Classify the task first

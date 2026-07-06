@@ -9,7 +9,8 @@
 
 **Related:** [`docs/thinking/README.md`](../thinking/README.md) (how to classify/reason) ·
 [`docs/ai/CONTEXT-LOADING.md`](../ai/CONTEXT-LOADING.md) (what to read) ·
-[`docs/verification/definition-of-done.md`](../verification/definition-of-done.md) (the gate).
+[`docs/verification/definition-of-done.md`](../verification/definition-of-done.md) (the gate) ·
+[`docs/workflows/`](../workflows/) (end-to-end request→PR flows that call these recipes).
 These fill the handbook Part 4 "Domain Workflows" target; the handbook links here rather
 than duplicating.
 
