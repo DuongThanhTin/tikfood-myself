@@ -58,3 +58,10 @@
 Ràng buộc: không copy nội dung giữa docs — chỉ link; mỗi doc một ngôn ngữ;
 mỗi file ≤ 100 dòng; không viết docs cho thứ chưa tồn tại trong code.
 ```
+
+## Template sẵn có
+
+Bộ template điền-vào-chỗ-trống cho toàn bộ file trên: [`ai-os-kit/`](ai-os-kit/README.md)
+— copy folder, đổi `*.tmpl` → tên thật, điền theo comment `FILL`, xoá block `EXAMPLE`.
+Contract dùng [`ai-os-kit/docs/contracts/CONTRACT.template.md`](ai-os-kit/docs/contracts/CONTRACT.template.md)
+(đa loại: HTTP/event/job/CLI, có error-code catalog + source-of-truth).

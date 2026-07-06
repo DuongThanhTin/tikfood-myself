@@ -1,0 +1,38 @@
+# Definition of Done
+
+> **Why this file exists:** a concrete, per-surface gate for what "done" means, so no
+> agent claims completion without evidence. Satisfy the relevant surface(s) **before**
+> committing or opening a PR.
+
+## The rule
+**Evidence before assertions.** Never say "done" / "fixed" / "tests pass" without running
+the command and seeing the result. If a check was skipped, say so explicitly.
+
+## How to run the gates
+All gates run via the root [`Makefile`](../../Makefile) — one command, not loose commands:
+
+| Surface | Command |
+| --- | --- |
+<!-- FILL: 1 dòng / app, khớp target trong Makefile. -->
+| <<app>> | `make verify-<<app>>` |
+| Everything | `make verify` |
+
+## Universal (every task)
+- [ ] Scoped to the requirement; no unrelated edits.
+- [ ] Reused existing code; no needless new helper/component.
+- [ ] Not in a gated/anti-goal area without human approval.
+- [ ] Behavior change covered by a new/updated test (or skip justified).
+- [ ] Docs updated if a contract/behavior/decision changed.
+- [ ] Decision worth an [ADR](../adr/)? If yes, written.
+
+## Per surface
+<!-- FILL: 1 mục / app. Nêu check cụ thể (build/test/lint) + contract của app đó. -->
+### <<app>>
+- [ ] `make verify-<<app>>` passes.
+- [ ] Response/contract shape unchanged (see [`../contracts/`](../contracts/README.md)); no breaking fields.
+- [ ] <<app-specific check: layering, type-sync, a11y, no secrets logged…>>
+
+## Before opening a PR
+- [ ] Branch under `ai/`.
+- [ ] PR body states what was verified and what was skipped — honestly.
+- [ ] No merge / no push to `main`/`master` / no force-push.

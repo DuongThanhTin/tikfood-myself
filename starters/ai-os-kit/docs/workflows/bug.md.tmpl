@@ -1,0 +1,14 @@
+# Workflow — Bug
+
+**When to use:** "broken / wrong / fails". Fix the cause, not the symptom.
+
+> Input of each step = the previous step's artifact.
+
+| # | Goal | Action | Artifact | Exit | 🚦 Gate |
+|---|------|--------|----------|------|---------|
+| 1 | Reproduce | Get a failing case (test or exact steps) | Repro | Fails reliably | — |
+| 2 | Locate | Trace to the root cause (not the surface) | Cause stated | Cause understood | — |
+| 3 | Regression test | Write a test that fails **before** the fix | Failing test | Red | — |
+| 4 | Fix | Minimal change at the cause; branch `ai/<bug>` | Code | Test goes green | 🚦 if fix touches a gated area |
+| 5 | Verify | `make verify`; check sibling occurrences | Green output | No new failures | — |
+| 6 | Done + PR | [DoD](../verification/definition-of-done.md); PR states root cause | PR | DoD satisfied | **No merge / no push to main** |

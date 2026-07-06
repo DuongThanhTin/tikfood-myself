@@ -1,0 +1,22 @@
+# Architecture Decision Records (ADR)
+
+> **Why this file exists:** stop re-deriving or contradicting settled design. An ADR
+> records a decision that is **expensive to reverse** — and only those. Small, easily
+> reversed choices do **not** need an ADR.
+
+## When to write one
+- Choosing a framework / library / storage that would be costly to swap.
+- Defining a cross-cutting contract (response envelope, error model, layering).
+- A deliberate constraint or trade-off future-you will otherwise re-litigate.
+
+## How
+1. Copy [`TEMPLATE.md`](TEMPLATE.md) → `NNNN-short-title.md` (next number).
+2. Fill Context · Decision · Consequences. Keep it short.
+3. Status: `Proposed` → `Accepted` (or `Superseded by NNNN`).
+4. Link it from the code/doc it governs.
+
+## Index
+<!-- FILL: liệt kê ADR khi tạo. -->
+| # | Title | Status |
+| --- | --- | --- |
+| 0001 | <<first decision>> | Accepted |

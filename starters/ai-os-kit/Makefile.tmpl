@@ -1,0 +1,35 @@
+# <<PROJECT_NAME>> — verification entrypoints.
+#
+# One canonical way to check work before committing / opening a PR. The Definition of
+# Done (docs/verification/definition-of-done.md) and recipes point HERE, not at loose
+# commands. Add one target per app; `make verify` runs them all.
+#
+# RULE: every command below must actually run and pass in THIS repo. Don't list a
+# command that doesn't exist yet — wire the test/lint/build first, then add it here.
+
+<!-- FILL: đọc package.json / go.mod / scripts của repo để lấy LỆNH THẬT. Chạy thử cho pass. -->
+
+.PHONY: verify <<verify-targets>>
+
+## verify: run every app's gate
+verify: <<verify-targets: e.g. verify-api verify-web>>
+
+<!-- EXAMPLE (Acme Notes) — xoá sau khi điền -->
+## verify-api: typecheck + test + build (apps/api)
+verify-api:
+	npm --workspace apps/api run typecheck
+	npm --workspace apps/api run test
+	npm --workspace apps/api run build
+
+## verify-web: typecheck + test + build (apps/web)
+verify-web:
+	npm --workspace apps/web run typecheck
+	npm --workspace apps/web run test
+	npm --workspace apps/web run build
+<!-- /EXAMPLE -->
+
+## verify-<<app>>: <<static-check>> + test + build
+verify-<<app>>:
+	<<REAL_COMMAND_1>>
+	<<REAL_COMMAND_2>>
+	<<REAL_COMMAND_3>>

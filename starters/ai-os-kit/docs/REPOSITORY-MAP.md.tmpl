@@ -1,0 +1,23 @@
+# Repository Map
+
+> **Why this file exists:** answer "where does X live, and may I touch it?" in ONE place,
+> so no session has to reconstruct the layout from scattered docs. Update this table
+> whenever the directory tree changes.
+
+<!-- FILL: dựng bảng từ `tree`/`ls` thật của repo. Mỗi dir một dòng. Cột "Read before editing"
+     trỏ tới CLAUDE.md của app hoặc doc rule liên quan. -->
+
+| Directory | Purpose | Read before editing |
+| --- | --- | --- |
+<!-- EXAMPLE (Acme Notes) — xoá sau khi điền -->
+| `apps/api` | Notes REST API (TypeScript/Fastify) | `apps/api/CLAUDE.md` |
+| `apps/web` | Notes UI (React/Vite) | `apps/web/CLAUDE.md` |
+| `packages/schemas` | Shared contract schemas (**protected path**) | `docs/contracts/` |
+| `docs/` | Rules, contracts, decisions, workflows | `docs/ai/AI-CONTRACT.md` |
+<!-- /EXAMPLE -->
+| `apps/<<app>>` | <<purpose>> | `apps/<<app>>/CLAUDE.md` |
+| `docs/ai/` | Rules index + context-loading protocol | — |
+| `docs/contracts/` | Wire contracts (API / event / job) + schema pointers | `docs/contracts/README.md` |
+| `docs/adr/` | Architecture Decision Records | `docs/adr/README.md` |
+| `docs/workflows/` | Request → PR flows per task type | `docs/workflows/README.md` |
+| `docs/verification/` | Definition of Done | — |

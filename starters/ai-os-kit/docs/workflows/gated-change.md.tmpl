@@ -1,0 +1,20 @@
+# Workflow — Gated change (auth · migration · infra · external calls · protected paths)
+
+**When to use:** the task touches a protected path or any area listed in
+[AI-CONTRACT §4](../ai/AI-CONTRACT.md). **Never execute autonomously.**
+
+> Input of each step = the previous step's artifact.
+
+| # | Goal | Action | Artifact | Exit | 🚦 Gate |
+|---|------|--------|----------|------|---------|
+| 1 | Identify the gate | Name which area(s) it touches | List of gates | Listed | — |
+| 2 | Prepare artifacts | Draft: justification, design, (migration) DDL + rollback, (external) endpoint + data sent | Proposal pack | Enough to decide | — |
+| 3 | Request approval & STOP | Present the pack; **wait for the human** | Recorded decision | Explicit approval | **STOP — no code until approved** |
+| 4 | Execute | Branch `ai/<gated>`; implement via the matching workflow | Code + tests | Recipe done | New gate appears → back to step 1 |
+| 5 | Verify + record | `make verify`; write the [ADR](../adr/) | Logs + ADR | DoD satisfied | — |
+| 6 | PR | Body states approval + what was verified | PR | PR open | **No merge / no auto-applied migration** |
+
+## Common mistakes
+- Writing code before approval (a hard violation of [AI-CONTRACT §4](../ai/AI-CONTRACT.md)).
+- A destructive migration with no rollback.
+- Changing a schema but forgetting the client types / fallback.

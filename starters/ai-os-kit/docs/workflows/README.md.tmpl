@@ -1,0 +1,25 @@
+# Workflows — request → PR flows per task type
+
+> **Why this file exists:** turn "I have a task" into a runnable sequence with explicit
+> exit criteria and approval gates. Workflows **orchestrate by link** — they point at the
+> rules, contracts, and Definition of Done rather than copying them.
+
+## Step fields
+Every workflow lists steps as: **Goal · Action · Artifact · Exit · 🚦 Gate**. The input of
+a step is the artifact of the previous step. **Gate** = stop and wait for human approval.
+
+## Choose a workflow
+
+| Signal | Task type | Workflow |
+| --- | --- | --- |
+| "Add / build / support X" | Feature | [feature.md](feature.md) |
+| "Broken / wrong / fails" | Bug | [bug.md](bug.md) |
+| Touches auth / migration / infra / external / anti-goal | **Gated** | [gated-change.md](gated-change.md) **first** |
+<!-- FILL: thêm loại việc hay gặp của repo (refactor, performance, security…) khi cần. -->
+
+## How to use
+1. Classify the task. 2. Open the matching workflow, run top-to-bottom. 3. Stop at every
+🚦 gate. 4. Finish against [Definition of Done](../verification/definition-of-done.md).
+
+> **Gated always wins:** if a task touches a gated area, run [gated-change.md](gated-change.md)
+> first, then return to the original workflow.

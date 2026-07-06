@@ -1,0 +1,16 @@
+# Workflow — Feature
+
+**When to use:** "add / build / support X" with no gated area (else run
+[gated-change.md](gated-change.md) first).
+
+> Input of each step = the previous step's artifact.
+
+| # | Goal | Action | Artifact | Exit | 🚦 Gate |
+|---|------|--------|----------|------|---------|
+| 1 | Understand | Read [CONTEXT-LOADING](../ai/CONTEXT-LOADING.md) for this task type | Context loaded | Rules + contracts known | — |
+| 2 | Scope | Write a short brief (goal · scope · out-of-scope · acceptance) | Brief | Agreed | — |
+| 3 | Design (if non-trivial) | Brainstorm/plan before code | Plan | Approach chosen | 🚦 if it needs a new decision → [ADR](../adr/) |
+| 4 | Branch | `git checkout -b ai/<feature>` from `<<dev>>` | Branch | On `ai/*` | — |
+| 5 | Implement | Reuse first; keep contract stable ([contracts](../contracts/README.md)); add/adjust tests | Code + tests | Feature works | 🚦 if it drifts into a gated area |
+| 6 | Verify | `make verify` | Green output | All gates pass | — |
+| 7 | Done + PR | Check [DoD](../verification/definition-of-done.md); open PR | PR | DoD satisfied | **No merge / no push to main / no force-push** |

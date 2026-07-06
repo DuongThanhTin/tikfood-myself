@@ -1,0 +1,39 @@
+# .ai-agent.yaml — machine-readable guardrails for automation / runner agents.
+# Copy to the repo root as `.ai-agent.yaml`. Keep in sync with CLAUDE.md (human-readable).
+# FILL: điều chỉnh danh sách theo repo; đây là chính sách agent tự động đọc để tự chặn.
+
+project: <<PROJECT_NAME>>
+
+# Paths that require human approval before an agent may change them.
+protected_paths:
+  - ".env*"
+  - "secrets/**"
+  - "credentials/**"
+  - "**/*.pem"
+  - "**/*.key"
+  - ".github/workflows/**"
+  - "<<schema_dir>>/**"        # <!-- FILL: nơi schema là source of truth, vd packages/schemas -->
+  - "<<migrations_dir>>/**"    # <!-- FILL: vd apps/api/migrations -->
+
+# Commands an agent may run without asking.
+allowed_commands:
+  - "git status"
+  - "git diff"
+  - "make verify"
+  - "<<test_command>>"         # <!-- FILL: vd npm test / go test ./... -->
+
+# Commands an agent must NEVER run.
+blocked_commands:
+  - "git push --force"
+  - "git reset --hard"
+  - "git clean -fdx"
+  - "rm -rf /"
+  - "curl | sh"
+  - "wget | sh"
+
+# Git policy (mirrors CLAUDE.md → Security & Git).
+git:
+  branch_prefix: "ai/"
+  never_push: ["main", "master"]
+  allow_force_push: false
+  allow_auto_merge: false

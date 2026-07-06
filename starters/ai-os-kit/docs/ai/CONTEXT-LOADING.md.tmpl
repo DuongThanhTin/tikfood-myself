@@ -1,0 +1,30 @@
+# Context-Loading Protocol
+
+> **Why this file exists:** without a set order, every session re-improvises what to read
+> — loading too little (misses a rule) or too much (burns context). This is the runtime
+> companion to [`AI-CONTRACT.md`](AI-CONTRACT.md) (the rules) and
+> [`../REPOSITORY-MAP.md`](../REPOSITORY-MAP.md) (where things live).
+
+**Principle:** load the *minimum* context that lets you act correctly.
+
+## Always, at session start
+1. [`/CLAUDE.md`](../../CLAUDE.md) — rules & anti-goals.
+2. [`AI-CONTRACT.md`](AI-CONTRACT.md) — the rule index.
+3. [`../REPOSITORY-MAP.md`](../REPOSITORY-MAP.md) — where things live.
+
+## Then, by task type
+<!-- FILL: mỗi loại việc → đọc gì. Trỏ tới app CLAUDE.md + contract + standard liên quan. -->
+
+| Task | Read before acting |
+| --- | --- |
+<!-- EXAMPLE (Acme Notes) — xoá sau khi điền -->
+| API change | `apps/api/CLAUDE.md` + `docs/contracts/notes-api.md` |
+| UI change | `apps/web/CLAUDE.md` |
+| Anything gated | `docs/workflows/gated-change.md` **first** |
+<!-- /EXAMPLE -->
+| <<task_type>> | <<what to read>> |
+
+## When to drop context or delegate
+- Broad "where/how does X work" → delegate a read-only search agent; keep the conclusion.
+- Don't hold whole large files in context — read the part you need.
+- Touching a gated area → stop and run [`gated-change`](../workflows/gated-change.md).

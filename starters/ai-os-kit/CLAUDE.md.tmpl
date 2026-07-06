@@ -1,0 +1,45 @@
+# CLAUDE.md — <<PROJECT_NAME>>
+
+<!-- FILL: 2–3 câu project là gì, cho ai, domain. Đây là file DUY NHẤT Claude luôn đọc;
+     mọi doc khác trỏ ngược về đây. Giữ ngắn — chi tiết sống ở các doc chuyên biệt. -->
+<<ONE_LINE: what this project is, who it serves>>
+
+<!-- EXAMPLE (Acme Notes) — xoá sau khi điền -->
+> Acme Notes is a fast personal note-taking app: capture, search, and tag notes.
+> Web + API only. Not a collaboration or knowledge-base platform.
+<!-- /EXAMPLE -->
+
+## Anti-Goals (block or require human approval)
+
+<!-- FILL: cái KHÔNG làm trong scope hiện tại. Feature chạm vào đây → chặn / cần human duyệt. -->
+Do not implement: <<ANTI_GOALS: e.g. realtime multi-user editing, billing, public sharing>>.
+
+## Repo Map
+
+<!-- FILL: 3–6 dòng, mỗi app/package một dòng → xem docs/REPOSITORY-MAP.md cho bảng đầy đủ. -->
+- `apps/<<api>>` — <<what>>. See `apps/<<api>>/CLAUDE.md`.
+- `apps/<<web>>` — <<what>>. See `apps/<<web>>/CLAUDE.md`.
+- `docs/` — rules, contracts, decisions, workflows (start at `docs/ai/AI-CONTRACT.md`).
+
+## Security & Git
+
+- Never read `.env`, `.env.*`, secrets, credentials, private keys, or tokens.
+- Never push to `main`/`master`. Never force-push. Never auto-merge.
+- Create PR branches under `ai/`. Active working branch is `<<dev>>`.
+- Require human approval for: <<GATED: auth, migrations, infra, external network calls, and any anti-goal area>>.
+
+## Naming
+
+Use clear verb/noun names (`CreateUser`, `FindByEmail`, `<<DomainNoun>>Detail`).
+Avoid `Do`, `Handle`, `Process`, `Manager`, `Component1`.
+
+## Source of Truth
+
+When `docs/**` conflicts with the code, **the code wins** — flag the mismatch instead of
+silently following stale docs. Read the relevant `apps/*/CLAUDE.md` before changing that app.
+
+## Before Finishing
+
+- Reuse existing code; search before adding a new helper/service/component.
+- No breaking API/contract changes (see `docs/contracts/`); keep the response shape stable.
+- Update tests when you change behavior. Run `make verify` before committing.

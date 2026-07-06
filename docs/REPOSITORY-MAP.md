@@ -124,4 +124,6 @@ dir holds real content.
 | `workflows/n8n/` | n8n setup, mapping, example workflow (`ai-feature-to-pr-workflow.md`, `workflow.example.json`) |
 | `examples/feature-requests/` | Sample runner payloads (`tikfood-ai-summary`, `tikfood-dish-search`, `tikfood-realtime-map`) |
 | `starters/tikfood/` | Seed for a real product repo: `.ai-agent.yaml`, `project-docs/` (VISION/REQUIREMENTS/ARCHITECTURE/TASKBOARD/AI-OS), `automation/`. Ships **no app source** |
+| `starters/ai-os-blueprint.md` | Minimal doc set a new project needs (Tier 1/2/3) + anti-patterns + bootstrap prompt |
+| `starters/ai-os-kit/` | Fill-in-the-blank **template kit** (CLAUDE.md, AI-CONTRACT, REPOSITORY-MAP, DoD, Makefile, workflows, ADR + a rich multi-type CONTRACT template) to bootstrap the AI-OS in a new repo — copy, rename `*.tmpl`, fill. See its `README.md` |
 | `.superpowers/sdd/` | Spec-driven-development working state (task briefs/reports/progress) |

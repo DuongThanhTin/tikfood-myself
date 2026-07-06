@@ -1,0 +1,22 @@
+# Contracts — one place for every wire contract
+
+> **Why this file exists:** "what shape goes over the wire" (API responses, events, jobs,
+> CLI) needs a single index. This links to each contract; **the machine-readable schema is
+> the source of truth**, and **code wins** over prose.
+
+## Contracts
+<!-- FILL: 1 dòng / interface. Tạo mỗi contract từ CONTRACT.template.md. -->
+
+| Contract | Doc | Type | Source-of-truth schema |
+| --- | --- | --- | --- |
+<!-- EXAMPLE (Acme Notes) — xoá sau khi điền -->
+| Notes API | [`notes-api.md`](notes-api.md) | HTTP/REST | `packages/schemas/openapi.yaml` |
+| Reindex job | [`reindex-job.md`](reindex-job.md) | Async job | `packages/schemas/reindex.schema.json` |
+<!-- /EXAMPLE -->
+| <<name>> | [`<<file>>.md`](<<file>>.md) | <<HTTP/event/job/CLI>> | <<schema path>> |
+
+## Rules
+- One doc per interface, created from [`CONTRACT.template.md`](CONTRACT.template.md).
+- If a doc disagrees with the code or schema, **the code/schema wins** — fix the doc.
+- `<<schema_dir>>/**` is a **protected path** — schema changes need human approval.
+- Record the envelope/error-model decision as an [ADR](../adr/).

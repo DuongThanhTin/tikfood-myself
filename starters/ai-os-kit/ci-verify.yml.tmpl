@@ -1,0 +1,38 @@
+# CI template — copy to `.github/workflows/verify.yml`.
+#
+# ⚠️ GATED: `.github/workflows/**` is a protected path. Prepare this file, then get
+# explicit human approval before creating it (see docs/workflows/gated-change.md).
+#
+# It runs `make verify-<app>` as one job per surface on PRs. FILL: one job per app,
+# with the right toolchain setup (Go / Node / etc.) matching your Makefile targets.
+
+name: verify
+
+on:
+  pull_request:
+    branches: [main, <<dev>>]
+  workflow_dispatch:
+
+jobs:
+  # <!-- EXAMPLE (Acme Notes) — one job per app; adapt setup to your stack -->
+  verify-api:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: make verify-api
+
+  verify-web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: make verify-web
