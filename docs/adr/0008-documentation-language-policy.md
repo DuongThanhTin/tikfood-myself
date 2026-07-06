@@ -30,7 +30,7 @@ translations of the same document.**
   `docs/workflows/`, `docs/standards/`, `docs/adr/`, `docs/verification/`,
   `docs/services/`, `docs/tikfood/`, and — as the repo-wide default for any
   otherwise-unclassified reference area — `docs/thinking/`, `docs/design/`,
-  `docs/design-system/`, `docs/agents/`, `docs/features/`, and top-level `docs/*.md`.
+  `docs/agents/`, `docs/features/`, and top-level `docs/*.md`.
 - **Human onboarding docs → Vietnamese.** Applies to `docs/getting-started/` and
   `docs/handbook/`. The handbook keeps the ADR-0006 register — **Vietnamese prose,
   English technical terms** (prompts, code, file/concept names, exit-criteria); that
