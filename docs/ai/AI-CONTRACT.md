@@ -98,6 +98,16 @@ Run real checks before reporting; report skipped checks honestly; never claim te
 passed unless they ran and passed.
 → Source: [`/.ai-agent.yaml`](../../.ai-agent.yaml) → `testing_rules` · [`docs/verification/definition-of-done.md`](../verification/definition-of-done.md)
 
+## 10. Documentation language
+
+One canonical language per doc; **no parallel translations**. Machine/agent-facing docs
+(`docs/ai/`, `docs/recipes/`, `docs/workflows/`, `docs/standards/`, `docs/adr/`,
+`docs/verification/`, `docs/services/`, `docs/tikfood/`, and other reference areas) are
+**English**; human onboarding (`docs/getting-started/`, `docs/handbook/`) is
+**Vietnamese** (the handbook keeps Vietnamese prose + English technical terms). Translate
+prose only — code, identifiers, and sample UI copy stay verbatim.
+→ Source: [`docs/adr/0008-documentation-language-policy.md`](../adr/0008-documentation-language-policy.md) (supersedes ADR-0006)
+
 ---
 
 **How to use this contract:** read it once at session start alongside the file it is
