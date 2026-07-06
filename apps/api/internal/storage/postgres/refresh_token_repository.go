@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/DuongThanhTin/tikfood-myself/apps/api/internal/auth"
 )
@@ -108,6 +109,19 @@ values ($1::uuid, $2, $3, $4, nullif($5, '')::inet)`
 		return false, fmt.Errorf("rotate refresh token: commit: %w", err)
 	}
 	return true, nil
+}
+
+func (repo *RefreshTokenRepository) PurgeExpiredRefreshTokens(ctx context.Context, now time.Time) (int64, error) {
+	const query = `delete from refresh_tokens where expires_at < $1 or revoked_at is not null`
+	result, err := repo.db.ExecContext(ctx, query, now)
+	if err != nil {
+		return 0, fmt.Errorf("purge refresh tokens: %w", err)
+	}
+	removed, err := result.RowsAffected()
+	if err != nil {
+		return 0, fmt.Errorf("purge refresh tokens: %w", err)
+	}
+	return removed, nil
 }
 
 func (repo *RefreshTokenRepository) RevokeAllForUser(ctx context.Context, userID string) error {

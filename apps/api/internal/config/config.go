@@ -11,6 +11,7 @@ const (
 	defaultOverpassEndpoint = "https://overpass-api.de/api/interpreter"
 	defaultAccessTokenTTL   = 15 * time.Minute
 	defaultRefreshTokenTTL  = 720 * time.Hour
+	defaultVerificationTTL  = 24 * time.Hour
 	defaultWebOrigin        = "http://localhost:3000"
 )
 
@@ -21,10 +22,14 @@ type Config struct {
 
 	// Authentication (see ADR-0007). Secrets come from the environment only;
 	// they are never hardcoded and never logged.
-	JWTSecret       string
-	AccessTokenTTL  time.Duration
-	RefreshTokenTTL time.Duration
-	CookieSecure    bool
+	// AuthEnabled gates the whole auth surface for staged rollout: when false, no auth
+	// routes are registered and discovery stays public (default true).
+	AuthEnabled          bool
+	JWTSecret            string
+	AccessTokenTTL       time.Duration
+	RefreshTokenTTL      time.Duration
+	VerificationTokenTTL time.Duration
+	CookieSecure         bool
 
 	// Google OAuth SSO.
 	GoogleClientID     string
@@ -62,10 +67,12 @@ func Load() Config {
 		DatabaseURL:      os.Getenv("DATABASE_URL"),
 		OverpassEndpoint: endpoint,
 
-		JWTSecret:       os.Getenv("JWT_SECRET"),
-		AccessTokenTTL:  durationOrDefault("ACCESS_TOKEN_TTL", defaultAccessTokenTTL),
-		RefreshTokenTTL: durationOrDefault("REFRESH_TOKEN_TTL", defaultRefreshTokenTTL),
-		CookieSecure:    boolOrDefault("COOKIE_SECURE", true),
+		AuthEnabled:          boolOrDefault("AUTH_ENABLED", true),
+		JWTSecret:            os.Getenv("JWT_SECRET"),
+		AccessTokenTTL:       durationOrDefault("ACCESS_TOKEN_TTL", defaultAccessTokenTTL),
+		RefreshTokenTTL:      durationOrDefault("REFRESH_TOKEN_TTL", defaultRefreshTokenTTL),
+		VerificationTokenTTL: durationOrDefault("EMAIL_VERIFICATION_TTL", defaultVerificationTTL),
+		CookieSecure:         boolOrDefault("COOKIE_SECURE", true),
 
 		GoogleClientID:     os.Getenv("GOOGLE_CLIENT_ID"),
 		GoogleClientSecret: os.Getenv("GOOGLE_CLIENT_SECRET"),

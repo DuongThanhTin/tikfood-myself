@@ -11,10 +11,11 @@ import (
 
 // Repository / persistence errors. Service-level validation errors live in service.go.
 var (
-	ErrUserNotFound         = errors.New("user not found")
-	ErrEmailTaken           = errors.New("email already registered")
-	ErrGoogleSubTaken       = errors.New("google account already linked to another user")
-	ErrRefreshTokenNotFound = errors.New("refresh token not found")
+	ErrUserNotFound                   = errors.New("user not found")
+	ErrEmailTaken                     = errors.New("email already registered")
+	ErrGoogleSubTaken                 = errors.New("google account already linked to another user")
+	ErrRefreshTokenNotFound           = errors.New("refresh token not found")
+	ErrEmailVerificationTokenNotFound = errors.New("email verification token not found")
 )
 
 // User is an authenticated account. password_hash and google_sub are secrets/internal
@@ -46,4 +47,20 @@ type RefreshToken struct {
 // IsUsable reports whether the token can still authenticate a refresh, at time now.
 func (t RefreshToken) IsUsable(now time.Time) bool {
 	return t.RevokedAt == nil && t.ExpiresAt.After(now)
+}
+
+// EmailVerificationToken is a persisted, single-use credential emailed to a user to prove
+// they control their address. Only the hash of the raw value is stored.
+type EmailVerificationToken struct {
+	ID         string
+	UserID     string
+	TokenHash  string
+	ExpiresAt  time.Time
+	ConsumedAt *time.Time
+	CreatedAt  time.Time
+}
+
+// IsUsable reports whether the token can still verify an email, at time now.
+func (t EmailVerificationToken) IsUsable(now time.Time) bool {
+	return t.ConsumedAt == nil && t.ExpiresAt.After(now)
 }

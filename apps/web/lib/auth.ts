@@ -117,6 +117,25 @@ export function googleLoginUrl(): string {
   return authUrl("/api/v1/auth/google/login");
 }
 
+// verifyEmail consumes a verification token (from the emailed link) and returns the now
+// verified user. Public — the token itself is the credential, no access token needed.
+export async function verifyEmail(token: string): Promise<AuthUser> {
+  const response = await fetch(authUrl("/api/v1/auth/verify-email"), {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token })
+  });
+  const body = await readEnvelope<{ user: AuthUser }>(response);
+  return body.user;
+}
+
+// resendVerification asks the API to re-send the verification email for the signed-in user.
+export async function resendVerification(): Promise<void> {
+  const response = await authFetch("/api/v1/auth/verify-email/resend", { method: "POST" });
+  await readEnvelope<{ sent: boolean }>(response);
+}
+
 // canReplayBody reports whether a request body may be resent on the silent-refresh
 // retry. String / FormData / URLSearchParams / Blob / ArrayBuffer bodies re-read fine
 // from the same reference, but a ReadableStream is consumed by the first send — retrying

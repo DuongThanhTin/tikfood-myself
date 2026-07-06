@@ -49,6 +49,10 @@ const (
 	// MessageGoogleAccountLinked covers the rare race where a Google identity is already
 	// linked to a different user.
 	MessageGoogleAccountLinked = "This Google account is already linked to another user."
+	// MessageEmailVerificationInvalid covers a missing/expired/already-used verification link.
+	MessageEmailVerificationInvalid = "This verification link is invalid or has expired."
+	// MessageEmailAlreadyVerified is returned when a resend is requested but nothing needs verifying.
+	MessageEmailAlreadyVerified = "Your email is already verified."
 )
 
 // MessageWeakPassword is derived from auth.MinPasswordLength so the user-facing minimum

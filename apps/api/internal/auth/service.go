@@ -3,7 +3,9 @@ package auth
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"net/mail"
+	"net/url"
 	"strings"
 	"time"
 )
@@ -21,6 +23,11 @@ var (
 	// attacker who pre-registered the victim's email absorb the victim's Google identity,
 	// so we refuse and steer the user to their existing password login instead.
 	ErrAccountExistsUsePassword = errors.New("an account with this email already exists; sign in with your password")
+	// ErrEmailVerificationInvalid covers a missing, unknown, expired, or already-consumed
+	// email-verification token.
+	ErrEmailVerificationInvalid = errors.New("email verification token is invalid or expired")
+	// ErrEmailAlreadyVerified is returned when a resend is requested for an already-verified account.
+	ErrEmailAlreadyVerified = errors.New("email is already verified")
 )
 
 const (
@@ -28,6 +35,8 @@ const (
 	// layer derives its user-facing message from it so the two cannot drift.
 	MinPasswordLength = 8
 	maxPasswordBytes  = 72 // bcrypt truncates beyond this; reject rather than silently cut.
+	// defaultVerificationTTL bounds how long an email-verification link stays valid.
+	defaultVerificationTTL = 24 * time.Hour
 )
 
 // dummyPasswordHash is compared against when a login targets an unknown user, so the
@@ -49,20 +58,53 @@ type SessionMeta struct {
 }
 
 // AuthService orchestrates the security primitives and repositories into the
-// register/login/refresh/logout use-cases. It never imports gin.
+// register/login/refresh/logout/verify use-cases. It never imports gin.
 type AuthService struct {
-	users         UserRepository
-	refreshTokens RefreshTokenRepository
-	issuer        *TokenIssuer
-	refreshTTL    time.Duration
+	users              UserRepository
+	refreshTokens      RefreshTokenRepository
+	verificationTokens EmailVerificationTokenRepository
+	issuer             *TokenIssuer
+	mailer             Mailer
+	logger             *slog.Logger
+	refreshTTL         time.Duration
+	verificationTTL    time.Duration
+	verifyBaseURL      string // link base, e.g. WEB_ORIGIN; link = verifyBaseURL + "/verify-email?token=..."
 }
 
-func NewAuthService(users UserRepository, refreshTokens RefreshTokenRepository, issuer *TokenIssuer, refreshTTL time.Duration) *AuthService {
+// ServiceConfig wires the auth service's dependencies. VerificationTokens/Mailer may be
+// nil (email verification then simply does nothing); Logger defaults to slog.Default and
+// VerificationTTL to defaultVerificationTTL when unset.
+type ServiceConfig struct {
+	Users              UserRepository
+	RefreshTokens      RefreshTokenRepository
+	VerificationTokens EmailVerificationTokenRepository
+	Issuer             *TokenIssuer
+	Mailer             Mailer
+	Logger             *slog.Logger
+	RefreshTTL         time.Duration
+	VerificationTTL    time.Duration
+	VerifyBaseURL      string
+}
+
+func NewAuthService(cfg ServiceConfig) *AuthService {
+	logger := cfg.Logger
+	if logger == nil {
+		logger = slog.Default()
+	}
+	verificationTTL := cfg.VerificationTTL
+	if verificationTTL <= 0 {
+		verificationTTL = defaultVerificationTTL
+	}
 	return &AuthService{
-		users:         users,
-		refreshTokens: refreshTokens,
-		issuer:        issuer,
-		refreshTTL:    refreshTTL,
+		users:              cfg.Users,
+		refreshTokens:      cfg.RefreshTokens,
+		verificationTokens: cfg.VerificationTokens,
+		issuer:             cfg.Issuer,
+		mailer:             cfg.Mailer,
+		logger:             logger,
+		refreshTTL:         cfg.RefreshTTL,
+		verificationTTL:    verificationTTL,
+		verifyBaseURL:      cfg.VerifyBaseURL,
 	}
 }
 
@@ -90,11 +132,90 @@ func (s *AuthService) Register(ctx context.Context, email, password, displayName
 		return User{}, TokenPair{}, err // includes ErrEmailTaken
 	}
 
+	// Best-effort: a failure to send the verification email must not fail registration —
+	// the account exists and the user can request a resend.
+	s.sendVerificationEmail(ctx, user)
+
 	pair, err := s.issueTokens(ctx, user, meta)
 	if err != nil {
 		return User{}, TokenPair{}, err
 	}
 	return sanitize(user), pair, nil
+}
+
+// VerifyEmail consumes a single-use verification token and marks its user email-verified.
+// A missing, unknown, expired, or already-consumed token returns ErrEmailVerificationInvalid.
+func (s *AuthService) VerifyEmail(ctx context.Context, rawToken string) (User, error) {
+	if rawToken == "" || s.verificationTokens == nil {
+		return User{}, ErrEmailVerificationInvalid
+	}
+	hash := HashRefreshToken(rawToken) // shared opaque-token SHA-256 hex
+
+	stored, err := s.verificationTokens.FindEmailVerificationTokenByHash(ctx, hash)
+	if errors.Is(err, ErrEmailVerificationTokenNotFound) {
+		return User{}, ErrEmailVerificationInvalid
+	}
+	if err != nil {
+		return User{}, err
+	}
+	if !stored.IsUsable(time.Now()) {
+		return User{}, ErrEmailVerificationInvalid
+	}
+
+	// Atomic compare-and-consume: only the first submit flips the token; a replay loses.
+	consumed, err := s.verificationTokens.ConsumeEmailVerificationToken(ctx, hash)
+	if err != nil {
+		return User{}, err
+	}
+	if !consumed {
+		return User{}, ErrEmailVerificationInvalid
+	}
+
+	user, err := s.users.MarkEmailVerified(ctx, stored.UserID)
+	if err != nil {
+		return User{}, err
+	}
+	return sanitize(user), nil
+}
+
+// ResendVerification re-issues a verification email for the given (authenticated) user.
+// It returns ErrEmailAlreadyVerified if there is nothing to verify.
+func (s *AuthService) ResendVerification(ctx context.Context, userID string) error {
+	user, err := s.users.FindByID(ctx, userID)
+	if err != nil {
+		return err
+	}
+	if user.EmailVerified {
+		return ErrEmailAlreadyVerified
+	}
+	s.sendVerificationEmail(ctx, user)
+	return nil
+}
+
+// sendVerificationEmail mints a verification token and hands the link to the mailer. It is
+// best-effort: it no-ops when verification isn't configured and logs (never returns) on
+// failure, so callers can proceed regardless.
+func (s *AuthService) sendVerificationEmail(ctx context.Context, user User) {
+	if s.verificationTokens == nil || s.mailer == nil {
+		return
+	}
+	raw, hash, err := NewEmailVerificationTokenValue()
+	if err != nil {
+		s.logger.Warn("email verification token generation failed", "error", err)
+		return
+	}
+	if _, err := s.verificationTokens.CreateEmailVerificationToken(ctx, EmailVerificationToken{
+		UserID:    user.ID,
+		TokenHash: hash,
+		ExpiresAt: time.Now().Add(s.verificationTTL),
+	}); err != nil {
+		s.logger.Warn("email verification token store failed", "error", err)
+		return
+	}
+	verifyURL := s.verifyBaseURL + "/verify-email?token=" + url.QueryEscape(raw)
+	if err := s.mailer.SendVerificationEmail(ctx, user.Email, verifyURL); err != nil {
+		s.logger.Warn("email verification send failed", "error", err)
+	}
 }
 
 // Login verifies credentials and issues a token pair. Unknown-user and wrong-password

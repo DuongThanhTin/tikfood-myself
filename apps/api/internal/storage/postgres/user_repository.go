@@ -106,6 +106,21 @@ returning ` + userColumns
 	return user, nil
 }
 
+func (repo *UserRepository) MarkEmailVerified(ctx context.Context, userID string) (auth.User, error) {
+	const query = `
+update users set email_verified = true, updated_at = now()
+where id = $1::uuid
+returning ` + userColumns
+	user, err := scanUser(repo.db.QueryRowContext(ctx, query, userID))
+	if errors.Is(err, sql.ErrNoRows) {
+		return auth.User{}, auth.ErrUserNotFound
+	}
+	if err != nil {
+		return auth.User{}, fmt.Errorf("mark email verified: %w", err)
+	}
+	return user, nil
+}
+
 func (repo *UserRepository) findOne(ctx context.Context, query string, arg any) (auth.User, error) {
 	user, err := scanUser(repo.db.QueryRowContext(ctx, query, arg))
 	if errors.Is(err, sql.ErrNoRows) {

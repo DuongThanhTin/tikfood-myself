@@ -170,6 +170,43 @@ func TestMemoryRefreshTokenRepository_Rotate(t *testing.T) {
 	}
 }
 
+func TestMemoryRefreshTokenRepository_PurgeExpired(t *testing.T) {
+	repo := NewMemoryRefreshTokenRepository()
+	ctx := context.Background()
+	now := time.Now()
+
+	// live (kept), expired (purged), and revoked (purged).
+	if _, err := repo.StoreRefreshToken(ctx, RefreshToken{UserID: "u1", TokenHash: "live", ExpiresAt: now.Add(time.Hour)}); err != nil {
+		t.Fatalf("store live: %v", err)
+	}
+	if _, err := repo.StoreRefreshToken(ctx, RefreshToken{UserID: "u1", TokenHash: "expired", ExpiresAt: now.Add(-time.Hour)}); err != nil {
+		t.Fatalf("store expired: %v", err)
+	}
+	if _, err := repo.StoreRefreshToken(ctx, RefreshToken{UserID: "u1", TokenHash: "revoked", ExpiresAt: now.Add(time.Hour)}); err != nil {
+		t.Fatalf("store revoked: %v", err)
+	}
+	if _, err := repo.RevokeRefreshToken(ctx, "revoked"); err != nil {
+		t.Fatalf("revoke: %v", err)
+	}
+
+	removed, err := repo.PurgeExpiredRefreshTokens(ctx, now)
+	if err != nil {
+		t.Fatalf("PurgeExpiredRefreshTokens: %v", err)
+	}
+	if removed != 2 {
+		t.Fatalf("expected 2 rows purged, got %d", removed)
+	}
+	if _, err := repo.FindRefreshTokenByHash(ctx, "live"); err != nil {
+		t.Fatalf("live token should survive purge: %v", err)
+	}
+	if _, err := repo.FindRefreshTokenByHash(ctx, "expired"); !errors.Is(err, ErrRefreshTokenNotFound) {
+		t.Fatal("expired token should be purged")
+	}
+	if _, err := repo.FindRefreshTokenByHash(ctx, "revoked"); !errors.Is(err, ErrRefreshTokenNotFound) {
+		t.Fatal("revoked token should be purged")
+	}
+}
+
 func TestMemoryRefreshTokenRepository_RevokeAllForUser(t *testing.T) {
 	repo := NewMemoryRefreshTokenRepository()
 	ctx := context.Background()

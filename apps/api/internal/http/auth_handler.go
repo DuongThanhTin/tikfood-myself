@@ -55,6 +55,7 @@ func (handler *AuthHandler) RegisterRoutes(v1 *gin.RouterGroup) {
 	group.POST("/login", handler.Login)
 	group.POST("/refresh", handler.Refresh)
 	group.POST("/logout", handler.Logout)
+	group.POST("/verify-email", handler.VerifyEmail)
 
 	if handler.google != nil {
 		group.GET("/google/login", handler.GoogleLogin)
@@ -64,6 +65,7 @@ func (handler *AuthHandler) RegisterRoutes(v1 *gin.RouterGroup) {
 	protected := group.Group("")
 	protected.Use(authMiddleware(handler.auth))
 	protected.GET("/me", handler.Me)
+	protected.POST("/verify-email/resend", handler.ResendVerification)
 }
 
 type registerRequest struct {
@@ -186,6 +188,42 @@ func (handler *AuthHandler) GoogleCallback(c *gin.Context) {
 	c.Redirect(http.StatusFound, handler.webOrigin+"/auth/google/callback")
 }
 
+type verifyEmailRequest struct {
+	Token string `json:"token"`
+}
+
+// VerifyEmail consumes a verification token (from the emailed link) and marks the email
+// verified. Public: the token itself is the credential.
+func (handler *AuthHandler) VerifyEmail(c *gin.Context) {
+	var req verifyEmailRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		respondWithBadRequest(c, invalidBody())
+		return
+	}
+
+	user, err := handler.auth.VerifyEmail(c.Request.Context(), req.Token)
+	if err != nil {
+		respondWithAuthError(c, err)
+		return
+	}
+	respondWithData(c, gin.H{"user": user})
+}
+
+// ResendVerification re-sends the verification email for the authenticated user.
+func (handler *AuthHandler) ResendVerification(c *gin.Context) {
+	userID := currentUserID(c)
+	if userID == "" {
+		respondWithError(c, http.StatusUnauthorized, ErrorCodeUnauthorized, MessageSessionExpired)
+		return
+	}
+
+	if err := handler.auth.ResendVerification(c.Request.Context(), userID); err != nil {
+		respondWithAuthError(c, err)
+		return
+	}
+	respondWithData(c, gin.H{"sent": true})
+}
+
 func (handler *AuthHandler) Me(c *gin.Context) {
 	userID := currentUserID(c)
 	if userID == "" {
@@ -261,6 +299,12 @@ func respondWithAuthError(c *gin.Context, err error) {
 		respondWithError(c, http.StatusConflict, ErrorCodeConflict, MessageAccountExistsUsePassword)
 	case errors.Is(err, auth.ErrGoogleSubTaken):
 		respondWithError(c, http.StatusConflict, ErrorCodeConflict, MessageGoogleAccountLinked)
+	case errors.Is(err, auth.ErrEmailVerificationInvalid):
+		respondWithError(c, http.StatusUnprocessableEntity, ErrorCodeDomainRejected, MessageEmailVerificationInvalid)
+	case errors.Is(err, auth.ErrEmailAlreadyVerified):
+		respondWithError(c, http.StatusConflict, ErrorCodeConflict, MessageEmailAlreadyVerified)
+	case errors.Is(err, auth.ErrUserNotFound):
+		respondWithError(c, http.StatusUnauthorized, ErrorCodeUnauthorized, MessageSessionExpired)
 	default:
 		respondWithInternalServerError(c, MessageAuthFailed)
 	}

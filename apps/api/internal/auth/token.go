@@ -108,6 +108,13 @@ func NewRefreshTokenValue() (raw string, hash string, err error) {
 	return raw, HashRefreshToken(raw), nil
 }
 
+// NewEmailVerificationTokenValue generates a single-use email-verification token: the
+// raw value is emailed to the user, and only its SHA-256 hash is persisted. It shares the
+// opaque-token shape (entropy + hash) with refresh tokens.
+func NewEmailVerificationTokenValue() (raw string, hash string, err error) {
+	return NewRefreshTokenValue()
+}
+
 // HashRefreshToken returns the deterministic SHA-256 hash (hex) of a raw refresh
 // token, used both at issue time and on lookup.
 func HashRefreshToken(raw string) string {
