@@ -18,6 +18,21 @@ having run the command and seen the result. If a check was skipped (e.g. no DB, 
 frontend harness), say so explicitly. Claiming an unrun check is a hard violation
 ([`AI-CONTRACT.md`](../ai/AI-CONTRACT.md) §9).
 
+## How to run the gates
+
+The commands below are wired into the root [`Makefile`](../../Makefile) so there is one
+canonical way to run each surface — use it instead of retyping loose commands:
+
+| Surface | Command | Runs |
+| --- | --- | --- |
+| Backend | `make verify-api` | `go vet` + `go test` + `go build` (apps/api) |
+| Frontend | `make verify-web` | typecheck + test + build (apps/web) |
+| Runner | `make verify-runner` | `tsc --noEmit` + test (apps/ai-code-runner) |
+| Everything | `make verify` | all three |
+
+The per-surface checklists below describe **what** each gate proves; `make verify` is
+**how** you run them.
+
 ## Universal (every task)
 
 - [ ] Change is scoped to the requirement; no unrelated edits.

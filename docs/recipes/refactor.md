@@ -26,8 +26,8 @@ verifiable.
 5. **Match surrounding style** — naming, idioms, comment density.
 
 ## Verification
-Full test suite passes unchanged before and after; `go vet`/`build` or
-`web:typecheck`/`web:build` clean. Diff shows movement, not behavior change.
+Full test suite passes unchanged before and after; `make verify-api` or
+`make verify-web` clean. Diff shows movement, not behavior change.
 
 ## Exit
 Behavior identical, tests green throughout, contracts intact, structure genuinely

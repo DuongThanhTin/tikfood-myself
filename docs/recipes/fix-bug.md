@@ -27,7 +27,7 @@ patch.
    several places — see `IMPROVEMENTS.md`).
 
 ## Verification
-`go test ./...` (or `web:typecheck`+`web:build`); the new regression test fails before /
+`make verify-api` (or `make verify-web`); the new regression test fails before /
 passes after. See [Definition of Done](../verification/definition-of-done.md).
 
 ## Exit

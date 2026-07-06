@@ -37,7 +37,7 @@ response.
 
 ## Verification
 Table-driven tests for the parser (valid + each invalid class + boundaries) and the
-service (mocked repo). `go vet ./... && go test ./... && go build ./...`. See
+service (mocked repo). Run `make verify-api` (go vet + test + build). See
 [Definition of Done → Backend](../verification/definition-of-done.md).
 
 ## Exit

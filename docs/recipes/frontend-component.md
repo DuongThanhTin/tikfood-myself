@@ -33,8 +33,8 @@ matters.
    structure changes.
 
 ## Verification
-`npm run web:typecheck` and `npm run web:build`. Unit tests if the harness exists (else
-say none ran). See [Definition of Done → Frontend](../verification/definition-of-done.md).
+Run `make verify-web` (typecheck + test + build). See
+[Definition of Done → Frontend](../verification/definition-of-done.md).
 
 ## Exit
 Typecheck + build pass, data flows through `lib/api.ts`, accessible, no fabricated data

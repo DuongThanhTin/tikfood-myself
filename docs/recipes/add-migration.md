@@ -32,7 +32,7 @@
 7. **Docs/ADR** — update `database.md` notes if conventions change; record the decision.
 
 ## Verification
-Migration applies cleanly and is reversible; `go test ./...` passes; new field visible
+Migration applies cleanly and is reversible; `make verify-api` passes; new field visible
 end-to-end. See [Definition of Done](../verification/definition-of-done.md).
 
 ## Exit
