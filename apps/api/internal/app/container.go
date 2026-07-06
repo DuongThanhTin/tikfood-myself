@@ -1,13 +1,16 @@
 package app
 
 import (
+	"crypto/rand"
 	"database/sql"
+	"encoding/hex"
 	"fmt"
 	"log/slog"
 	"os"
 	"strconv"
 	"strings"
 
+	"github.com/DuongThanhTin/tikfood-myself/apps/api/internal/auth"
 	"github.com/DuongThanhTin/tikfood-myself/apps/api/internal/config"
 	"github.com/DuongThanhTin/tikfood-myself/apps/api/internal/discovery"
 	apihttp "github.com/DuongThanhTin/tikfood-myself/apps/api/internal/http"
@@ -19,6 +22,7 @@ type Container struct {
 	Logger          *slog.Logger
 	VenueRepository discovery.VenueRepository
 	VenueService    *discovery.VenueService
+	AuthService     *auth.AuthService
 	RouteRegistrars []apihttp.RouteRegistrar
 	close           func() error
 }
@@ -28,22 +32,36 @@ func NewContainer(cfg config.Config) (*Container, error) {
 		Level: slog.LevelInfo,
 	})).With("service", "api")
 
-	venueRepo, closeRepo, err := buildVenueRepository(cfg, logger)
+	db, closeDB, err := openDatabase(cfg, logger)
 	if err != nil {
 		return nil, err
 	}
 
+	venueRepo := buildVenueRepository(cfg, logger, db)
 	venueService := discovery.NewVenueService(venueRepo)
+
+	authService, err := buildAuthService(cfg, logger, db)
+	if err != nil {
+		if closeDB != nil {
+			_ = closeDB()
+		}
+		return nil, err
+	}
+
 	routeRegistrars := apihttp.DefaultRouteRegistrars(apihttp.HandlerDependencies{
-		Venues: venueService,
+		Venues:       venueService,
+		Auth:         authService,
+		RefreshTTL:   cfg.RefreshTokenTTL,
+		CookieSecure: cfg.CookieSecure,
 	})
 
 	return &Container{
 		Logger:          logger,
 		VenueRepository: venueRepo,
 		VenueService:    venueService,
+		AuthService:     authService,
 		RouteRegistrars: routeRegistrars,
-		close:           closeRepo,
+		close:           closeDB,
 	}, nil
 }
 
@@ -54,17 +72,12 @@ func (container *Container) Close() error {
 	return container.close()
 }
 
-func buildVenueRepository(cfg config.Config, logger *slog.Logger) (discovery.VenueRepository, func() error, error) {
+// openDatabase opens and pings the database when DATABASE_URL is set, returning the
+// shared handle and its closer. When unset, it returns (nil, nil, nil) and the app
+// runs on in-memory repositories.
+func openDatabase(cfg config.Config, logger *slog.Logger) (*sql.DB, func() error, error) {
 	if cfg.DatabaseURL == "" {
-		logger.Info("using in-memory discovery storage")
-		repo := discovery.NewFallbackVenueRepository()
-		if district := strings.TrimSpace(os.Getenv("INGEST_ON_START")); district != "" {
-			limit := envInt("INGEST_LIMIT", 12)
-			if err := seedFallbackFromOSM(repo, cfg.OverpassEndpoint, district, limit, logger); err != nil {
-				logger.Warn("OSM preview seed failed; serving base seed only", "error", err)
-			}
-		}
-		return repo, nil, nil
+		return nil, nil, nil
 	}
 
 	db, err := sql.Open("pgx", cfg.DatabaseURL)
@@ -75,9 +88,61 @@ func buildVenueRepository(cfg config.Config, logger *slog.Logger) (discovery.Ven
 		_ = db.Close()
 		return nil, nil, fmt.Errorf("ping database: %w", err)
 	}
+	logger.Info("using postgres storage")
+	return db, db.Close, nil
+}
 
-	logger.Info("using postgres discovery storage")
-	return postgres.NewDiscoveryRepository(db), db.Close, nil
+func buildVenueRepository(cfg config.Config, logger *slog.Logger, db *sql.DB) discovery.VenueRepository {
+	if db == nil {
+		logger.Info("using in-memory discovery storage")
+		repo := discovery.NewFallbackVenueRepository()
+		if district := strings.TrimSpace(os.Getenv("INGEST_ON_START")); district != "" {
+			limit := envInt("INGEST_LIMIT", 12)
+			if err := seedFallbackFromOSM(repo, cfg.OverpassEndpoint, district, limit, logger); err != nil {
+				logger.Warn("OSM preview seed failed; serving base seed only", "error", err)
+			}
+		}
+		return repo
+	}
+	return postgres.NewDiscoveryRepository(db)
+}
+
+func buildAuthService(cfg config.Config, logger *slog.Logger, db *sql.DB) (*auth.AuthService, error) {
+	secret := cfg.JWTSecret
+	if secret == "" {
+		if db != nil {
+			// A real (non-dev) deployment must never run with an empty JWT secret.
+			return nil, fmt.Errorf("JWT_SECRET is required when DATABASE_URL is set")
+		}
+		secret = randomSecret()
+		logger.Warn("JWT_SECRET not set; using an ephemeral development secret (access tokens do not survive a restart)")
+	}
+
+	issuer, err := auth.NewTokenIssuer(secret, cfg.AccessTokenTTL)
+	if err != nil {
+		return nil, fmt.Errorf("build token issuer: %w", err)
+	}
+
+	var userRepo auth.UserRepository
+	var refreshRepo auth.RefreshTokenRepository
+	if db == nil {
+		logger.Info("using in-memory auth storage")
+		userRepo = auth.NewMemoryUserRepository()
+		refreshRepo = auth.NewMemoryRefreshTokenRepository()
+	} else {
+		userRepo = postgres.NewUserRepository(db)
+		refreshRepo = postgres.NewRefreshTokenRepository(db)
+	}
+
+	return auth.NewAuthService(userRepo, refreshRepo, issuer, cfg.RefreshTokenTTL), nil
+}
+
+func randomSecret() string {
+	var b [32]byte
+	if _, err := rand.Read(b[:]); err != nil {
+		return "ephemeral-dev-secret-do-not-use-in-production"
+	}
+	return hex.EncodeToString(b[:])
 }
 
 func envInt(key string, fallback int) int {

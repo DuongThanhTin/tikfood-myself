@@ -2,7 +2,10 @@ package http
 
 const (
 	ErrorCodeInvalidRequest = "invalid_request"
+	ErrorCodeUnauthorized   = "unauthorized"
+	ErrorCodeForbidden      = "forbidden"
 	ErrorCodeNotFound       = "not_found"
+	ErrorCodeDomainRejected = "domain_rejected"
 	ErrorCodeInternal       = "internal_error"
 )
 
@@ -25,6 +28,15 @@ const (
 	MessageOpenNowInvalid        = "Open now must be true or false."
 	MessageSortInvalid           = "Sort must be one of trending, videos, distance, or price."
 	MessageDistanceSortLocation  = "Distance sort requires lat and lng."
+
+	MessageInvalidRequestBody = "Request body is malformed."
+	MessageInvalidCredentials = "Invalid email or password."
+	MessageInvalidEmail       = "Email address is invalid."
+	MessageWeakPassword       = "Password must be at least 8 characters."
+	MessageEmailTaken         = "Email is already registered."
+	MessageSessionExpired     = "Session expired. Please sign in again."
+	MessageEmailNotVerified   = "Your Google email is not verified."
+	MessageAuthFailed         = "Authentication failed."
 )
 
 func invalidQuery(field string, message string) *errorResponse {
