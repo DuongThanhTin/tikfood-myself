@@ -1,6 +1,8 @@
 package http
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"errors"
 	"net/http"
 	"time"
@@ -12,6 +14,8 @@ import (
 const (
 	refreshCookieName = "tikfood_refresh"
 	refreshCookiePath = "/api/v1/auth"
+	stateCookieName   = "tikfood_oauth_state"
+	stateCookieMaxAge = 300 // seconds; the state cookie only needs to survive the round-trip
 )
 
 // AuthHandler exposes the authentication endpoints. It parses/validates requests,
@@ -19,15 +23,32 @@ const (
 // standard {data,error} envelope. It holds no business logic.
 type AuthHandler struct {
 	auth         *auth.AuthService
+	google       auth.GoogleAuthenticator // optional; nil disables Google login
 	refreshTTL   time.Duration
 	cookieSecure bool
+	webOrigin    string
 }
 
-func NewAuthHandler(service *auth.AuthService, refreshTTL time.Duration, cookieSecure bool) *AuthHandler {
-	if service == nil {
+// AuthHandlerConfig wires the auth handler's dependencies.
+type AuthHandlerConfig struct {
+	Service      *auth.AuthService
+	Google       auth.GoogleAuthenticator
+	RefreshTTL   time.Duration
+	CookieSecure bool
+	WebOrigin    string
+}
+
+func NewAuthHandler(cfg AuthHandlerConfig) *AuthHandler {
+	if cfg.Service == nil {
 		panic("http.NewAuthHandler requires an auth service")
 	}
-	return &AuthHandler{auth: service, refreshTTL: refreshTTL, cookieSecure: cookieSecure}
+	return &AuthHandler{
+		auth:         cfg.Service,
+		google:       cfg.Google,
+		refreshTTL:   cfg.RefreshTTL,
+		cookieSecure: cfg.CookieSecure,
+		webOrigin:    cfg.WebOrigin,
+	}
 }
 
 func (handler *AuthHandler) RegisterRoutes(v1 *gin.RouterGroup) {
@@ -36,6 +57,11 @@ func (handler *AuthHandler) RegisterRoutes(v1 *gin.RouterGroup) {
 	group.POST("/login", handler.Login)
 	group.POST("/refresh", handler.Refresh)
 	group.POST("/logout", handler.Logout)
+
+	if handler.google != nil {
+		group.GET("/google/login", handler.GoogleLogin)
+		group.GET("/google/callback", handler.GoogleCallback)
+	}
 
 	protected := group.Group("")
 	protected.Use(authMiddleware(handler.auth))
@@ -118,6 +144,52 @@ func (handler *AuthHandler) Logout(c *gin.Context) {
 	respondWithData(c, gin.H{"logged_out": true})
 }
 
+// GoogleLogin begins the Authorization Code flow: it sets a short-lived anti-CSRF
+// state cookie and redirects the browser to Google's consent screen.
+func (handler *AuthHandler) GoogleLogin(c *gin.Context) {
+	state, err := randomState()
+	if err != nil {
+		respondWithInternalServerError(c, MessageAuthFailed)
+		return
+	}
+	c.SetSameSite(http.SameSiteLaxMode)
+	c.SetCookie(stateCookieName, state, stateCookieMaxAge, refreshCookiePath, "", handler.cookieSecure, true)
+	c.Redirect(http.StatusFound, handler.google.AuthCodeURL(state))
+}
+
+// GoogleCallback completes the flow: it verifies the state cookie (CSRF), exchanges
+// the code, provisions/links the user, sets the refresh cookie, and redirects to the
+// web app. The access token is NOT placed in the URL — the SPA obtains it via a silent
+// refresh using the httpOnly cookie, so no token lands in browser history.
+func (handler *AuthHandler) GoogleCallback(c *gin.Context) {
+	stateCookie, _ := c.Cookie(stateCookieName)
+	state := c.Query("state")
+	if stateCookie == "" || state == "" || stateCookie != state {
+		respondWithError(c, http.StatusUnauthorized, ErrorCodeUnauthorized, MessageAuthFailed)
+		return
+	}
+	handler.clearStateCookie(c)
+
+	profile, err := handler.google.ExchangeAndFetchProfile(c.Request.Context(), c.Query("code"))
+	if err != nil {
+		respondWithError(c, http.StatusUnauthorized, ErrorCodeUnauthorized, MessageAuthFailed)
+		return
+	}
+
+	_, pair, err := handler.auth.LoginWithGoogle(c.Request.Context(), profile, sessionMetaFrom(c))
+	if errors.Is(err, auth.ErrEmailNotVerified) {
+		respondWithError(c, http.StatusForbidden, ErrorCodeForbidden, MessageEmailNotVerified)
+		return
+	}
+	if err != nil {
+		respondWithAuthError(c, err)
+		return
+	}
+
+	handler.setRefreshCookie(c, pair.RefreshTokenRaw)
+	c.Redirect(http.StatusFound, handler.webOrigin+"/auth/google/callback")
+}
+
 func (handler *AuthHandler) Me(c *gin.Context) {
 	userID := currentUserID(c)
 	if userID == "" {
@@ -162,6 +234,19 @@ func (handler *AuthHandler) setRefreshCookie(c *gin.Context, raw string) {
 func (handler *AuthHandler) clearRefreshCookie(c *gin.Context) {
 	c.SetSameSite(http.SameSiteLaxMode)
 	c.SetCookie(refreshCookieName, "", -1, refreshCookiePath, "", handler.cookieSecure, true)
+}
+
+func (handler *AuthHandler) clearStateCookie(c *gin.Context) {
+	c.SetSameSite(http.SameSiteLaxMode)
+	c.SetCookie(stateCookieName, "", -1, refreshCookiePath, "", handler.cookieSecure, true)
+}
+
+func randomState() (string, error) {
+	var b [32]byte
+	if _, err := rand.Read(b[:]); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(b[:]), nil
 }
 
 func invalidBody() *errorResponse {

@@ -14,6 +14,7 @@ var (
 	ErrInvalidEmail       = errors.New("invalid email address")
 	ErrWeakPassword       = errors.New("password does not meet requirements")
 	ErrRefreshInvalid     = errors.New("refresh token is invalid or expired")
+	ErrEmailNotVerified   = errors.New("google email is not verified")
 )
 
 const (
@@ -159,6 +160,59 @@ func (s *AuthService) Logout(ctx context.Context, rawRefresh string) error {
 		return nil
 	}
 	return s.refreshTokens.RevokeRefreshToken(ctx, HashRefreshToken(rawRefresh))
+}
+
+// LoginWithGoogle provisions or links a user from a Google profile and issues a token
+// pair. Resolution order: (1) existing google_sub, (2) existing email — linked only
+// when Google reports the email verified (guarding against account takeover), else
+// rejected, (3) otherwise a new OAuth-only account (no password).
+func (s *AuthService) LoginWithGoogle(ctx context.Context, profile GoogleProfile, meta SessionMeta) (User, TokenPair, error) {
+	if profile.Sub == "" {
+		return User{}, TokenPair{}, ErrRefreshInvalid
+	}
+
+	if user, err := s.users.FindByGoogleSub(ctx, profile.Sub); err == nil {
+		return s.finishGoogleLogin(ctx, user, meta)
+	} else if !errors.Is(err, ErrUserNotFound) {
+		return User{}, TokenPair{}, err
+	}
+
+	email := normalizeEmail(profile.Email)
+	if !validEmail(email) {
+		return User{}, TokenPair{}, ErrInvalidEmail
+	}
+
+	if existing, err := s.users.FindByEmail(ctx, email); err == nil {
+		if !profile.EmailVerified {
+			return User{}, TokenPair{}, ErrEmailNotVerified
+		}
+		linked, err := s.users.LinkGoogleSub(ctx, existing.ID, profile.Sub)
+		if err != nil {
+			return User{}, TokenPair{}, err
+		}
+		return s.finishGoogleLogin(ctx, linked, meta)
+	} else if !errors.Is(err, ErrUserNotFound) {
+		return User{}, TokenPair{}, err
+	}
+
+	created, err := s.users.CreateUser(ctx, User{
+		Email:         email,
+		DisplayName:   strings.TrimSpace(profile.Name),
+		GoogleSub:     profile.Sub,
+		EmailVerified: profile.EmailVerified,
+	})
+	if err != nil {
+		return User{}, TokenPair{}, err
+	}
+	return s.finishGoogleLogin(ctx, created, meta)
+}
+
+func (s *AuthService) finishGoogleLogin(ctx context.Context, user User, meta SessionMeta) (User, TokenPair, error) {
+	pair, err := s.issueTokens(ctx, user, meta)
+	if err != nil {
+		return User{}, TokenPair{}, err
+	}
+	return sanitize(user), pair, nil
 }
 
 // ParseAccessToken validates a Bearer access token and returns its claims. It lets

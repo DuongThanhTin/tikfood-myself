@@ -1,6 +1,7 @@
 package http
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -13,6 +14,10 @@ import (
 )
 
 func testAuthRouter(t *testing.T) http.Handler {
+	return testAuthRouterWithGoogle(t, nil)
+}
+
+func testAuthRouterWithGoogle(t *testing.T, google auth.GoogleAuthenticator) http.Handler {
 	t.Helper()
 	issuer, err := auth.NewTokenIssuer(testJWTSecret, 15*time.Minute)
 	if err != nil {
@@ -29,10 +34,27 @@ func testAuthRouter(t *testing.T) http.Handler {
 		RouteRegistrars: DefaultRouteRegistrars(HandlerDependencies{
 			Venues:       newTestVenueService(),
 			Auth:         service,
+			Google:       google,
 			RefreshTTL:   720 * time.Hour,
 			CookieSecure: false,
+			WebOrigin:    "http://localhost:3000",
 		}),
 	})
+}
+
+// fakeGoogleAuthenticator injects a canned profile so tests never call Google.
+type fakeGoogleAuthenticator struct {
+	authURL string
+	profile auth.GoogleProfile
+	err     error
+}
+
+func (f fakeGoogleAuthenticator) AuthCodeURL(state string) string {
+	return f.authURL + "?state=" + state
+}
+
+func (f fakeGoogleAuthenticator) ExchangeAndFetchProfile(_ context.Context, _ string) (auth.GoogleProfile, error) {
+	return f.profile, f.err
 }
 
 const testJWTSecret = "test-secret-value"
@@ -337,6 +359,83 @@ func TestDiscoveryRoutesStayPublic(t *testing.T) {
 	if rec.Code != http.StatusOK {
 		t.Fatalf("discovery must stay public, got %d", rec.Code)
 	}
+}
+
+func TestGoogleLogin_RedirectsToGoogle(t *testing.T) {
+	fake := fakeGoogleAuthenticator{authURL: "https://accounts.google.com/o/oauth2/auth"}
+	router := testAuthRouterWithGoogle(t, fake)
+
+	rec := doGet(router, "/api/v1/auth/google/login", nil)
+	if rec.Code != http.StatusFound {
+		t.Fatalf("expected 302, got %d", rec.Code)
+	}
+	loc := rec.Header().Get("Location")
+	if !strings.HasPrefix(loc, "https://accounts.google.com/o/oauth2/auth") {
+		t.Fatalf("expected redirect to Google, got %q", loc)
+	}
+	// A state cookie must be set and echoed into the redirect (CSRF binding).
+	var state string
+	for _, c := range rec.Result().Cookies() {
+		if c.Name == stateCookieName {
+			state = c.Value
+		}
+	}
+	if state == "" || !strings.Contains(loc, "state="+state) {
+		t.Fatalf("expected state cookie bound to redirect; state=%q loc=%q", state, loc)
+	}
+}
+
+func TestGoogleCallback_StateMismatchRejected(t *testing.T) {
+	fake := fakeGoogleAuthenticator{profile: auth.GoogleProfile{Sub: "s", Email: "a@b.com", EmailVerified: true}}
+	router := testAuthRouterWithGoogle(t, fake)
+
+	// state query does not match the state cookie -> reject.
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/auth/google/callback?code=x&state=attacker", nil)
+	req.AddCookie(&http.Cookie{Name: stateCookieName, Value: "legit"})
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusUnauthorized {
+		t.Fatalf("expected 401 on state mismatch, got %d", rec.Code)
+	}
+	assertErrorCode(t, rec, "unauthorized")
+}
+
+func TestGoogleCallback_SuccessSetsCookieAndRedirects(t *testing.T) {
+	fake := fakeGoogleAuthenticator{profile: auth.GoogleProfile{Sub: "sub-1", Email: "gcb@example.com", EmailVerified: true}}
+	router := testAuthRouterWithGoogle(t, fake)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/auth/google/callback?code=good&state=match", nil)
+	req.AddCookie(&http.Cookie{Name: stateCookieName, Value: "match"})
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusFound {
+		t.Fatalf("expected 302, got %d (%s)", rec.Code, rec.Body.String())
+	}
+	if loc := rec.Header().Get("Location"); loc != "http://localhost:3000/auth/google/callback" {
+		t.Fatalf("unexpected redirect: %q", loc)
+	}
+	refreshCookieFrom(t, rec) // the session is handed off via the httpOnly refresh cookie, not the URL
+}
+
+func TestGoogleCallback_UnverifiedEmailForbidden(t *testing.T) {
+	// A password account exists; an unverified Google email for the same address must
+	// not be allowed to link (account-takeover guard) -> 403.
+	fake := fakeGoogleAuthenticator{profile: auth.GoogleProfile{Sub: "sub-x", Email: "vic@example.com", EmailVerified: false}}
+	gr := testAuthRouterWithGoogle(t, fake)
+	if rec := doJSON(gr, http.MethodPost, "/api/v1/auth/register",
+		`{"email":"vic@example.com","password":"password123"}`, nil); rec.Code != http.StatusCreated {
+		t.Fatalf("register on google router: %d", rec.Code)
+	}
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/auth/google/callback?code=good&state=match", nil)
+	req.AddCookie(&http.Cookie{Name: stateCookieName, Value: "match"})
+	rec := httptest.NewRecorder()
+	gr.ServeHTTP(rec, req)
+	if rec.Code != http.StatusForbidden {
+		t.Fatalf("expected 403, got %d", rec.Code)
+	}
+	assertErrorCode(t, rec, "forbidden")
 }
 
 func assertErrorCode(t *testing.T, rec *httptest.ResponseRecorder, code string) {

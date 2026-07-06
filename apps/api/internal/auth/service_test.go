@@ -170,6 +170,65 @@ func TestLogout_Idempotent(t *testing.T) {
 	}
 }
 
+func TestLoginWithGoogle_NewUser(t *testing.T) {
+	svc := newTestService(t, time.Hour)
+	profile := GoogleProfile{Sub: "google-1", Email: "gnew@example.com", Name: "G New", EmailVerified: true}
+	user, pair, err := svc.LoginWithGoogle(context.Background(), profile, testMeta)
+	if err != nil {
+		t.Fatalf("LoginWithGoogle: %v", err)
+	}
+	if user.Email != "gnew@example.com" || pair.AccessToken == "" || pair.RefreshTokenRaw == "" {
+		t.Fatalf("unexpected result: user %+v pair %+v", user, pair)
+	}
+}
+
+func TestLoginWithGoogle_ExistingByGoogleSub(t *testing.T) {
+	svc := newTestService(t, time.Hour)
+	ctx := context.Background()
+	profile := GoogleProfile{Sub: "google-2", Email: "gsub@example.com", EmailVerified: true}
+	first, _, err := svc.LoginWithGoogle(ctx, profile, testMeta)
+	if err != nil {
+		t.Fatalf("first login: %v", err)
+	}
+	second, _, err := svc.LoginWithGoogle(ctx, profile, testMeta)
+	if err != nil {
+		t.Fatalf("second login: %v", err)
+	}
+	if first.ID != second.ID {
+		t.Fatalf("expected the same user on repeat Google login, got %q vs %q", first.ID, second.ID)
+	}
+}
+
+func TestLoginWithGoogle_LinksVerifiedEmail(t *testing.T) {
+	svc := newTestService(t, time.Hour)
+	ctx := context.Background()
+	// A password account already exists with this email.
+	registered, _, err := svc.Register(ctx, "link@example.com", "password123", "Link", testMeta)
+	if err != nil {
+		t.Fatalf("register: %v", err)
+	}
+	// Google login with the same, verified email must link to that account, not create a new one.
+	linked, _, err := svc.LoginWithGoogle(ctx, GoogleProfile{Sub: "google-3", Email: "link@example.com", EmailVerified: true}, testMeta)
+	if err != nil {
+		t.Fatalf("LoginWithGoogle: %v", err)
+	}
+	if linked.ID != registered.ID {
+		t.Fatalf("expected link to existing account %q, got %q", registered.ID, linked.ID)
+	}
+}
+
+func TestLoginWithGoogle_UnverifiedEmailRejected(t *testing.T) {
+	svc := newTestService(t, time.Hour)
+	ctx := context.Background()
+	if _, _, err := svc.Register(ctx, "takeover@example.com", "password123", "", testMeta); err != nil {
+		t.Fatalf("register: %v", err)
+	}
+	// Unverified Google email must NOT be allowed to link to an existing account.
+	if _, _, err := svc.LoginWithGoogle(ctx, GoogleProfile{Sub: "google-4", Email: "takeover@example.com", EmailVerified: false}, testMeta); !errors.Is(err, ErrEmailNotVerified) {
+		t.Fatalf("expected ErrEmailNotVerified, got %v", err)
+	}
+}
+
 func TestMe_ReturnsUser(t *testing.T) {
 	svc := newTestService(t, time.Hour)
 	ctx := context.Background()

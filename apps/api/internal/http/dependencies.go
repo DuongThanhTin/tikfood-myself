@@ -13,8 +13,10 @@ type HandlerDependencies struct {
 	// Auth is optional; when nil, the auth routes are not registered (e.g. tests that
 	// exercise only discovery).
 	Auth         *auth.AuthService
+	Google       auth.GoogleAuthenticator // optional; nil disables Google login
 	RefreshTTL   time.Duration
 	CookieSecure bool
+	WebOrigin    string
 }
 
 func DefaultRouteRegistrars(deps HandlerDependencies) []RouteRegistrar {
@@ -22,7 +24,13 @@ func DefaultRouteRegistrars(deps HandlerDependencies) []RouteRegistrar {
 		NewVenueHandler(deps.Venues),
 	}
 	if deps.Auth != nil {
-		registrars = append(registrars, NewAuthHandler(deps.Auth, deps.RefreshTTL, deps.CookieSecure))
+		registrars = append(registrars, NewAuthHandler(AuthHandlerConfig{
+			Service:      deps.Auth,
+			Google:       deps.Google,
+			RefreshTTL:   deps.RefreshTTL,
+			CookieSecure: deps.CookieSecure,
+			WebOrigin:    deps.WebOrigin,
+		}))
 	}
 	return registrars
 }

@@ -48,11 +48,19 @@ func NewContainer(cfg config.Config) (*Container, error) {
 		return nil, err
 	}
 
+	// nil when Google credentials are not configured; that disables the Google routes.
+	googleAuth := auth.NewGoogleOAuth(cfg.GoogleClientID, cfg.GoogleClientSecret, cfg.GoogleRedirectURL)
+	if googleAuth == nil {
+		logger.Info("google oauth disabled (credentials not configured)")
+	}
+
 	routeRegistrars := apihttp.DefaultRouteRegistrars(apihttp.HandlerDependencies{
 		Venues:       venueService,
 		Auth:         authService,
+		Google:       googleAuthOrNil(googleAuth),
 		RefreshTTL:   cfg.RefreshTokenTTL,
 		CookieSecure: cfg.CookieSecure,
+		WebOrigin:    cfg.WebOrigin,
 	})
 
 	return &Container{
@@ -135,6 +143,16 @@ func buildAuthService(cfg config.Config, logger *slog.Logger, db *sql.DB) (*auth
 	}
 
 	return auth.NewAuthService(userRepo, refreshRepo, issuer, cfg.RefreshTokenTTL), nil
+}
+
+// googleAuthOrNil converts a possibly-nil *auth.GoogleOAuth into a genuinely nil
+// interface value, avoiding the "typed nil in an interface is non-nil" trap that would
+// make the handler register Google routes over a nil authenticator.
+func googleAuthOrNil(g *auth.GoogleOAuth) auth.GoogleAuthenticator {
+	if g == nil {
+		return nil
+	}
+	return g
 }
 
 func randomSecret() string {
