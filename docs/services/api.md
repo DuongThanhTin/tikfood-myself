@@ -23,6 +23,13 @@ fields: [`docs/tikfood/domain-model.md`](../tikfood/domain-model.md).
 | `GET /api/v1/discovery/venues` | `Search` | Venue search/list with filters |
 | `GET /api/v1/map/venues` | `Search` | **Alias** of the above (map surface) |
 | `GET /api/v1/discovery/venues/:slug` | `Detail` | Single venue by slug |
+| `POST /api/v1/auth/register` | `AuthHandler.Register` | Create account, start session (`201`) |
+| `POST /api/v1/auth/login` | `AuthHandler.Login` | Email/password login (`200`) |
+| `POST /api/v1/auth/refresh` | `AuthHandler.Refresh` | Rotate session via refresh cookie (`200`) |
+| `POST /api/v1/auth/logout` | `AuthHandler.Logout` | Revoke session, clear cookie (`200`, idempotent) |
+| `GET /api/v1/auth/me` | `AuthHandler.Me` | Current user; **Bearer-protected** |
+| `GET /api/v1/auth/google/login` | `AuthHandler.GoogleLogin` | Begin Google SSO (302); only when Google configured |
+| `GET /api/v1/auth/google/callback` | `AuthHandler.GoogleCallback` | Complete Google SSO (302) |
 
 **Search query parameters** (validated in `internal/http/venue_request.go`):
 
@@ -42,10 +49,25 @@ fields: [`docs/tikfood/domain-model.md`](../tikfood/domain-model.md).
 | `limit` | int | 1–100 (default 50) |
 
 Invalid input → `400` with `error.code = invalid_request`. Codes are defined in
-`internal/http/errors.go` (`invalid_request`, `not_found`, `internal_error`); raw SQL/
-errors are never leaked. Full request/response detail:
+`internal/http/errors.go` (`invalid_request`, `unauthorized`, `forbidden`, `not_found`,
+`domain_rejected`, `internal_error`); raw SQL/errors are never leaked. Full
+request/response detail:
 [`docs/contracts/api.md`](../contracts/api.md),
 [`docs/standards/backend/request-response.md`](../standards/backend/request-response.md).
+
+### Authentication ([ADR-0007](../adr/0007-authentication-approach.md))
+
+Stateless access **JWT** (HS256, ~15 min) sent as `Authorization: Bearer <token>`,
+paired with a **rotating refresh token** persisted in Postgres and delivered as an
+httpOnly `SameSite=Lax` cookie `tikfood_refresh` (Secure toggleable via `COOKIE_SECURE`;
+`Path=/api/v1/auth`). The cookie is set on register/login/refresh and Google callback,
+cleared on logout. `register`/`login` return `{ data: { user, access_token,
+access_expires_at } }`; `refresh` returns `{ data: { access_token, access_expires_at } }`.
+Error mapping: bad credentials / invalid session → `401 unauthorized`; validation /
+email-taken → `422 domain_rejected`; unverified Google email on link → `403 forbidden`.
+Google login is server-side Authorization Code; the session is handed off via the
+refresh cookie (no token in the redirect URL). Discovery endpoints stay public;
+credentialed CORS is restricted to `ALLOWED_ORIGINS`/`WEB_ORIGIN`.
 
 ## Dependencies
 
@@ -76,7 +98,10 @@ errors are never leaked. Full request/response detail:
 
 ## Current state
 
-Read-only; no auth; no pagination `meta`; no `trace_id` in the envelope
+Discovery is read-only and public. **Authentication** (email/password + Google SSO,
+`/api/v1/auth/*`) is implemented per [ADR-0007](../adr/0007-authentication-approach.md):
+users + rotating refresh tokens (migrations `007`/`008`), in-memory fallback when
+`DATABASE_URL` is unset. No pagination `meta`; no `trace_id` in the envelope
 (`requestIDMiddleware` exists, wiring deferred); `GET /health` is shallow. Venue
 ingestion (`internal/ingest`, `cmd/ingest`) exists as a CLI but is **not** exposed over
 HTTP. Trend-score/AI-summary data is not populated yet. See

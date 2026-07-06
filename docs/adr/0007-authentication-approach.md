@@ -57,9 +57,13 @@ New Go dependencies: `github.com/golang-jwt/jwt/v5`, `golang.org/x/crypto/bcrypt
   right; CORS/cookie flags are environment-sensitive; a JWT secret must be managed
   (prod secret store is infra/human-gated, out of scope here).
 - **Follow-ups:** implemented across milestones M0–M12
-  ([`docs/features/authentication/tasks.md`](../features/authentication/tasks.md)); this
-  ADR is updated to the final endpoint list in M12. Forgot-password is a placeholder
-  only (no email delivery in scope).
+  ([`docs/features/authentication/tasks.md`](../features/authentication/tasks.md)).
+  As-built endpoints under `/api/v1/auth`: `POST /register`, `POST /login`,
+  `POST /refresh`, `POST /logout`, `GET /me` (Bearer-protected), `GET /google/login`,
+  `GET /google/callback`. Frontend: `AuthProvider` + `lib/auth.ts`, pages `/login`,
+  `/register`, `/forgot-password` (placeholder), `/auth/google/callback`. Forgot-password
+  is a placeholder only (no email delivery in scope). Google session hand-off uses the
+  refresh cookie (no access token in the redirect URL).
 
 ## Alternatives considered
 
