@@ -57,4 +57,5 @@ a decision worth an ADR?"
 | [0003](0003-data-error-response-envelope.md) | `{ data, error }` response envelope | Accepted (retroactive) |
 | [0004](0004-in-memory-fallback-repository.md) | In-memory fallback repository selected by `DATABASE_URL` | Accepted (retroactive) |
 | [0005](0005-plain-css-frontend.md) | Plain CSS for `apps/web`, no framework yet | Accepted (retroactive) |
-| [0006](0006-bilingual-handbook.md) | Bilingual handbook (VN prose + EN technical) | Accepted (retroactive) |
+| [0006](0006-bilingual-handbook.md) | Bilingual handbook (VN prose + EN technical) | Superseded by [ADR-0008](0008-documentation-language-policy.md) |
+| [0008](0008-documentation-language-policy.md) | Documentation language policy (one canonical language per doc) | Accepted |
