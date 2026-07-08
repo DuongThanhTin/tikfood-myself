@@ -3,7 +3,9 @@ package auth
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"net/mail"
+	"net/url"
 	"strings"
 	"time"
 )
@@ -15,11 +17,26 @@ var (
 	ErrWeakPassword       = errors.New("password does not meet requirements")
 	ErrRefreshInvalid     = errors.New("refresh token is invalid or expired")
 	ErrEmailNotVerified   = errors.New("google email is not verified")
+	// ErrAccountExistsUsePassword is returned when a Google login matches an existing
+	// account by email that has never proven ownership of that email (email_verified is
+	// false — the case for every password account today). Auto-linking there would let an
+	// attacker who pre-registered the victim's email absorb the victim's Google identity,
+	// so we refuse and steer the user to their existing password login instead.
+	ErrAccountExistsUsePassword = errors.New("an account with this email already exists; sign in with your password")
+	// ErrEmailVerificationInvalid covers a missing, unknown, expired, or already-consumed
+	// email-verification token.
+	ErrEmailVerificationInvalid = errors.New("email verification token is invalid or expired")
+	// ErrEmailAlreadyVerified is returned when a resend is requested for an already-verified account.
+	ErrEmailAlreadyVerified = errors.New("email is already verified")
 )
 
 const (
-	minPasswordLength = 8
+	// MinPasswordLength is the single source of truth for the password floor; the HTTP
+	// layer derives its user-facing message from it so the two cannot drift.
+	MinPasswordLength = 8
 	maxPasswordBytes  = 72 // bcrypt truncates beyond this; reject rather than silently cut.
+	// defaultVerificationTTL bounds how long an email-verification link stays valid.
+	defaultVerificationTTL = 24 * time.Hour
 )
 
 // dummyPasswordHash is compared against when a login targets an unknown user, so the
@@ -41,20 +58,53 @@ type SessionMeta struct {
 }
 
 // AuthService orchestrates the security primitives and repositories into the
-// register/login/refresh/logout use-cases. It never imports gin.
+// register/login/refresh/logout/verify use-cases. It never imports gin.
 type AuthService struct {
-	users         UserRepository
-	refreshTokens RefreshTokenRepository
-	issuer        *TokenIssuer
-	refreshTTL    time.Duration
+	users              UserRepository
+	refreshTokens      RefreshTokenRepository
+	verificationTokens EmailVerificationTokenRepository
+	issuer             *TokenIssuer
+	mailer             Mailer
+	logger             *slog.Logger
+	refreshTTL         time.Duration
+	verificationTTL    time.Duration
+	verifyBaseURL      string // link base, e.g. WEB_ORIGIN; link = verifyBaseURL + "/verify-email?token=..."
 }
 
-func NewAuthService(users UserRepository, refreshTokens RefreshTokenRepository, issuer *TokenIssuer, refreshTTL time.Duration) *AuthService {
+// ServiceConfig wires the auth service's dependencies. VerificationTokens/Mailer may be
+// nil (email verification then simply does nothing); Logger defaults to slog.Default and
+// VerificationTTL to defaultVerificationTTL when unset.
+type ServiceConfig struct {
+	Users              UserRepository
+	RefreshTokens      RefreshTokenRepository
+	VerificationTokens EmailVerificationTokenRepository
+	Issuer             *TokenIssuer
+	Mailer             Mailer
+	Logger             *slog.Logger
+	RefreshTTL         time.Duration
+	VerificationTTL    time.Duration
+	VerifyBaseURL      string
+}
+
+func NewAuthService(cfg ServiceConfig) *AuthService {
+	logger := cfg.Logger
+	if logger == nil {
+		logger = slog.Default()
+	}
+	verificationTTL := cfg.VerificationTTL
+	if verificationTTL <= 0 {
+		verificationTTL = defaultVerificationTTL
+	}
 	return &AuthService{
-		users:         users,
-		refreshTokens: refreshTokens,
-		issuer:        issuer,
-		refreshTTL:    refreshTTL,
+		users:              cfg.Users,
+		refreshTokens:      cfg.RefreshTokens,
+		verificationTokens: cfg.VerificationTokens,
+		issuer:             cfg.Issuer,
+		mailer:             cfg.Mailer,
+		logger:             logger,
+		refreshTTL:         cfg.RefreshTTL,
+		verificationTTL:    verificationTTL,
+		verifyBaseURL:      cfg.VerifyBaseURL,
 	}
 }
 
@@ -82,11 +132,90 @@ func (s *AuthService) Register(ctx context.Context, email, password, displayName
 		return User{}, TokenPair{}, err // includes ErrEmailTaken
 	}
 
+	// Best-effort: a failure to send the verification email must not fail registration —
+	// the account exists and the user can request a resend.
+	s.sendVerificationEmail(ctx, user)
+
 	pair, err := s.issueTokens(ctx, user, meta)
 	if err != nil {
 		return User{}, TokenPair{}, err
 	}
 	return sanitize(user), pair, nil
+}
+
+// VerifyEmail consumes a single-use verification token and marks its user email-verified.
+// A missing, unknown, expired, or already-consumed token returns ErrEmailVerificationInvalid.
+func (s *AuthService) VerifyEmail(ctx context.Context, rawToken string) (User, error) {
+	if rawToken == "" || s.verificationTokens == nil {
+		return User{}, ErrEmailVerificationInvalid
+	}
+	hash := HashRefreshToken(rawToken) // shared opaque-token SHA-256 hex
+
+	stored, err := s.verificationTokens.FindEmailVerificationTokenByHash(ctx, hash)
+	if errors.Is(err, ErrEmailVerificationTokenNotFound) {
+		return User{}, ErrEmailVerificationInvalid
+	}
+	if err != nil {
+		return User{}, err
+	}
+	if !stored.IsUsable(time.Now()) {
+		return User{}, ErrEmailVerificationInvalid
+	}
+
+	// Atomic compare-and-consume: only the first submit flips the token; a replay loses.
+	consumed, err := s.verificationTokens.ConsumeEmailVerificationToken(ctx, hash)
+	if err != nil {
+		return User{}, err
+	}
+	if !consumed {
+		return User{}, ErrEmailVerificationInvalid
+	}
+
+	user, err := s.users.MarkEmailVerified(ctx, stored.UserID)
+	if err != nil {
+		return User{}, err
+	}
+	return sanitize(user), nil
+}
+
+// ResendVerification re-issues a verification email for the given (authenticated) user.
+// It returns ErrEmailAlreadyVerified if there is nothing to verify.
+func (s *AuthService) ResendVerification(ctx context.Context, userID string) error {
+	user, err := s.users.FindByID(ctx, userID)
+	if err != nil {
+		return err
+	}
+	if user.EmailVerified {
+		return ErrEmailAlreadyVerified
+	}
+	s.sendVerificationEmail(ctx, user)
+	return nil
+}
+
+// sendVerificationEmail mints a verification token and hands the link to the mailer. It is
+// best-effort: it no-ops when verification isn't configured and logs (never returns) on
+// failure, so callers can proceed regardless.
+func (s *AuthService) sendVerificationEmail(ctx context.Context, user User) {
+	if s.verificationTokens == nil || s.mailer == nil {
+		return
+	}
+	raw, hash, err := NewEmailVerificationTokenValue()
+	if err != nil {
+		s.logger.Warn("email verification token generation failed", "error", err)
+		return
+	}
+	if _, err := s.verificationTokens.CreateEmailVerificationToken(ctx, EmailVerificationToken{
+		UserID:    user.ID,
+		TokenHash: hash,
+		ExpiresAt: time.Now().Add(s.verificationTTL),
+	}); err != nil {
+		s.logger.Warn("email verification token store failed", "error", err)
+		return
+	}
+	verifyURL := s.verifyBaseURL + "/verify-email?token=" + url.QueryEscape(raw)
+	if err := s.mailer.SendVerificationEmail(ctx, user.Email, verifyURL); err != nil {
+		s.logger.Warn("email verification send failed", "error", err)
+	}
 }
 
 // Login verifies credentials and issues a token pair. Unknown-user and wrong-password
@@ -146,17 +275,7 @@ func (s *AuthService) Refresh(ctx context.Context, rawRefresh string, meta Sessi
 		return TokenPair{}, err
 	}
 
-	// Atomic compare-and-revoke: only the first concurrent refresh flips this token and
-	// gets to mint a new pair. A loser (or a replay of an already-rotated token) sees
-	// revoked=false and is rejected, so a single token never yields two live families.
-	revoked, err := s.refreshTokens.RevokeRefreshToken(ctx, hash)
-	if err != nil {
-		return TokenPair{}, err
-	}
-	if !revoked {
-		return TokenPair{}, ErrRefreshInvalid
-	}
-	return s.issueTokens(ctx, user, meta)
+	return s.rotateTokens(ctx, user, hash, meta)
 }
 
 // Logout revokes the presented refresh token. It is idempotent — logging out an
@@ -170,9 +289,10 @@ func (s *AuthService) Logout(ctx context.Context, rawRefresh string) error {
 }
 
 // LoginWithGoogle provisions or links a user from a Google profile and issues a token
-// pair. Resolution order: (1) existing google_sub, (2) existing email — linked only
-// when Google reports the email verified (guarding against account takeover), else
-// rejected, (3) otherwise a new OAuth-only account (no password).
+// pair. Resolution order: (1) existing google_sub, (2) existing email — auto-linked only
+// when Google reports the email verified AND the existing account is itself already
+// email-verified (guarding against account takeover), otherwise rejected, (3) otherwise a
+// new OAuth-only account (no password).
 func (s *AuthService) LoginWithGoogle(ctx context.Context, profile GoogleProfile, meta SessionMeta) (User, TokenPair, error) {
 	if profile.Sub == "" {
 		return User{}, TokenPair{}, ErrRefreshInvalid
@@ -192,6 +312,14 @@ func (s *AuthService) LoginWithGoogle(ctx context.Context, profile GoogleProfile
 	if existing, err := s.users.FindByEmail(ctx, email); err == nil {
 		if !profile.EmailVerified {
 			return User{}, TokenPair{}, ErrEmailNotVerified
+		}
+		// Only auto-link when the existing account has itself proven ownership of this
+		// email. A password account with email_verified=false may have been seeded by an
+		// attacker under the victim's address; linking the victim's verified Google
+		// identity onto it would silently merge the two. Refuse and send the user to their
+		// existing password login (from where an explicit, authenticated link is safe).
+		if !existing.EmailVerified {
+			return User{}, TokenPair{}, ErrAccountExistsUsePassword
 		}
 		linked, err := s.users.LinkGoogleSub(ctx, existing.ID, profile.Sub)
 		if err != nil {
@@ -246,6 +374,37 @@ func sanitize(user User) User {
 	return user
 }
 
+// rotateTokens issues a new pair and swaps it for the presented refresh token in a
+// single atomic step: the store revokes oldHash and persists the replacement in one DB
+// transaction (compare-and-revoke inside the tx). Only the first concurrent refresh wins
+// (revoked=true); a loser or a replay of an already-rotated token sees revoked=false and
+// is rejected, so a single token never yields two live families — and a crash between
+// revoke and store can never leave a session with no valid refresh token.
+func (s *AuthService) rotateTokens(ctx context.Context, user User, oldHash string, meta SessionMeta) (TokenPair, error) {
+	access, expiresAt, err := s.issuer.IssueAccessToken(user)
+	if err != nil {
+		return TokenPair{}, err
+	}
+	raw, hash, err := NewRefreshTokenValue()
+	if err != nil {
+		return TokenPair{}, err
+	}
+	revoked, err := s.refreshTokens.RotateRefreshToken(ctx, oldHash, RefreshToken{
+		UserID:    user.ID,
+		TokenHash: hash,
+		ExpiresAt: time.Now().Add(s.refreshTTL),
+		UserAgent: meta.UserAgent,
+		IP:        meta.IP,
+	})
+	if err != nil {
+		return TokenPair{}, err
+	}
+	if !revoked {
+		return TokenPair{}, ErrRefreshInvalid
+	}
+	return TokenPair{AccessToken: access, RefreshTokenRaw: raw, AccessExpiresAt: expiresAt}, nil
+}
+
 func (s *AuthService) issueTokens(ctx context.Context, user User, meta SessionMeta) (TokenPair, error) {
 	access, expiresAt, err := s.issuer.IssueAccessToken(user)
 	if err != nil {
@@ -284,5 +443,5 @@ func validEmail(email string) bool {
 }
 
 func validPassword(password string) bool {
-	return len(password) >= minPasswordLength && len([]byte(password)) <= maxPasswordBytes
+	return len(password) >= MinPasswordLength && len([]byte(password)) <= maxPasswordBytes
 }

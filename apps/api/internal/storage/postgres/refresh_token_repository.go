@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/DuongThanhTin/tikfood-myself/apps/api/internal/auth"
 )
@@ -70,6 +71,57 @@ func (repo *RefreshTokenRepository) RevokeRefreshToken(ctx context.Context, toke
 		return false, fmt.Errorf("revoke refresh token: %w", err)
 	}
 	return affected > 0, nil
+}
+
+func (repo *RefreshTokenRepository) RotateRefreshToken(ctx context.Context, oldHash string, newToken auth.RefreshToken) (bool, error) {
+	tx, err := repo.db.BeginTx(ctx, nil)
+	if err != nil {
+		return false, fmt.Errorf("rotate refresh token: begin tx: %w", err)
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	// Atomic compare-and-revoke: the `revoked_at is null` predicate means exactly one
+	// concurrent refresh flips the row. A loser (or a replay of an already-rotated token)
+	// affects 0 rows, so we roll back without storing a replacement.
+	const revokeQuery = `update refresh_tokens set revoked_at = now() where token_hash = $1 and revoked_at is null`
+	result, err := tx.ExecContext(ctx, revokeQuery, oldHash)
+	if err != nil {
+		return false, fmt.Errorf("rotate refresh token: revoke: %w", err)
+	}
+	affected, err := result.RowsAffected()
+	if err != nil {
+		return false, fmt.Errorf("rotate refresh token: revoke: %w", err)
+	}
+	if affected == 0 {
+		return false, nil
+	}
+
+	const storeQuery = `
+insert into refresh_tokens (user_id, token_hash, expires_at, user_agent, ip)
+values ($1::uuid, $2, $3, $4, nullif($5, '')::inet)`
+	if _, err := tx.ExecContext(ctx, storeQuery,
+		newToken.UserID, newToken.TokenHash, newToken.ExpiresAt, newToken.UserAgent, newToken.IP,
+	); err != nil {
+		return false, fmt.Errorf("rotate refresh token: store: %w", err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return false, fmt.Errorf("rotate refresh token: commit: %w", err)
+	}
+	return true, nil
+}
+
+func (repo *RefreshTokenRepository) PurgeExpiredRefreshTokens(ctx context.Context, now time.Time) (int64, error) {
+	const query = `delete from refresh_tokens where expires_at < $1 or revoked_at is not null`
+	result, err := repo.db.ExecContext(ctx, query, now)
+	if err != nil {
+		return 0, fmt.Errorf("purge refresh tokens: %w", err)
+	}
+	removed, err := result.RowsAffected()
+	if err != nil {
+		return 0, fmt.Errorf("purge refresh tokens: %w", err)
+	}
+	return removed, nil
 }
 
 func (repo *RefreshTokenRepository) RevokeAllForUser(ctx context.Context, userID string) error {

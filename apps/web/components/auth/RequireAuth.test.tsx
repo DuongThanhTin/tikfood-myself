@@ -4,8 +4,10 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { RequireAuth } from "./RequireAuth";
 
 const replace = vi.fn();
+let currentPath = "/protected";
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ replace })
+  useRouter: () => ({ replace }),
+  usePathname: () => currentPath
 }));
 
 let currentStatus = "loading";
@@ -16,6 +18,7 @@ vi.mock("./AuthProvider", () => ({
 afterEach(() => {
   vi.clearAllMocks();
   currentStatus = "loading";
+  currentPath = "/protected";
 });
 
 describe("RequireAuth", () => {
@@ -39,6 +42,18 @@ describe("RequireAuth", () => {
     );
     expect(screen.getByText("secret")).toBeInTheDocument();
     expect(replace).not.toHaveBeenCalled();
+  });
+
+  it("does not redirect when already on /login (no loop)", async () => {
+    currentStatus = "anonymous";
+    currentPath = "/login";
+    render(
+      <RequireAuth>
+        <p>secret</p>
+      </RequireAuth>
+    );
+    await waitFor(() => expect(replace).not.toHaveBeenCalled());
+    expect(screen.queryByText("secret")).not.toBeInTheDocument();
   });
 
   it("renders nothing while loading", async () => {

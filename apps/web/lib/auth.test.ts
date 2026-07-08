@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fetchDiscoveryVenues } from "./api";
 import {
   ApiError,
+  authFetch,
   clearAccessToken,
   getAccessToken,
   getMe,
@@ -82,6 +83,20 @@ describe("auth client", () => {
     expect(fetchMock).toHaveBeenCalledTimes(3);
     expect(AUTH_HEADER(fetchMock.mock.calls[2])).toBe("Bearer fresh-token");
     expect(getAccessToken()).toBe("fresh-token");
+  });
+
+  it("does not silently retry a 401 when the request body is a non-replayable stream", async () => {
+    setAccessToken("stale-token");
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(jsonResponse(401, { error: { code: "unauthorized", message: "expired" } }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    // A ReadableStream body is consumed by the first send; retrying would resend empty.
+    const response = await authFetch("/api/v1/auth/thing", { method: "POST", body: new ReadableStream() });
+
+    expect(response.status).toBe(401);
+    expect(fetchMock).toHaveBeenCalledTimes(1); // no refresh, no retry
   });
 
   it("clears the token when refresh fails", async () => {

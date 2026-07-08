@@ -461,7 +461,8 @@ h3 {
 }
 
 .field select,
-.sortSelect {
+.sortSelect,
+.authField input {
   width: 100%;
   min-height: 42px;
   border: 1px solid var(--outline);
@@ -1653,18 +1654,8 @@ h3 {
   gap: 14px;
 }
 
-/* Auth fields reuse .field's label layout; inputs mirror the existing select styling. */
-.authField input {
-  width: 100%;
-  min-height: 42px;
-  border: 1px solid var(--outline);
-  border-radius: 10px;
-  padding: 0 12px;
-  color: var(--on-surface);
-  background: var(--surface-low);
-  outline: 0;
-}
-
+/* Auth inputs share the base sizing/border with .field select (see that rule); only the
+   focus and disabled states are specific to them. */
 .authField input:focus {
   border-color: var(--primary);
 }

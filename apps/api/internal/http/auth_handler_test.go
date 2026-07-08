@@ -3,6 +3,8 @@ package http
 import (
 	"context"
 	"encoding/json"
+	"io"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -23,12 +25,16 @@ func testAuthRouterWithGoogle(t *testing.T, google auth.GoogleAuthenticator) htt
 	if err != nil {
 		t.Fatalf("NewTokenIssuer: %v", err)
 	}
-	service := auth.NewAuthService(
-		auth.NewMemoryUserRepository(),
-		auth.NewMemoryRefreshTokenRepository(),
-		issuer,
-		720*time.Hour,
-	)
+	service := auth.NewAuthService(auth.ServiceConfig{
+		Users:              auth.NewMemoryUserRepository(),
+		RefreshTokens:      auth.NewMemoryRefreshTokenRepository(),
+		VerificationTokens: auth.NewMemoryEmailVerificationTokenRepository(),
+		Issuer:             issuer,
+		Mailer:             auth.NewLogMailer(slog.New(slog.NewTextHandler(io.Discard, nil))),
+		RefreshTTL:         720 * time.Hour,
+		VerificationTTL:    24 * time.Hour,
+		VerifyBaseURL:      "http://localhost:3000",
+	})
 	return NewRouter(RouterDependencies{
 		AllowedOrigins: []string{"http://localhost:3000"},
 		RouteRegistrars: DefaultRouteRegistrars(HandlerDependencies{

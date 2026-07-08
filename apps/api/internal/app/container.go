@@ -1,9 +1,7 @@
 package app
 
 import (
-	"crypto/rand"
 	"database/sql"
-	"encoding/hex"
 	"fmt"
 	"log/slog"
 	"os"
@@ -40,18 +38,27 @@ func NewContainer(cfg config.Config) (*Container, error) {
 	venueRepo := buildVenueRepository(cfg, logger, db)
 	venueService := discovery.NewVenueService(venueRepo)
 
-	authService, err := buildAuthService(cfg, logger, db)
-	if err != nil {
-		if closeDB != nil {
-			_ = closeDB()
+	// Auth is behind a rollout flag: when AUTH_ENABLED=false, no auth service is built and
+	// no auth routes are registered — discovery stays public and unaffected.
+	var authService *auth.AuthService
+	var googleAuth *auth.GoogleOAuth
+	if cfg.AuthEnabled {
+		var err error
+		authService, err = buildAuthService(cfg, logger, db)
+		if err != nil {
+			if closeDB != nil {
+				_ = closeDB()
+			}
+			return nil, err
 		}
-		return nil, err
-	}
 
-	// nil when Google credentials are not configured; that disables the Google routes.
-	googleAuth := auth.NewGoogleOAuth(cfg.GoogleClientID, cfg.GoogleClientSecret, cfg.GoogleRedirectURL)
-	if googleAuth == nil {
-		logger.Info("google oauth disabled (credentials not configured)")
+		// nil when Google credentials are not configured; that disables the Google routes.
+		googleAuth = auth.NewGoogleOAuth(cfg.GoogleClientID, cfg.GoogleClientSecret, cfg.GoogleRedirectURL)
+		if googleAuth == nil {
+			logger.Info("google oauth disabled (credentials not configured)")
+		}
+	} else {
+		logger.Info("auth disabled (AUTH_ENABLED=false); serving discovery only")
 	}
 
 	routeRegistrars := apihttp.DefaultRouteRegistrars(apihttp.HandlerDependencies{
@@ -122,7 +129,13 @@ func buildAuthService(cfg config.Config, logger *slog.Logger, db *sql.DB) (*auth
 			// A real (non-dev) deployment must never run with an empty JWT secret.
 			return nil, fmt.Errorf("JWT_SECRET is required when DATABASE_URL is set")
 		}
-		secret = randomSecret()
+		generated, err := auth.RandomHexToken()
+		if err != nil {
+			// Fail closed: never fall back to a predictable secret. A boot without usable
+			// randomness must abort rather than silently sign tokens with a guessable key.
+			return nil, fmt.Errorf("generate ephemeral dev jwt secret: %w", err)
+		}
+		secret = generated
 		logger.Warn("JWT_SECRET not set; using an ephemeral development secret (access tokens do not survive a restart)")
 	}
 
@@ -133,16 +146,31 @@ func buildAuthService(cfg config.Config, logger *slog.Logger, db *sql.DB) (*auth
 
 	var userRepo auth.UserRepository
 	var refreshRepo auth.RefreshTokenRepository
+	var verificationRepo auth.EmailVerificationTokenRepository
 	if db == nil {
 		logger.Info("using in-memory auth storage")
 		userRepo = auth.NewMemoryUserRepository()
 		refreshRepo = auth.NewMemoryRefreshTokenRepository()
+		verificationRepo = auth.NewMemoryEmailVerificationTokenRepository()
 	} else {
 		userRepo = postgres.NewUserRepository(db)
 		refreshRepo = postgres.NewRefreshTokenRepository(db)
+		verificationRepo = postgres.NewEmailVerificationTokenRepository(db)
 	}
 
-	return auth.NewAuthService(userRepo, refreshRepo, issuer, cfg.RefreshTokenTTL), nil
+	return auth.NewAuthService(auth.ServiceConfig{
+		Users:              userRepo,
+		RefreshTokens:      refreshRepo,
+		VerificationTokens: verificationRepo,
+		Issuer:             issuer,
+		// LogMailer logs the verification link; wiring a real email provider is
+		// infra/human-gated (external network) and intentionally left as a seam.
+		Mailer:          auth.NewLogMailer(logger),
+		Logger:          logger,
+		RefreshTTL:      cfg.RefreshTokenTTL,
+		VerificationTTL: cfg.VerificationTokenTTL,
+		VerifyBaseURL:   cfg.WebOrigin,
+	}), nil
 }
 
 // googleAuthOrNil converts a possibly-nil *auth.GoogleOAuth into a genuinely nil
@@ -153,14 +181,6 @@ func googleAuthOrNil(g *auth.GoogleOAuth) auth.GoogleAuthenticator {
 		return nil
 	}
 	return g
-}
-
-func randomSecret() string {
-	var b [32]byte
-	if _, err := rand.Read(b[:]); err != nil {
-		return "ephemeral-dev-secret-do-not-use-in-production"
-	}
-	return hex.EncodeToString(b[:])
 }
 
 func envInt(key string, fallback int) int {

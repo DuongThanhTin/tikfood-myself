@@ -108,9 +108,28 @@ func NewRefreshTokenValue() (raw string, hash string, err error) {
 	return raw, HashRefreshToken(raw), nil
 }
 
+// NewEmailVerificationTokenValue generates a single-use email-verification token: the
+// raw value is emailed to the user, and only its SHA-256 hash is persisted. It shares the
+// opaque-token shape (entropy + hash) with refresh tokens.
+func NewEmailVerificationTokenValue() (raw string, hash string, err error) {
+	return NewRefreshTokenValue()
+}
+
 // HashRefreshToken returns the deterministic SHA-256 hash (hex) of a raw refresh
 // token, used both at issue time and on lookup.
 func HashRefreshToken(raw string) string {
 	sum := sha256.Sum256([]byte(raw))
 	return hex.EncodeToString(sum[:])
+}
+
+// RandomHexToken returns 32 bytes of cryptographic randomness, hex-encoded. It is the
+// shared source for opaque, non-guessable strings that are not refresh tokens — the
+// OAuth anti-CSRF state and the ephemeral dev-only JWT secret. It fails closed: a
+// crypto/rand failure is returned, never masked with a predictable value.
+func RandomHexToken() (string, error) {
+	var b [32]byte
+	if _, err := rand.Read(b[:]); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(b[:]), nil
 }

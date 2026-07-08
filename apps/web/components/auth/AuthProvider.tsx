@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
+import { getClientApiBaseUrl } from "../../lib/api";
 import {
   type AuthUser,
   getMe,
@@ -35,6 +36,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let active = true;
     (async () => {
+      if (!getClientApiBaseUrl()) {
+        // No API base URL configured (e.g. static/preview build): stay anonymous instead
+        // of firing a same-origin POST /api/v1/auth/refresh that 404s. Mirrors the
+        // discovery fallback, which also goes offline-safe when the API URL is unset.
+        if (active) {
+          setUser(null);
+          setStatus("anonymous");
+        }
+        return;
+      }
       try {
         await refresh();
         const me = await getMe();

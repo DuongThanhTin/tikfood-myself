@@ -4,8 +4,10 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import GoogleCallbackPage from "./page";
 
 const replace = vi.fn();
+let currentPath = "/auth/google/callback";
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ replace })
+  useRouter: () => ({ replace }),
+  usePathname: () => currentPath
 }));
 
 let currentStatus = "loading";
@@ -16,6 +18,7 @@ vi.mock("../../../../components/auth/AuthProvider", () => ({
 afterEach(() => {
   vi.clearAllMocks();
   currentStatus = "loading";
+  currentPath = "/auth/google/callback";
 });
 
 describe("GoogleCallbackPage", () => {

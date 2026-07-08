@@ -107,6 +107,20 @@ func (r *MemoryUserRepository) LinkGoogleSub(_ context.Context, userID string, g
 	return user, nil
 }
 
+func (r *MemoryUserRepository) MarkEmailVerified(_ context.Context, userID string) (User, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	user, ok := r.users[userID]
+	if !ok {
+		return User{}, ErrUserNotFound
+	}
+	user.EmailVerified = true
+	user.UpdatedAt = time.Now()
+	r.users[userID] = user
+	return user, nil
+}
+
 // MemoryRefreshTokenRepository is an in-memory RefreshTokenRepository for tests and no-DB mode.
 type MemoryRefreshTokenRepository struct {
 	mu     sync.RWMutex
@@ -151,6 +165,40 @@ func (r *MemoryRefreshTokenRepository) RevokeRefreshToken(_ context.Context, tok
 	return true, nil
 }
 
+func (r *MemoryRefreshTokenRepository) RotateRefreshToken(_ context.Context, oldHash string, newToken RefreshToken) (bool, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	// Compare-and-revoke under the same lock that guards the store, mirroring the
+	// single-transaction guarantee of the Postgres implementation.
+	old, ok := r.tokens[oldHash]
+	if !ok || old.RevokedAt != nil {
+		return false, nil // lost the race or replay: nothing live to rotate, store nothing
+	}
+	now := time.Now()
+	old.RevokedAt = &now
+	r.tokens[oldHash] = old
+
+	newToken.ID = newID()
+	newToken.CreatedAt = now
+	r.tokens[newToken.TokenHash] = newToken
+	return true, nil
+}
+
+func (r *MemoryRefreshTokenRepository) PurgeExpiredRefreshTokens(_ context.Context, now time.Time) (int64, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	var removed int64
+	for hash, token := range r.tokens {
+		if token.ExpiresAt.Before(now) || token.RevokedAt != nil {
+			delete(r.tokens, hash)
+			removed++
+		}
+	}
+	return removed, nil
+}
+
 func (r *MemoryRefreshTokenRepository) RevokeAllForUser(_ context.Context, userID string) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -163,4 +211,51 @@ func (r *MemoryRefreshTokenRepository) RevokeAllForUser(_ context.Context, userI
 		}
 	}
 	return nil
+}
+
+// MemoryEmailVerificationTokenRepository is an in-memory EmailVerificationTokenRepository
+// for tests and no-DB mode.
+type MemoryEmailVerificationTokenRepository struct {
+	mu     sync.RWMutex
+	tokens map[string]EmailVerificationToken // keyed by token hash
+}
+
+func NewMemoryEmailVerificationTokenRepository() *MemoryEmailVerificationTokenRepository {
+	return &MemoryEmailVerificationTokenRepository{tokens: make(map[string]EmailVerificationToken)}
+}
+
+var _ EmailVerificationTokenRepository = (*MemoryEmailVerificationTokenRepository)(nil)
+
+func (r *MemoryEmailVerificationTokenRepository) CreateEmailVerificationToken(_ context.Context, token EmailVerificationToken) (EmailVerificationToken, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	token.ID = newID()
+	token.CreatedAt = time.Now()
+	r.tokens[token.TokenHash] = token
+	return token, nil
+}
+
+func (r *MemoryEmailVerificationTokenRepository) FindEmailVerificationTokenByHash(_ context.Context, tokenHash string) (EmailVerificationToken, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	if token, ok := r.tokens[tokenHash]; ok {
+		return token, nil
+	}
+	return EmailVerificationToken{}, ErrEmailVerificationTokenNotFound
+}
+
+func (r *MemoryEmailVerificationTokenRepository) ConsumeEmailVerificationToken(_ context.Context, tokenHash string) (bool, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	token, ok := r.tokens[tokenHash]
+	if !ok || token.ConsumedAt != nil {
+		return false, nil // idempotent: nothing live to consume
+	}
+	now := time.Now()
+	token.ConsumedAt = &now
+	r.tokens[tokenHash] = token
+	return true, nil
 }
