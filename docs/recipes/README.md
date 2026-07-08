@@ -31,6 +31,7 @@ Verification · Exit · Common mistakes**.
 | Recipe | Use when |
 | --- | --- |
 | [add-api-endpoint](add-api-endpoint.md) | Adding/extending an `apps/api` endpoint |
+| [contract-first-change](contract-first-change.md) | Changing a shape shared across services (envelope / `lib/api.ts` / `packages/schemas`) |
 | [frontend-component](frontend-component.md) | Adding/changing `apps/web` UI |
 | [fix-bug](fix-bug.md) | Something is broken or behaves wrong |
 | [refactor](refactor.md) | Improving structure without changing behavior |
