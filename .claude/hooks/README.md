@@ -1,9 +1,16 @@
-# .claude/hooks — governance guard
+# .claude/hooks — PreToolUse guards
 
-A `PreToolUse` hook (`governance-guard.py`, registered in `.claude/settings.json`) that
-makes the repo's safety rules *enforced*, not just documented. It mirrors the automation
-runner's guards (`apps/ai-code-runner/src/guards/`) on the interactive side, reading the
-same lists from `.ai-agent.yaml` at runtime so the two can never drift.
+Two `PreToolUse` hooks (registered in `.claude/settings.json`) that make the repo's rules
+*enforced*, not just documented:
+
+1. **`governance-guard.py`** — safety: blocked commands, secret reads, protected-path writes.
+2. **`verify-evidence-guard.py`** — honesty: no commit / PR without fresh proof that tests pass.
+
+## 1. governance-guard.py
+
+Mirrors the automation runner's guards (`apps/ai-code-runner/src/guards/`) on the
+interactive side, reading the same lists from `.ai-agent.yaml` at runtime so the two can
+never drift.
 
 ## What it blocks
 
@@ -29,7 +36,33 @@ same lists from `.ai-agent.yaml` at runtime so the two can never drift.
 - **Case-sensitive matching** — an uppercase secret name at repo root (e.g. `SERVER.PEM`) may not match; keep secret files lowercase or rely on `secrets/**` placement.
 - **No two-step fetch detection** — `curl -o f.sh <url>; sh f.sh` (fetch then run separately) is not caught; only direct `curl … | sh` pipes are.
 
+## 2. verify-evidence-guard.py
+
+Makes "I verified" non-fakeable. Each `make verify-<surface>` records a pass under
+`.verify-evidence/<surface>` (via `record-verify.sh`, gitignored). Before a `git commit`
+or `gh pr create`, the hook maps every changed file to the surface(s) that must be fresh:
+
+| Changed path | Requires fresh evidence for |
+| --- | --- |
+| `apps/api/**` | `api` |
+| `apps/web/**` | `web` |
+| `apps/ai-code-runner/**` | `runner` |
+| `packages/**` (shared contracts) | `api` + `web` + `runner` |
+| `.claude/hooks/**`, `.claude/*.sh` | `hooks` |
+| anything else (docs, Makefile, root) | — (not gated) |
+
+"Fresh" = the surface's evidence file is **newer than the changed source files** — so
+editing code after verifying makes the evidence stale and re-blocks you. Denies with the
+exact `make verify-<surface>` command to run.
+
+### Honest limitations (this hook)
+- **Fail-open** on parse error or when git is unavailable (never bricks the session).
+- **Freshness is by mtime** of the working tree — it proves verify ran after your last edit,
+  not that the diff is bug-free. Pasted evidence in the PR is still the human-readable proof.
+- **Not per-file**: any change under a surface requires that whole surface's `make verify`.
+
 ## Verify / disable
-- Test: `make verify-hooks`.
+- Test: `make verify-hooks` (runs both guards' unit tests).
 - To do approved protected-path work: `TIKFOOD_ALLOW_PROTECTED=1` in the environment.
-- To disable entirely: remove the `PreToolUse` block from `.claude/settings.json`.
+- Emergency commit without fresh evidence: `TIKFOOD_SKIP_VERIFY_GATE=1` (say so in the PR).
+- To disable entirely: remove the relevant `PreToolUse` block from `.claude/settings.json`.

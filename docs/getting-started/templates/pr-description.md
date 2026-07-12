@@ -20,7 +20,18 @@
 ## Acceptance / Cách kiểm thử
 - [ ] <bước kiểm thử 1 / kết quả mong đợi>
 - [ ] <bước 2>
-- [ ] Đã chạy test liên quan; đối chiếu docs/verification/definition-of-done.md
+
+## Verification (evidence)   ← BẮT BUỘC, dán output THẬT (không phải checkbox)
+<!-- Dán đuôi output của `make verify-*` đã chạy: lệnh + kết quả + exit code.
+     verify-evidence-guard.py chặn commit/PR nếu surface bị đổi mà chưa verify tươi. -->
+```
+$ make verify-api
+ok  github.com/tikfood/api/...   12 passed
+exit 0
+```
+<!-- Nếu là BUG: dán regression test đỏ-trước / xanh-sau + tên test -->
+- Regression test: `<TestName>` — RED trước fix, GREEN sau fix (dán 2 lần chạy ở trên).
+- Skipped surface (nếu có): <ví dụ verify-web bỏ vì không có harness> — nói rõ, không giấu.
 
 ## Ràng buộc đã tuân thủ
 - [ ] Discovery-only, không đụng anti-goals
