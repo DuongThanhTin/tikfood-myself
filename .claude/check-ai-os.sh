@@ -73,7 +73,7 @@ while IFS= read -r recipe_file; do
       | grep -v '[* ]' \
       | sort -u
   )
-done < <(find docs/recipes -name '*.md' 2>/dev/null)
+done < <(find docs/recipes -name '*.md' ! -name 'README.md' 2>/dev/null)
 
 # ---------------------------------------------------------------------------
 # Summary
