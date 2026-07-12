@@ -12,10 +12,10 @@
 # Keep the Go build cache inside the repo's gitignored .cache/ dir (matches package.json).
 GOCACHE := $(CURDIR)/.cache/go-build
 
-.PHONY: verify verify-api verify-web verify-runner verify-claude
+.PHONY: verify verify-api verify-web verify-runner verify-claude verify-ai-os
 
 ## verify: run every app's verification gate
-verify: verify-api verify-web verify-runner verify-claude
+verify: verify-api verify-web verify-runner verify-claude verify-ai-os
 
 ## verify-api: go vet + go test + go build (apps/api)
 verify-api:
@@ -39,3 +39,7 @@ verify-runner:
 ## verify-claude: validate .claude/ artifacts (frontmatter + link resolution)
 verify-claude:
 	bash .claude/check-artifacts.sh
+
+## verify-ai-os: AI-OS semantic integrity (skill->recipe anchors + recipe->code drift)
+verify-ai-os:
+	bash .claude/check-ai-os.sh
