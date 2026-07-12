@@ -16,19 +16,33 @@ check_frontmatter() {
     echo "FAIL [$file]: missing opening '---' frontmatter"
     fail=1; return
   fi
-  # Frontmatter must contain a name: key (skills/agents) — commands use description:.
   local fm
   fm="$(awk 'NR>1{ if($0=="---") exit; print }' "$file")"
-  if ! grep -Eq '^(name|description):' <<<"$fm"; then
-    echo "FAIL [$file]: frontmatter has no name:/description: key"
-    fail=1
-  fi
+  # Branch on artifact type: skills/agents require name:, commands require description:.
+  case "$file" in
+    .claude/skills/*|.claude/agents/*)
+      if ! grep -Eq '^name:' <<<"$fm"; then
+        echo "FAIL [$file]: frontmatter missing required 'name:' key (skills/agents must be self-triggerable)"
+        fail=1
+      fi
+      ;;
+    .claude/commands/*)
+      if ! grep -Eq '^description:' <<<"$fm"; then
+        echo "FAIL [$file]: frontmatter missing required 'description:' key (commands must have a description)"
+        fail=1
+      fi
+      ;;
+  esac
 }
 
 while IFS= read -r f; do
   count=$((count+1))
   check_frontmatter "$f"
-  refs="$(grep -oE '@?[A-Za-z0-9_.-]+(/[A-Za-z0-9_.-]+)+\.(md|ts|go|yaml|yml|json|sh)' "$f" | sed 's/^@//' | sort -u)"
+  # Extract slash-path refs (with or without leading @) and bare @-prefixed refs (no slash).
+  refs="$(
+    { grep -oE '@?[A-Za-z0-9_.-]+(/[A-Za-z0-9_.-]+)+\.(md|ts|go|yaml|yml|json|sh)' "$f" | sed 's/^@//';
+      grep -oE '@[A-Za-z0-9_.-]+\.(md|ts|go|yaml|yml|json|sh)' "$f" | sed 's/^@//'; } | sort -u
+  )"
   for ref in $refs; do
     case "$ref" in http*|*node_modules*) continue ;; esac
     if [ ! -e "$ROOT/$ref" ]; then echo "FAIL [$f]: broken reference -> $ref"; fail=1; fi

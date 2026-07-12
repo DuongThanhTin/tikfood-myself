@@ -15,8 +15,8 @@ Authoritative steps and exit gate: **@docs/recipes/contract-first-change.md** �
 5. Update `docs/contracts/api.md` + the relevant `docs/services/` doc.
 
 ## Guard rails
-- `packages/schemas/**` is a protected path — human approval required (CLAUDE.md; @docs/ai/AI-CONTRACT.md §4).
+- `packages/schemas/**` is a protected path — human approval required (@CLAUDE.md; @docs/ai/AI-CONTRACT.md §4).
 - No breaking API changes; keep the `{data,error}` envelope compatible (ADR-0003).
 
 ## Done when
-`make verify` (all apps, both sides of the boundary) is green and the change meets docs/verification/definition-of-done.md.
+`make verify` (all apps, both sides of the boundary) is green and the change meets @docs/verification/definition-of-done.md.

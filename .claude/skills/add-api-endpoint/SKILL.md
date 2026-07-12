@@ -16,8 +16,8 @@ Authoritative steps, context to load, and exit gate: **@docs/recipes/add-api-end
 6. Table-driven tests (parser: valid + each invalid class + boundaries; service: mocked repo).
 
 ## Guard rails
-- Writes / auth / migrations = **human approval** (CLAUDE.md; docs/ai/AI-CONTRACT.md §4).
+- Writes / auth / migrations = **human approval** (@CLAUDE.md; @docs/ai/AI-CONTRACT.md §4).
 - No breaking API changes; envelope shape unchanged.
 
 ## Done when
-`make verify-api` (or `make verify`) is green and the surface meets docs/verification/definition-of-done.md.
+`make verify-api` (or `make verify`) is green and the surface meets @docs/verification/definition-of-done.md.

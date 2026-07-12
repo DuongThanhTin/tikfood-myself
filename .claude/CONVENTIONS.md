@@ -31,14 +31,24 @@ policy — link to `../CLAUDE.md` / `docs/ai/AI-CONTRACT.md`.
 - **Commands** (`.claude/commands/<name>.md`): `description`; optional `argument-hint`.
   The slash name is the filename (`feature.md` -> `/feature`).
 
-## Body shape (every artifact)
+## @-ref vs bare citation
+
+Use `@path` for the authoritative pointer (the doc the artifact auto-loads or the
+reader must follow first) and for any path that `check-artifacts.sh` must verify.
+Plain citations (narrative mentions that are not load-bearing) may be bare.
+Concretely: `@docs/verification/definition-of-done.md`, `@docs/ai/AI-CONTRACT.md`,
+and `@CLAUDE.md` in body prose must carry the `@` prefix.
+
+## Body shape (every skill and command)
 
 1. One-line purpose.
 2. `Authoritative steps: @docs/...` — the pointer, read-first.
 3. A short quick-checklist (the gist, not the full procedure).
 4. Guard rails it touches, each linking its owning source (never push `main`; protected
    paths -> human approval; honesty-before-done).
-5. Close with the gate: `make verify` + `docs/verification/definition-of-done.md`.
+5. Close with the gate: `make verify` + `@docs/verification/definition-of-done.md`.
+
+Agents are exempt from step 5 — a read-only context subagent has nothing to verify.
 
 ## Verification
 

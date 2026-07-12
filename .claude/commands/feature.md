@@ -18,5 +18,5 @@ Feature request: $ARGUMENTS
 6. **Update docs/ADR**; open a PR under `ai/` — do not merge, do not push `main`, do not force-push.
 
 ## Guard rails
-- Stop for human approval on any gated area (CLAUDE.md; docs/ai/AI-CONTRACT.md §3–§4).
+- Stop for human approval on any gated area (@CLAUDE.md; @docs/ai/AI-CONTRACT.md §3–§4).
 - Claim done only after `make verify` actually ran — @docs/verification/definition-of-done.md.
