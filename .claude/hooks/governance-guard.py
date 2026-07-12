@@ -47,9 +47,14 @@ def _load_lists():
 
 
 def _glob_to_re(pattern):
-    """Translate a protected-path glob to a regex fragment: ** -> any, * -> non-slash."""
-    p = pattern.strip().lstrip("./")
+    """Translate a protected-path glob to a regex fragment. Strips only a leading
+    './' (NOT the leading dot of .env). A leading '**/' becomes optional so a
+    filename glob also matches a no-directory (repo-root) path."""
+    p = re.sub(r"^(\./)+", "", pattern.strip())
     out, i = "", 0
+    if p.startswith("**/"):
+        out += "(?:.*/)?"
+        i = 3
     while i < len(p):
         if p[i:i + 2] == "**":
             out += ".*"
@@ -64,14 +69,14 @@ def _glob_to_re(pattern):
 
 
 def path_matches(path, pattern):
-    path = path.strip().lstrip("./")
+    path = re.sub(r"^(\./)+", "", path.strip())
     frag = _glob_to_re(pattern)
     base = os.path.basename(path)
     return bool(
         re.fullmatch(frag, path)
         or re.fullmatch(frag + r"(/.*)?", path)
         or re.search(r"(^|/)" + frag + r"(/|$)", path)
-        or re.fullmatch(frag, base.lstrip("./"))  # basename catch (e.g. **/*.pem at repo root)
+        or re.fullmatch(frag, base)
     )
 
 
@@ -108,6 +113,12 @@ def main():
             deny("force-push is forbidden")
         if re.search(r"\bgit\s+push\b", low) and re.search(r"\b(main|master)\b", low):
             deny("pushing to main/master is forbidden")
+        if re.search(r"\b(curl|wget)\b", low) and re.search(r"\|\s*(sh|bash|zsh|dash)\b", low):
+            deny("pipe-to-shell (curl/wget | sh) is forbidden")
+        if re.search(r"\brm\b", low):
+            rm_flags = "".join(re.findall(r"(?:^|\s)-(\w+)", low))
+            if "r" in rm_flags and "f" in rm_flags and re.search(r"(^|\s)/(\s|$)", cmd):
+                deny("recursive force rm targeting / is forbidden")
         if re.search(r"\b(cat|less|more|head|tail|xxd|od|strings|base64|openssl)\b", low):  # NEVER: secret read
             for tok in cmd.split():
                 for sp in secret_patterns:
