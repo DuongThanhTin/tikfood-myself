@@ -20,3 +20,6 @@ runner_workspace/
 
 # Python bytecode (governance hook)
 __pycache__/
+
+# Local verify-evidence records (written by `make verify-*`; read by verify-evidence-guard)
+.verify-evidence/

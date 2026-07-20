@@ -18,6 +18,22 @@ having run the command and seen the result. If a check was skipped (e.g. no DB, 
 frontend harness), say so explicitly. Claiming an unrun check is a hard violation
 ([`AI-CONTRACT.md`](../ai/AI-CONTRACT.md) §9).
 
+**This is enforced, not just asked.** Each `make verify-*` records a pass under
+`.verify-evidence/<surface>` (gitignored). The `verify-evidence-guard.py` PreToolUse hook
+**blocks `git commit` / `gh pr create`** when a touched code surface (apps/api → `api`,
+apps/web → `web`, apps/ai-code-runner → `runner`, packages/** → all three, .claude/hooks →
+`hooks`) has no evidence, or evidence older than your last edit (stale). Emergency escape
+hatch: `TIKFOOD_SKIP_VERIFY_GATE=1` — use only when you have a real reason and say so in the
+PR. See [`.claude/hooks/README.md`](../../.claude/hooks/README.md).
+
+### What "evidence" means in the PR
+
+Paste the **actual tail** of the command you ran — command line + result + exit — not a
+ticked box. For a **bug fix**, also paste the regression test **red before / green after**
+(the two runs), naming the test. Skipped surfaces must be named, not omitted. The PR
+template's `## Verification (evidence)` section is where this goes
+([`pr-description.md`](../getting-started/templates/pr-description.md)).
+
 ## How to run the gates
 
 The commands below are wired into the root [`Makefile`](../../Makefile) so there is one

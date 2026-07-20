@@ -21,11 +21,13 @@ The owning `apps/*/CLAUDE.md` + [CONTEXT-LOADING §2](../ai/CONTEXT-LOADING.md);
 | 2 | Load context | Narrow to layer/input | owner doc + [CONTEXT-LOADING](../ai/CONTEXT-LOADING.md) | Suspect area | Enough to reproduce | — |
 | 3 | Branch | Clean workspace | [new-feature §1](../getting-started/new-feature.md) — `git checkout -b ai/fix-<bug>` | `ai/*` branch | On new branch | Never branch off `main` |
 | 4 | Investigate + fix | Root cause → smallest fix | skill `systematic-debugging` via [recipe fix-bug](../recipes/fix-bug.md) (reproduce → localize → root cause → failing test → fix → siblings) | Code + regression test | fix-bug recipe done | Bigger work → split [feature](feature.md) / [refactor](refactor.md) |
-| 5 | Verify | Evidence | skill `verification-before-completion` + [DoD](../verification/definition-of-done.md); regression test red-before / green-after | Logs | DoD satisfied | — |
+| 5 | Verify | Evidence | skill `verification-before-completion` + [DoD](../verification/definition-of-done.md); run `make verify-<surface>` (records `.verify-evidence/`); capture the regression test **red-before / green-after** | Pasted logs (both runs) + test name | DoD satisfied; evidence gate green | — |
 | 6 | Docs + PR | Hand off | [DoD → Docs](../verification/definition-of-done.md#docs-to-update-when-relevant) + [pr template](../getting-started/templates/pr-description.md) | PR stating root cause | PR open | **No merge / no push to main / no force-push** |
 
 ## Verification
-`go test ./...` (or `web:typecheck`+`web:build`); the regression test fails before / passes after. See [Definition of Done](../verification/definition-of-done.md).
+`make verify-<surface>` (writes `.verify-evidence/`; the `verify-evidence-guard` hook then
+lets you commit). The regression test must **fail before / pass after** — paste both runs in
+the PR's `## Verification (evidence)` section. See [Definition of Done](../verification/definition-of-done.md).
 
 ## Exit
 Root cause stated, regression test added, fix minimal, no regressions, siblings checked.
