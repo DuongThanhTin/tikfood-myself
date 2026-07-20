@@ -17,3 +17,6 @@ logs/
 runner_workspace/
 .ai-code-runner/
 .cache/
+
+# Python bytecode (governance hook)
+__pycache__/
